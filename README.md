@@ -8,7 +8,7 @@
 ### Prerequisites
 Before using scanthng you'll need:
 
-* [An EVRYTHNG operator account](https://dashboard.evrythng.com)
+* [An EVRYTHNG developer account](https://dashboard.evrythng.com)
 * To create an [Application](https://dashboard.evrythng.com/projects/setup/details) as scanthng.js operates on a per Application basis. Note: Applications are called Projects in our [dashboard](https://dashboard.evrythng.com/projects/setup/details).
 
 ### Supported Devices
@@ -55,7 +55,7 @@ To add **scanthng.js** to your site, you can just use our CDN to serve the file 
 
 If you like living on the bleeding edge, you can also use 
 
-    d10ka0m22z5ju5.cloudfront.net/toolkit/scanthng/scanthng.js
+    <script src='//d10ka0m22z5ju5.cloudfront.net/toolkit/scanthng/scanthng.js></script>
     
 Which also refers to the latest released version. Be aware that we may introduce backwards incompatible changes into the library now and then so using this version could break your code.
 
