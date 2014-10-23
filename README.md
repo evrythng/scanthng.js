@@ -55,14 +55,14 @@ To add **scanthng.js** to your site, you can just use our CDN to serve the file 
 
 If you like living on the bleeding edge, you can also use 
 
-    <script src='//d10ka0m22z5ju5.cloudfront.net/toolkit/scanthng/scanthng.js></script>
+    <script src='//d10ka0m22z5ju5.cloudfront.net/toolkit/scanthng/scanthng.js'></script>
     
 Which also refers to the latest released version. Be aware that we may introduce backwards incompatible changes into the library now and then so using this version could break your code.
 
 
 ##Dependencies
 
-**scanthng.js** depends on evrythng.js, our main Javascript SDK.
+**scanthng.js** is a module of [evrythng.js](https://github.com/evrythng/evrythng-js-sdk), our main Javascript SDK so you'll need to import it as well. 
 
 ##Basic usage
 Triggering an identification action is a two-step process. First of all, we instanciate an App with evrythng.js like this:
@@ -109,6 +109,8 @@ Finally, we call the `identify` method on the instance we just created and use a
                             // corresponding to this Product
           })
           .then(function(result){
+            // Do something with the results, like loading the Product/Thng
+            // information from the EVRYTHNG API
             console.log('SUCCESS', result);
           },
           function(error){
