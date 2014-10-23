@@ -144,8 +144,20 @@ Default: `true`
 
 Indicates whether the library should automatically redirect user to the redirection URL associated with the scanned Thng or Product.
 
-###bw
+###imageConversion: 
+    imageConversion : {
+              greyscale: Boolean,
+              resizeTo: Integer
+    }
+    
+#### imageConversion.grayscale
 Type: `Boolean`
 Default: `true`
-
+    
 Indicates whether the library should to send a black and white version of the scanned image for identification. If do do not need to distinguish images with different colors, this yields better and faster results.
+
+#### imageConversion.resizeTo
+Type: `Integer`
+Default: 480
+    
+This sets the size of the image (in pixels) to be sent to the server for recognition. The best tradeoff between speed and quality is currently around 480
