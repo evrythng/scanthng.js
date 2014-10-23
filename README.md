@@ -92,7 +92,7 @@ Finally, we call the `identify` method on the instance we just created and use a
     <button id="identify">Identify</button>
 
     <script src="http://cdn.evrythng.net/toolkit/evrythng-js-sdk/evrythng.js"></script>
-    <script src="dist/scanthng.js"></script>
+    <script src="http://cdn.evrythng.net/toolkit/scanthng/scanthng-2.0.0.js"></script>
     <script type="text/javascript">    
     (function(){
       var app = new EVT.App('YOUR-APP-API-KEY');
