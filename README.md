@@ -142,7 +142,7 @@ Sets the timeout for AJAX calls and geolocation, in ms.
 Type: `Boolean`
 Default: `true`
 
-Indicates whether the library should automatically redirect user to the redirection URL associated with the scanned Thng or Product.
+Indicates whether the library should automatically redirect user to the redirection URL associated with the scanned Thng or Product. This can be set in the [dashboard](https://dashboard.evrythng.com) on any Product or Thng page.
 
 ###imageConversion
     imageConversion : {
