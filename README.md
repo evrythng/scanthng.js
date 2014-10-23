@@ -75,7 +75,7 @@ then, we initialize a ScanThng instance:
 
 Finally, we call the `identify` method on the instance we just created and use a promise to fetch the results:
 
-    s.identify()
+    st.identify()
           .then(function(result){
             // Do something on success
           },
