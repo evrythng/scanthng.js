@@ -144,7 +144,7 @@ Default: `true`
 
 Indicates whether the library should automatically redirect user to the redirection URL associated with the scanned Thng or Product.
 
-###imageConversion: 
+###imageConversion
     imageConversion : {
               greyscale: Boolean,
               resizeTo: Integer
