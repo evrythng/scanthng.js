@@ -83,6 +83,17 @@ Finally, we call the `identify` method on the instance we just created and use a
             // Do something on error
     });
     
+Note that we uses a promise above but callbacks are also supported:
+
+        st.identify({}, 
+            function(result){
+                // success callback
+            }, 
+            function(error){
+                // error callback
+            }
+        );
+
 ###Simplistic usage example
 
 ```html
