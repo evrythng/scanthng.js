@@ -57,7 +57,7 @@ If you do have this feature enabled, you can activate image recognition for any 
 
 To add `scanthng.js` to your site, you can just use our CDN to serve the file by using a script tag like this:
 
-    <script src='//d10ka0m22z5ju5.cloudfront.net/toolkit/scanthng/scanthng-2.0.js'></script>
+    <script src='//d10ka0m22z5ju5.cloudfront.net/toolkit/scanthng/scanthng-2.0.0.js'></script>
 
 **Note**: For scanthing.js to work, you must load evrythng.js first.
 
