@@ -1,7 +1,7 @@
 #scanthng.js 
 ## Identify Products & Thngs directly from a (mobile) browser...
 
-**scanthng.js** is an [evrythng.js](https://github.com/evrythng/evrythng-js-sdk) module that lets you identify Products and Thngs. By using a blend of cutting-edge HTML5 and our backend product recognition service, it allows a (mobile) browser to take a picture of an object, a QR code or a barcode and recognize them as [EVRYTHNG Products or Thngs](https://dashboard.evrythng.com)!
+`scanthng.js` is an [evrythng.js](https://github.com/evrythng/evrythng-js-sdk) module that lets you identify Products and Thngs. By using a blend of cutting-edge HTML5 and our backend product recognition service, it allows a (mobile) browser to take a picture of an object, a QR code or a barcode and recognize them as [EVRYTHNG Products or Thngs](https://dashboard.evrythng.com)!
 
 ## Setting your Thngs and Products to work with scanthng.js
 
@@ -9,11 +9,11 @@
 Before using scanthng you'll need:
 
 * [An EVRYTHNG developer account](https://dashboard.evrythng.com)
-* To create an [Application](https://dashboard.evrythng.com/projects/setup/details) as scanthng.js operates on a per Application basis. Note: Applications are called Projects in our [dashboard](https://dashboard.evrythng.com/projects/setup/details).
+* To create an [Application](https://dashboard.evrythng.com/projects/setup/details) as `scanthng.js` operates on a per Application basis. Note: Applications are called Projects in our [dashboard](https://dashboard.evrythng.com/projects/setup/details).
 
 ### Supported Devices
 
-The following devices are currently supported by scanthng.js:
+The following mobile browsers are currently supported by `scanthng.js`:
 
 * Android 3.0+ browser
 * Chrome for Android 0.16+
@@ -25,7 +25,7 @@ The following devices are currently supported by scanthng.js:
 
 QR codes can be used to identify both Products and Thngs (i.e., unique instances of Products). To enable this all you need to do is to create a Thngs or a Product (via our API or dashboard) and enable a Redirection. This basically creates a short identity for your object and stores it directly in a QR code.
 
-You can now use scanthng.js to identify the QR of this Thng or Product!
+You can now use `scanthng.js` to identify the QR of this Thng or Product!
 
 ### Using 1D barcodes
 
@@ -39,7 +39,7 @@ To enable this, edit the `data` field of your Thng or Product and add an Identif
 
 The `value` field must match the full number on the barcode, e.g., 3057640100178.
 
-You can now use scanthng.js to identify the 1D barcode of of this Thng or Product!
+You can now use `scanthng.js` to identify the 1D barcode of of this Thng or Product!
 
 ### Using image recognition
 
@@ -47,25 +47,22 @@ Image recognition allows you to recognize Products simply by taking a picture of
 
 If you do have this feature enabled, you can activate image recognition for any Product through the dashboard by clicking on "Setup image recognition" on the Product page.
 
-##Adding scanthng.js to your webapp
+##Adding scanthng.js to your web app
 
-To add **scanthng.js** to your site, you can just use our CDN to serve the file by using a script tag like this:
+###Dependencies
+
+`scanthng.js` is a module of [evrythng.js](https://github.com/evrythng/evrythng-js-sdk), our main Javascript SDK so you'll need to import that first. 
+
+###Adding link to script
+
+To add `scanthng.js` to your site, you can just use our CDN to serve the file by using a script tag like this:
 
     <script src='//d10ka0m22z5ju5.cloudfront.net/toolkit/scanthng/scanthng-2.0.js'></script>
 
-If you like living on the bleeding edge, you can also use 
-
-    <script src='//d10ka0m22z5ju5.cloudfront.net/toolkit/scanthng/scanthng.js'></script>
-    
-Which also refers to the latest released version. Be aware that we may introduce backwards incompatible changes into the library now and then so using this version could break your code.
-
-
-##Dependencies
-
-**scanthng.js** is a module of [evrythng.js](https://github.com/evrythng/evrythng-js-sdk), our main Javascript SDK so you'll need to import it as well. 
+**Note**: For scanthing.js to work, you must load evrythng.js first.
 
 ##Basic usage
-Triggering an identification action is a two-step process. First of all, we instanciate an App with evrythng.js like this:
+Triggering an identification action is a two-step process. First of all, we instanciate an App with `evrythng.js` like this:
 
     var app = new EVT.App(APP-KEY-HERE);
     
@@ -76,22 +73,26 @@ then, we initialize a ScanThng instance:
 Finally, we call the `identify` method on the instance we just created and use a promise to fetch the results:
 
     st.identify()
-          .then(function(result){
+        .then(function(result) {
             // Do something on success
           },
-          function(error){
+          function(error) {
             // Do something on error
           });
     
-Note that we uses a promise above but callbacks are also supported:
+We use a promise above as the preferred style, but callbacks are also supported:
 
-    st.identify({}, 
-            function(result){
-                // success callback
-            }, 
-            function(error){
-                // error callback
-            });
+    st.identify(
+        {}, 
+        function(result) {
+          // success callback
+        }, 
+        function(error) {
+          // error callback
+        }
+      );
+
+**Note**: Due to browser limitations, the `identify` method **must** be called as a result of a user action - a click event handler or similar.
 
 ###Simplistic usage example
 
@@ -105,8 +106,12 @@ Note that we uses a promise above but callbacks are also supported:
     <script src="http://cdn.evrythng.net/toolkit/scanthng/scanthng-2.0.0.js"></script>
     <script type="text/javascript">    
     (function(){
+      // Initialise Evrythng.js App
       var app = new EVT.App('YOUR-APP-API-KEY');
+      // Initialise Scanthng
       var st = new EVT.ScanThng(app);
+
+      // Add click event handler to start identification when user clicks the button
       var el = document.getElementById('identify');
       el.addEventListener('click', function(){
         /*
@@ -133,41 +138,83 @@ Note that we uses a promise above but callbacks are also supported:
 </html>
 ```
 
-##Options
-**scanthng.js** supports the following configuration options to be passed as parameters of the identify method (`st.identify({option1 : value}`)
+## Options
 
-###type
+`scanthng.js` supports the following configuration options.
+
+These options can be passed as parameters to each call of the identify method
+
+    st.identify({ option1 : value1 }) ...
+
+Or set as default for all calls:
+
+    st.setup({ option1: value1 });
+    st.identify() ...
+
+### type
 Type: `String`
 Default: `qrcode`
 
 Indicate the type of image that the user is supposed to be scanning. Accepts a string with any of the following values: `qrcode`, `1dbarcode` or `objpic`. `objpic` is the option to indicate for scanning product labels.
 
-###timeout
+### timeout
 Type: `Integer`
 Default: `10000`
 
 Sets the timeout for AJAX calls and geolocation, in ms.
 
-###redirect
+### redirect
 Type: `Boolean`
 Default: `true`
 
-Indicates whether the library should automatically redirect user to the redirection URL associated with the scanned Thng or Product. This can be set in the [dashboard](https://dashboard.evrythng.com) on any Product or Thng page.
+Indicates whether the library should automatically redirect user to the redirection URL associated with the scanned Thng or Product. This URL can be set in the [dashboard](https://dashboard.evrythng.com) on any Product or Thng page.
 
-###imageConversion
+### imageConversion
     imageConversion : {
-              greyscale: Boolean,
-              resizeTo: Integer
+      greyscale: Boolean,
+      resizeTo: Integer
     }
     
-#### imageConversion.grayscale
+#### imageConversion.greyscale
 Type: `Boolean`
 Default: `true`
     
-Indicates whether the library should to send a black and white version of the scanned image for identification. If do do not need to distinguish images with different colors, this yields better and faster results.
+Indicates whether the library should to send a black and white version of the scanned image for identification.
+If you do not need to distinguish similar images with different colors, this yields better and faster results.
 
 #### imageConversion.resizeTo
 Type: `Integer`
-Default: 480
+Default: `480`
     
-This sets the maximal size of the image (in pixels, automatically resized) to be sent to the server for recognition. The best tradeoff between speed and quality is currently around 480
+Sets the maximum size of the image (in pixels, automatically resized) to be sent to the server for recognition. The best tradeoff between speed and quality is currently around 480.
+
+### spinner
+    spinner: {
+      enabled: true,
+      appendTo: document.getElementsByTagName('body')[0],
+      options: {
+        length: 30,
+        radius: 48,
+        hwaccel: true
+      }
+    }
+
+`scanthng.js` uses the [`spin.js`](http://fgnass.github.io/spin.js/) library to display a configurable spinner.
+
+####enabled
+Type: `Boolean`
+Default: `true`
+
+Indicates whether to display the built-in spinner. Set to `false` to disable it.
+
+####appendTo
+Type: `DOM Element`
+Default: `document.getElementsByTagName('body')[0]`
+
+Reference to DOM element our spinner will be attached to. If invalid or null, spinner will be attached to the body.
+
+####options
+Type: `Object`
+Default: `{ length: 30, radius: 48, hwaccel: true }`
+
+Spinner options as described in [`spin.js` documentation](http://fgnass.github.io/spin.js/).
