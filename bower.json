@@ -1,0 +1,21 @@
+{
+  "name": "scanthng.js",
+  "version": "2.0.0",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "selenium_tests",
+    "*.html",
+    "*.txt",
+    "WAF_DOCS.md",
+    "Gruntfile.js",
+    "package.json"
+  ],
+  "endpoint": "https://github.com/evrythng/scanthng.js.git",
+  "main": "scanthng.js",
+  "dependencies": {
+    "evrythng": "~2.0.7"
+  }
+}

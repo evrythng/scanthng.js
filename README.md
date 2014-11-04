@@ -51,17 +51,31 @@ If you do have this feature enabled, you can activate image recognition for any 
 
 ###Dependencies
 
-`scanthng.js` is a module of [evrythng.js](https://github.com/evrythng/evrythng-js-sdk), our main Javascript SDK so you'll need to import that first. 
+`scanthng.js` is a module of [`evrythng.js`](https://github.com/evrythng/evrythng-js-sdk), our main Javascript SDK.
 
 ###Adding link to script
 
-To add `scanthng.js` to your site, you can just use our CDN to serve the file by using a script tag like this:
+To add `scanthng.js` to your project, you can just use our CDN to serve the file by using a script tag like this:
 
     <script src='//d10ka0m22z5ju5.cloudfront.net/toolkit/scanthng/scanthng-2.0.0.js'></script>
 
-**Note**: For scanthing.js to work, you must load evrythng.js first.
+**Note**: For scanthing.js to work, you must load `evrythng.js` first.
+
+###Installing as [Bower component](http://bower.io)
+
+If you're using Bower in your project, simply run
+
+    bower install scanthng.js
+
+`Scanthng.js` (and `evrythng.js` if it's not installed yet) will be downloaded and installed in your project's components folder.
+Now add it to your project:
+
+    <script src="bower_components/scanthng.js/scanthng.js"></script>
+
+**Note**: Remember to load `evrythng.js` first!
 
 ##Basic usage
+
 Triggering an identification action is a two-step process. First of all, we instanciate an App with `evrythng.js` like this:
 
     var app = new EVT.App(APP-KEY-HERE);
