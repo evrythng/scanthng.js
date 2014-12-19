@@ -1,7 +1,7 @@
 #scanthng.js 
 ## Identify Products & Thngs directly from a (mobile) browser...
 
-`scanthng.js` is an [evrythng.js](https://github.com/evrythng/evrythng-js-sdk) module that lets you identify Products and Thngs. By using a blend of cutting-edge HTML5 and our backend product recognition service, it allows a (mobile) browser to take a picture of an object, a QR code or a barcode and recognize them as [EVRYTHNG Products or Thngs](https://dashboard.evrythng.com)!
+`scanthng.js` is an [evrythng.js](https://github.com/evrythng/evrythng.js) module that lets you identify Products and Thngs. By using a blend of cutting-edge HTML5 and our backend product recognition service, it allows a (mobile) browser to take a picture of an object, a QR code or a barcode and recognize them as [EVRYTHNG Products or Thngs](https://dashboard.evrythng.com)!
 
 ## Setting your Thngs and Products to work with scanthng.js
 
@@ -9,7 +9,7 @@
 Before using scanthng you'll need:
 
 * [An EVRYTHNG developer account](https://dashboard.evrythng.com)
-* To create an [Application](https://dashboard.evrythng.com/projects/setup/details) as `scanthng.js` operates on a per Application basis. Note: Applications are called Projects in our [dashboard](https://dashboard.evrythng.com/projects/setup/details).
+* To create an Application as `scanthng.js` operates on a per Application basis. Note: you need to create a Project in [dashboard](https://dashboard.evrythng.com/projects).
 
 ### Supported Devices
 
@@ -51,36 +51,36 @@ If you do have this feature enabled, you can activate image recognition for any 
 
 ###Dependencies
 
-`scanthng.js` is a module of [`evrythng.js`](https://github.com/evrythng/evrythng-js-sdk), our main Javascript SDK.
+`scanthng.js` is a module of [`evrythng.js`](https://github.com/evrythng/evrythng.js), our main Javascript SDK.
 
 ###Adding link to script
 
 To add `scanthng.js` to your project, you can just use our CDN to serve the file by using a script tag like this:
 
-    <script src='//d10ka0m22z5ju5.cloudfront.net/toolkit/scanthng/scanthng-2.0.0.js'></script>
+    <script src='//d10ka0m22z5ju5.cloudfront.net/toolkit/scanthng/scanthng-2.0.1.js'></script>
 
-**Note**: For scanthing.js to work, you must load `evrythng.js` first.
+**Note**: For `scanthng.js` to work, you must load `evrythng.js` first.
 
 ###Installing as [Bower component](http://bower.io)
 
 If you're using Bower in your project, simply run
 
-    bower install scanthng.js
+    bower install scanthng
 
 `Scanthng.js` (and `evrythng.js` if it's not installed yet) will be downloaded and installed in your project's components folder.
 Now add it to your project:
 
-    <script src="bower_components/scanthng.js/scanthng.js"></script>
+    <script src="bower_components/scanthng/scanthng.js"></script>
 
 **Note**: Remember to load `evrythng.js` first!
 
 ##Basic usage
 
-Triggering an identification action is a two-step process. First of all, we instanciate an App with `evrythng.js` like this:
+Triggering an identification action is a two-step process. First of all, we instantiate an App with `evrythng.js` like this:
 
     var app = new EVT.App(APP-KEY-HERE);
     
-then, we initialize a ScanThng instance:
+then, we initialise a ScanThng instance:
 
     var st = new EVT.ScanThng(app);
 
@@ -117,7 +117,7 @@ We use a promise above as the preferred style, but callbacks are also supported:
     <button id="identify">Identify</button>
 
     <script src="http://cdn.evrythng.net/toolkit/evrythng-js-sdk/evrythng.js"></script>
-    <script src="http://cdn.evrythng.net/toolkit/scanthng/scanthng-2.0.0.js"></script>
+    <script src="http://cdn.evrythng.net/toolkit/scanthng/scanthng-2.0.1.js"></script>
     <script type="text/javascript">    
     (function(){
       // Initialise Evrythng.js App
@@ -232,3 +232,19 @@ Type: `Object`
 Default: `{ length: 30, radius: 48, hwaccel: true }`
 
 Spinner options as described in [`spin.js` documentation](http://fgnass.github.io/spin.js/).
+
+###createAnonymousUser
+Type: `Boolean`
+Default: `false`
+
+If enabled, `scanthng.js` will try to create an Anonymous User and save it in local storage (falling back to cookies) for subsequent requests. For convenience, this User will be added to the output of the `identify()` method.
+
+The most common use case for this is easily tracking users from the beginning, by device, without forcing them to create an account or login with Facebook in our "experience" app. Obviously, Anonymous Users are not as "valuable" as full App Users, because we don't store their personal details, but in some situations that's good enough.
+
+###createScanAction
+Type: `Boolean`
+Default: `false`
+
+If enabled, `scanthng.js` will try to create a Scan Action after identifying the Thng or Product. It uses `EVT.settings.geolocation` to decide whether to ask for device location. If user allows this, the precise location will be recorded in this Action, otherwise the Engine will guess a broad location from IP.
+If this Scan Action triggered any Reactor rules (which now can work using the precise location from user's device, if it was provided), the reactions will be added to the output of the `identify()` method.
+Now, if one of those reactions was a redirection and the `redirect` option is set, `scanthng.js` will redirect the user to URL defined in the reaction instead of the default one.
