@@ -57,7 +57,7 @@ If you do have this feature enabled, you can activate image recognition for any 
 
 To add `scanthng.js` to your project, you can just use our CDN to serve the file by using a script tag like this:
 
-    <script src='//d10ka0m22z5ju5.cloudfront.net/toolkit/scanthng/scanthng-2.0.1.js'></script>
+    <script src='//d10ka0m22z5ju5.cloudfront.net/toolkit/scanthng/scanthng-2.0.2.js'></script>
 
 **Note**: For `scanthng.js` to work, you must load `evrythng.js` first.
 
@@ -74,7 +74,7 @@ Now add it to your project:
 
 **Note**: Remember to load `evrythng.js` first!
 
-##Basic usage
+## Basic usage - scanning an object
 
 Triggering an identification action is a two-step process. First of all, we instantiate an App with `evrythng.js` like this:
 
@@ -93,8 +93,9 @@ Finally, we call the `identify` method on the instance we just created and use a
           function(error) {
             // Do something on error
           });
-    
-We use a promise above as the preferred style, but callbacks are also supported:
+
+This will trigger the full identification process, allowing the user to take a picture, then processing it to ensure best results and sending an API request to Evrythng API. 
+Promises are the preferred style, but callbacks are also supported:
 
     st.identify(
         {}, 
@@ -106,7 +107,7 @@ We use a promise above as the preferred style, but callbacks are also supported:
         }
       );
 
-**Note**: Due to browser limitations, the `identify` method **must** be called as a result of a user action - a click event handler or similar.
+**Note**: Due to browser limitations, the `identify` method without supplied image data **must** be called as a result of a user action - a click event handler or similar.
 
 ###Simplistic usage example
 
@@ -117,7 +118,7 @@ We use a promise above as the preferred style, but callbacks are also supported:
     <button id="identify">Identify</button>
 
     <script src="http://cdn.evrythng.net/toolkit/evrythng-js-sdk/evrythng.js"></script>
-    <script src="http://cdn.evrythng.net/toolkit/scanthng/scanthng-2.0.1.js"></script>
+    <script src="http://cdn.evrythng.net/toolkit/scanthng/scanthng-2.0.2.js"></script>
     <script type="text/javascript">    
     (function(){
       // Initialise Evrythng.js App
@@ -151,6 +152,32 @@ We use a promise above as the preferred style, but callbacks are also supported:
 </body>
 </html>
 ```
+
+## Advanced usage - decoding existing image
+
+The `identify` method accepts an optional imageData argument which bypasses the user interaction and jumps straight to image conversion and API request. The argument must be a string containing a base64 encoded image.
+
+    var imageData = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAA...';
+    st.identify(imageData)
+      .then(function(result) {
+          // Do something on success
+        },
+        function(error) {
+          // Do something on error
+        });
+
+Of course we can still supply options and/or callbacks:
+
+    st.identify(
+      imageDataUrl,
+      { option1: value1}
+      function(result) {
+        // Do something on success
+      },
+      function(error) {
+        // Do something on error
+      }
+    );
 
 ## Options
 

@@ -1,6 +1,6 @@
 {
   "name": "scanthng",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "ignore": [
     "**/.*",
     "node_modules",
@@ -16,6 +16,6 @@
   "endpoint": "https://github.com/evrythng/scanthng.js.git",
   "main": "scanthng.js",
   "dependencies": {
-    "evrythng": "~2.0.7"
+    "evrythng": "~2.1.0"
   }
 }
