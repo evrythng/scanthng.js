@@ -1,6 +1,6 @@
 {
   "name": "scanthng",
-  "version": "2.0.2",
+  "version": "2.0.3",
   "ignore": [
     "**/.*",
     "node_modules",
@@ -13,9 +13,13 @@
     "Gruntfile.js",
     "package.json"
   ],
+  "authors": [
+    "EVRYTHNG Ltd."
+  ],
   "endpoint": "https://github.com/evrythng/scanthng.js.git",
   "main": "scanthng.js",
   "dependencies": {
     "evrythng": "~2.1.0"
-  }
+  },
+  "private": false
 }

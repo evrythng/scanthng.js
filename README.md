@@ -57,7 +57,7 @@ If you do have this feature enabled, you can activate image recognition for any 
 
 To add `scanthng.js` to your project, you can just use our CDN to serve the file by using a script tag like this:
 
-    <script src='//d10ka0m22z5ju5.cloudfront.net/toolkit/scanthng/scanthng-2.0.2.js'></script>
+    <script src='//d10ka0m22z5ju5.cloudfront.net/toolkit/scanthng/scanthng-2.0.3.js'></script>
 
 **Note**: For `scanthng.js` to work, you must load `evrythng.js` first.
 
@@ -118,7 +118,7 @@ Promises are the preferred style, but callbacks are also supported:
     <button id="identify">Identify</button>
 
     <script src="http://cdn.evrythng.net/toolkit/evrythng-js-sdk/evrythng.js"></script>
-    <script src="http://cdn.evrythng.net/toolkit/scanthng/scanthng-2.0.2.js"></script>
+    <script src="http://cdn.evrythng.net/toolkit/scanthng/scanthng-2.0.3.js"></script>
     <script type="text/javascript">    
     (function(){
       // Initialise Evrythng.js App
@@ -225,9 +225,10 @@ If you do not need to distinguish similar images with different colors, this yie
 
 #### imageConversion.resizeTo
 Type: `Integer`
-Default: `480`
+Default: `240`
+Minimum: `144`
     
-Sets the maximum size of the image (in pixels, automatically resized) to be sent to the server for recognition. The best tradeoff between speed and quality is currently around 480.
+Sets the maximum *smaller* dimension of the image (in pixels, automatically resized) to be sent to the server for recognition. The best tradeoff between speed and quality is currently around 240.
 
 ### spinner
     spinner: {
