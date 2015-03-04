@@ -57,7 +57,7 @@ If you do have this feature enabled, you can activate image recognition for any 
 
 To add `scanthng.js` to your project, you can just use our CDN to serve the file by using a script tag like this:
 
-    <script src='//d10ka0m22z5ju5.cloudfront.net/toolkit/scanthng/scanthng-2.0.3.js'></script>
+    <script src='//d10ka0m22z5ju5.cloudfront.net/toolkit/scanthng/scanthng-2.0.4.js'></script>
 
 **Note**: For `scanthng.js` to work, you must load `evrythng.js` first.
 
@@ -118,7 +118,7 @@ Promises are the preferred style, but callbacks are also supported:
     <button id="identify">Identify</button>
 
     <script src="http://cdn.evrythng.net/toolkit/evrythng-js-sdk/evrythng.js"></script>
-    <script src="http://cdn.evrythng.net/toolkit/scanthng/scanthng-2.0.3.js"></script>
+    <script src="http://cdn.evrythng.net/toolkit/scanthng/scanthng-2.0.4.js"></script>
     <script type="text/javascript">    
     (function(){
       // Initialise Evrythng.js App
@@ -198,17 +198,40 @@ Default: `qrcode`
 
 Indicate the type of image that the user is supposed to be scanning. Accepts a string with any of the following values: `qrcode`, `1dbarcode` or `objpic`. `objpic` is the option to indicate for scanning product labels.
 
-### timeout
-Type: `Integer`
-Default: `10000`
-
-Sets the timeout for AJAX calls and geolocation, in ms.
-
 ### redirect
 Type: `Boolean`
 Default: `true`
 
 Indicates whether the library should automatically redirect user to the redirection URL associated with the scanned Thng or Product. This URL can be set in the [dashboard](https://dashboard.evrythng.com) on any Product or Thng page.
+
+### threshold
+Type: `Integer`
+Default: `0`
+Range: `0..99`
+
+If `type` is set to `objpic`, you can set an additional parameter to decide whether you want the response to contain only the best result or a list of matching results ordered by descending score (which is a percentage).
+The value specified in the `threshold` parameter is used to specify what deviation from the strongest score other items may be within in order to be included in the response.
+
+Example: image recognition resulted in three matches:
+
+* Product_1, score: 80
+* Product_2, score: 70
+* Product_3, score: 50
+* Product_4, score: 10
+
+Depending on the `threshold` value, the output of identify() will be different:
+* `threshold = 0` will return a single match, `Product1` object
+* `threshold = 5` will return a list with only the first match: [`Product1`]
+* `threshold = 10` will return a list of matches in the `data` field: `[ Product1, Product2 ]`
+* `threshold = 50` will return a list of matches in the `data` field: `[ Product1, Product2, Product3 ]`
+
+**Note**: Setting this option to a positive value will disable automatic redirection and creating scan action if more than one match was found.
+
+### timeout
+Type: `Integer`
+Default: `10000`
+
+Sets the timeout for AJAX calls and geolocation, in ms.
 
 ### imageConversion
     imageConversion : {
@@ -226,9 +249,9 @@ If you do not need to distinguish similar images with different colors, this yie
 #### imageConversion.resizeTo
 Type: `Integer`
 Default: `240`
-Minimum: `144`
+Range: `144..`
     
-Sets the maximum *smaller* dimension of the image (in pixels, automatically resized) to be sent to the server for recognition. The best tradeoff between speed and quality is currently around 240.
+Sets the maximum *smaller* dimension of the image (in pixels, automatically resized) to be sent to the server for recognition. The best trade-off between speed and quality is currently around 240.
 
 ### spinner
     spinner: {
@@ -276,3 +299,4 @@ Default: `false`
 If enabled, `scanthng.js` will try to create a Scan Action after identifying the Thng or Product. It uses `EVT.settings.geolocation` to decide whether to ask for device location. If user allows this, the precise location will be recorded in this Action, otherwise the Engine will guess a broad location from IP.
 If this Scan Action triggered any Reactor rules (which now can work using the precise location from user's device, if it was provided), the reactions will be added to the output of the `identify()` method.
 Now, if one of those reactions was a redirection and the `redirect` option is set, `scanthng.js` will redirect the user to URL defined in the reaction instead of the default one.
+**Note**: this option will be ignored if `threshold` is set to a positive value.
