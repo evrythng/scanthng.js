@@ -1,6 +1,8 @@
 #scanthng.js 
 ## Identify Products & Thngs directly from a (mobile) browser...
 
+**This project has been moved to https://github.com/evrythng/evrythng-scan.js**
+
 `scanthng.js` is an [evrythng.js](https://github.com/evrythng/evrythng.js) module that lets you identify Products and Thngs. By using a blend of cutting-edge HTML5 and our backend product recognition service, it allows a (mobile) browser to take a picture of an object, a QR code or a barcode and recognize them as [EVRYTHNG Products or Thngs](https://dashboard.evrythng.com)!
 
 ## Setting your Thngs and Products to work with scanthng.js
