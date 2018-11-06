@@ -1,25 +1,4 @@
 {
-  "name": "scanthng",
-  "version": "2.0.5",
-  "ignore": [
-    "**/.*",
-    "node_modules",
-    "bower_components",
-    "test",
-    "selenium_tests",
-    "*.html",
-    "*.txt",
-    "WAF_DOCS.md",
-    "Gruntfile.js",
-    "package.json"
-  ],
-  "authors": [
-    "EVRYTHNG Ltd."
-  ],
-  "endpoint": "https://github.com/evrythng/scanthng.js.git",
-  "main": "scanthng.js",
-  "dependencies": {
-    "evrythng": "~2.1.0"
-  },
-  "private": false
+  "version": "2.0.0",
+  "license": ""
 }

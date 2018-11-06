@@ -1,31 +1,106 @@
-#Changelog
+# v3.1.0 (11-2018)
 
-###2.0.0 (27/10/14)
-* Major refactoring, now available as a module of EVT.
+## Features
 
+- **scanStream**: `app.scanStream()` can now be used to scan natively in the 
+  browser via the `getUserMedia()` API, else falling back to `app.scan()`. The
+  app developer must include `jsQR.js` by adding a `<script>` tag before us. The
+  method adds a `<video>` element inside a container specified by the developer. 
+  A fast scan rate is used for local scanning of QR codes, and a slower one for 
+  all other code types (since more requests are made to the API).
 
-###0.7.0 (08/10/14)
-* New configuration option to set AJAX and geolocation timeouts.
+```
+app.scanStream({
+  filter: { method: '2d', type: 'qr_code' },
+  containerId: 'stream_container',
+}).then(function (res) {
+  if (!res.length) {
+    console.log('Nothing found!');
+    return;
+  }
 
-
-###0.6.4 (06/06/14)
-* Removed URL validation functionality.
-* Added Android Opera mobile browser support.
-
-
-###0.6.1 (03/06/14)
-* Fixed a bug that prevented remote QR decoding from working properly for certain configurations.
-* Fixed a bug that prevented the use of scanthng.js in Firefox for Android browsers.
-
-
-###0.6.0 (29/04/14)
-* Added in-browser QR decoding as an option through the 'inBrowserQRdecoding' configuration option and left the service QR decoding as the default.
-* Added 'serviceUrl' configuration parameter to enable the use of the test Scanthng Service.
-
-
-###0.5.1 (26/03/14)
-* Changed default Scanthng Service URL to the definitive one.
+  console.log(res[0].results[0].redirections[0]);  
+}).catch(console.log);
+```
 
 
-###0.5.0 (around 10/03/14)
-* Initial implementation of ScanThng.js.
+# v2.0.0 (11-01-2017)
+
+## Breaking changes
+
+- **implicitScans**: `implicitScans` are not created automatically when scanning an image.
+- **Options**: `type`, `timeout`, `threshold`, `redirect`, `createScanAction` and `spinner` options have been removed.
+See [README](https://github.com/evrythng/evrythng-scan.js#spinner) for more information on how to use custom spinner.
+
+## Features
+- **Options**: Use `filter` option to filter out results based on `method` and `type`
+```
+app.scan({
+  filter: {
+    type: 'image'
+  }
+});
+```
+- **Options**: Use `debug` option to include debug information in response.
+- **Options**: Use `perPage` option to specify max number of matches in response.
+- **identify**: `.identify` method is now available on the app and allows to get Thng/product infromation
+associated with provided value:
+```
+app.identify({
+  filter: {
+    type: 'text',
+    value: 'value'
+  }
+});
+```
+- **redirect**: Redirect to url provided `app.redirect('https://evrythng.com')`
+
+# v1.2.3 (20-10-2016)
+
+## Bug fixes
+
+- **Image resize**: send larger images when using `qrcode`, `1dbarcode`, `datamatrix` and `autodetect` types.
+- **Timing**: Adds timing and type information to the created scan action.
+
+# v1.2.2 (16-09-2016)
+
+## Bug fixes
+
+- **Options**: Send `threshold` param to server regardless of recognition type.
+
+# v1.2.1 (15-09-2016)
+
+## Bug fixes
+
+- **Prepare options**: Allow to specify imageConversion options on setup.
+
+# v1.2.0 (20-07-2016)
+
+## Features
+
+- **Options**: Supports new scanning engine. Added additional scan types `datamatrix` and `autodetect`.
+
+## Bug fixes
+
+- **Format**: Convert image to same format as the original file.
+
+# v1.1.0 (09-06-2016)
+
+## Changes
+
+- **Scan plugin**: When `createScanAction` option is set, we return the `redirectionContext` and 
+                   `redirectUrl` found in the _reaction_ of the created _scan_ action are
+                   in the payload top level. It potentially overrides value obtained
+                   from the _redirection_.
+
+# v1.0.1 (05-09-2015)
+
+## Bug fixes
+
+- **Prepare options**: fixed bug when trying to process image without custom prepare options.
+
+# v1.0.0 (18-08-2015)
+
+## Features
+
+- **Scan**: _Scanthng.js_ was converted to a plugin. This adds Product Recognition capabilities to any EVRYTHNG App.
