@@ -165,6 +165,11 @@ define([
     context.drawImage(video, 0, 0);
 
     if (filter.method === '2d' && filter.type === 'qr_code') {
+      if (video.videoWidth === 0 || video.videoHeight === 0) {
+        // Could not sample: source width or height is zero.
+        return;
+      }
+
       // Scan image data with jsQR
       var imgData = context.getImageData(0, 0, video.videoWidth, video.videoHeight);
       var result = window.jsQR(imgData.data, imgData.width, imgData.height);
