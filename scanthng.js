@@ -165,13 +165,15 @@ define([
     context.drawImage(video, 0, 0);
 
     if (filter.method === '2d' && filter.type === 'qr_code') {
-      if (video.videoWidth === 0 || video.videoHeight === 0) {
-        // Could not sample: source width or height is zero.
+      var imgData;
+      try {
+        imgData = context.getImageData(0, 0, video.videoWidth, video.videoHeight);
+      } catch (e) {
+        console.log('Failed to getImageData - device may not be ready.');
         return;
       }
 
       // Scan image data with jsQR
-      var imgData = context.getImageData(0, 0, video.videoWidth, video.videoHeight);
       var result = window.jsQR(imgData.data, imgData.width, imgData.height);
       if (result) {
         foundCb(result.data);
