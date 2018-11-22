@@ -1,7 +1,5 @@
 # scanthng.js
 
-![](assets/infographic.png)
-
 `scanthng.js` is a plugin to be used with the
 [evrythng.js](https://github.com/evrythng/evrythng.js) (or
 [evrythng-extended.js](https://github.com/evrythng/evrythng-extended.js))

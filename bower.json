@@ -1,4 +1,20 @@
 {
+  "name": "scanthng",
   "version": "3.1.0",
-  "license": "Apache-2.0"
+  "main": "dist/scanthng.min.js",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "plugins",
+    "src",
+    "*.html",
+    "Gruntfile.js"
+  ],
+  "license": "Apache-2.0",
+  "endpoint": "https://github.com/evrythng/scanthng.js.git",
+  "dependencies": {
+    "evrythng": "^4.7.2"
+  }
 }
