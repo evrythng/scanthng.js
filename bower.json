@@ -1,7 +1,7 @@
 {
   "name": "scanthng",
   "version": "3.1.0",
-  "main": "dist/scanthng.min.js",
+  "main": "dist/scanthng.js",
   "ignore": [
     "**/.*",
     "node_modules",

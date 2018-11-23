@@ -228,7 +228,12 @@ different HTML page structure.
 This method uses [`jsQR.js`](https://github.com/cozmo/jsQR) to scan a video
 stream for **QR codes** locally in the browser via the native
 [`getUserMedia()`](https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia)
-Web API.
+Web API. To use the `scanStream()` method, make sure you add this library to 
+your project and include it with a `<script>` tag, for example:
+
+```html
+<script src="lib/jsQR/jsQR.js"></script>
+```
 
 The developer must supply the `id` of a container such as a `<div>` that the SDK
 can insert the camera viewfinder `<video>` element into. This `<video>` should
