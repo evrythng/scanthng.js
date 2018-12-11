@@ -81,7 +81,7 @@ support for [`getUserMedia()`](https://caniuse.com/#feat=stream).
 ## Demo App
 
 Check out our [`scanthng.js` demo app](https://scanthng-demo.evrythng.io) to see
-how `scanthng.js` works in the browser on desktop and mobile devices. You can 
+how barcode scanning works in the browser on desktop and mobile devices. You can 
 use the example Application API Key or your own key to test scanning all the 
 supported barcode types. Scan the QR code below to open the demo app on your 
 phone:
