@@ -21,6 +21,7 @@ also offered, applicable for all kinds of scanning use-cases.
 ## Contents
 
 * [Installation](#installation)
+* [Demo App](#demo-app)
 * [Account Setup](#account-setup)
 * [Product Setup](#product-setup)
 * [Application Setup](#product-setup)
@@ -75,6 +76,17 @@ support for [`getUserMedia()`](https://caniuse.com/#feat=stream).
 - Firefox for Android 62+
 - Safari for iOS 11+
 - IE 10+ (except `scanStream()`)
+
+
+## Demo App
+
+Check out our [`scanthng.js` demo app](https://scanthng-demo.evrythng.io) to see
+how barcode scanning works in the browser on desktop and mobile devices. You can 
+use the example Application API Key or your own key to test scanning all the 
+supported barcode types. Scan the QR code below to open the demo app on your 
+phone:
+
+![](assets/demo-app.png)
 
 
 ## Account Setup
