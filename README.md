@@ -178,13 +178,13 @@ After the HTML page containing the `<script>` tags is loaded, the first step is
 to create an `App` scope representing the EVRYTHNG application.
 
 ```js
-// Use this plugin with evrythng.js
-EVT.use(EVT.Scan);
+// Use this plugin with evrythng.js via the ScanThng global value
+evrythng.use(ScanThng);
 
 const APPLICATION_API_KEY = 'lyBVbCXyieBYjiWde9...';
 
 // Create an application scope
-const app = new EVT.App(APPLICATION_API_KEY);
+const app = new evrythng.Application(APPLICATION_API_KEY);
 ```
 
 This `app` will be able to identify all Thngs and products that are visible in
@@ -530,13 +530,7 @@ SDK.
 
 ### evrythng.js
 
-[`evrythng.js`](https://github.com/evrythng/evrythng.js) is the core version of
-*evrythng.js* intended to be used in public applications and/or devices.
-
-### evrythng-extended.js
-
-[`evrythng-extended.js`](https://github.com/evrythng/evrythng-extended.js) is an
-extended version of *evrythng.js* which includes Operator access to the API.
+[`evrythng.js`](https://github.com/evrythng/evrythng.js)
 
 
 ## Third-party Software
