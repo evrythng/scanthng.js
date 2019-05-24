@@ -85,7 +85,7 @@ const _processResponse = response => _getAnonymousUser()
     }
 
     return item;
-  });
+  }));
 
 // If `createAnonymousUser` options is enabled, will try to restore anonymous user saved
 // in local storage (or cookie) and create a new anonymous user if there's no saved one.
@@ -165,7 +165,7 @@ const scanSample = (canvas, video, filter, foundCb) => {
  * @param {object} opts - The scanning options.
  * @returns {Promise} A Promise that resolves once recognition is completed.
  */
-const findBarcode (stream, opts) => {
+const findBarcode = (stream, opts) => {
   const video = document.getElementById(VIDEO_ELEMENT_ID);
   video.srcObject = stream;
   video.play();
