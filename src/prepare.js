@@ -1,6 +1,5 @@
-import Utils from './utils'
-
 const MegaPixImage = require('@koba04/ios-imagefile-megapixel');
+const Utils = require('./utils');
 
 const defaultOptions = {
   invisible: true,
@@ -14,7 +13,7 @@ const defaultOptions = {
 
 // minimum image size accepted by API
 const minSize = 144;
-const prepareOptions = {};
+let prepareOptions = {};
 
 // Create the DOM elements to handle image selection
 const _insertMediaCapture = () => new Promise((resolve, reject) => {
@@ -161,7 +160,6 @@ const _setup = (userOptions) => {
     invisible: userOptions.invisible ? userOptions.invisible : defaultOptions.invisible,
     imageConversion: Utils.extend(defaultOptions.imageConversion, userOptions.imageConversion)
   };
-  return prepareOptions;
 };
 
 // Get image file from user and convert to data url
@@ -182,9 +180,7 @@ const _processImage = (imageData, options) => {
     .then(image => ({ image }));
 };
 
-const Prepare = {
+module.exports = {
   getFile: _getFile,
   processImage: _processImage,
 };
-
-export default Prepare;

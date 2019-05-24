@@ -1,7 +1,7 @@
 /* globals jsQR */
 
-import Utils from './utils';
-import Prepare from './prepare';
+const Utils = require('./utils');
+const Prepare = require('./prepare');
 
 // The ID of the <video> element inserted by the SDK.
 const VIDEO_ELEMENT_ID = 'scanthng-video-' + Date.now();
@@ -366,20 +366,20 @@ const ScanThng = {
 
   install: (api) => {
     // Add redirect method to the ApplicationScope
-    api.scopes.App.prototype.redirect = redirect;
+    api.scopes.Application.prototype.redirect = redirect;
 
     // Add identify method to the ApplicationScope
-    api.scopes.App.prototype.identify = identify;
+    api.scopes.Application.prototype.identify = identify;
 
     // Scan a video stream for QR codes
-    api.scopes.App.prototype.scanStream = scanStream;
+    api.scopes.Application.prototype.scanStream = scanStream;
 
     // Scan an image from the camera or local file.
-    api.scopes.App.prototype.scan = scan;
+    api.scopes.Application.prototype.scan = scan;
   },
 
   // Export for testing
   insertVideoElement,
 };
 
-export default ScanThng;
+module.exports = ScanThng;

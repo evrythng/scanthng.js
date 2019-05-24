@@ -99,7 +99,7 @@ const storeUser = (app, user) => {
   writeCookie('scanthng-' + app.id, userData);
 };
 
-const Utils = {
+module.exports = {
   isFunction,
   isString,
   isArray,
@@ -115,5 +115,3 @@ const Utils = {
   restoreUser,
   storeUser,
 };
-
-export default Utils;

@@ -2,7 +2,7 @@ const { resolve } = require('path')
 
 const path = resolve(__dirname, 'dist')
 const entry = './src/index.js'
-const library = 'scanthng'
+const library = 'ScanThng'
 
 const babelrc = {
   presets: ['@babel/preset-env'],

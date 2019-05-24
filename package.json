@@ -2,6 +2,7 @@
   "name": "scanthng.js",
   "version": "3.1.0",
   "description": "evrythng.js plugin for recognising products in a web app.",
+  "main": "dist/scanthng.js",
   "scripts": {
     "build": "webpack --config webpack.config.js --mode production",
     "test": "echo \"Error: no test specified\" && exit 1",
