@@ -104,7 +104,7 @@ const decodeRequest = (app, options, data) => {
  * @returns {Promise}
  */
 const getAnonymousUser = async (app, options) => {
-  if (!options.createAnonymousUser) {
+  if (!(options && options.createAnonymousUser)) {
     return;
   }
 
@@ -297,7 +297,7 @@ const scanStream = function (opts) {
       insertVideoElement(opts.containerId);
       return findBarcode(thisApp, stream, opts);
     })
-    .then(processResponse);
+    .then(res => processResponse(thisApp, res));
 };
 
 /**
