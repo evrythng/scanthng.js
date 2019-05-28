@@ -90,7 +90,6 @@ const decodeRequest = (app, options, data) => {
   if (data) {
     requestOptions.body = JSON.stringify(data);
   }
-  console.log({ requestOptions });
 
   return evrythng.api(requestOptions);
 };
