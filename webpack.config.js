@@ -1,15 +1,12 @@
-const { resolve } = require('path')
+const { resolve } = require('path');
 
-const path = resolve(__dirname, 'dist')
-const entry = './src/index.js'
-const library = 'ScanThng'
+const path = resolve(__dirname, 'dist');
+const entry = './src/index.js';
+const library = 'ScanThng';
 
 const babelrc = {
   presets: ['@babel/preset-env'],
-  // plugins: [
-  //   ['@babel/transform-runtime', { regenerator: true }]
-  // ]
-}
+};
 
 const browserConfig = {
   entry,
@@ -17,7 +14,7 @@ const browserConfig = {
     path,
     library,
     filename: 'scanthng.js',
-    libraryTarget: 'var'
+    libraryTarget: 'var',
   },
   module: {
     rules: [{
@@ -25,12 +22,12 @@ const browserConfig = {
       exclude: /node_modules/,
       use: {
         loader: 'babel-loader',
-        options: babelrc
-      }
-    }]
-  }
-}
+        options: babelrc,
+      },
+    }],
+  },
+};
 
 module.exports = [
-  browserConfig
-]
+  browserConfig,
+];

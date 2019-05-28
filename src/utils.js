@@ -1,15 +1,3 @@
-// Check if a variable is a function.
-const isFunction = fn => Object.prototype.toString.call(fn) === '[object Function]';
-
-// Check if a variable is a string.
-const isString = str => Object.prototype.toString.call(str) == '[object String]';
-
-// Check if a variable is an array.
-const isArray = arr => Object.prototype.toString.call(arr) == '[object Array]';
-
-// Check if a variable is an Object (includes Object functions and plain objects)
-const isObject = obj => obj === Object(obj) && !isArray(obj);
-
 // Check if a variable is an Image Data URL
 const isDataUrl = str => Object.prototype.toString.call(str) == '[object String]' &&
   str.match(/^\s*data:image\/(\w+)(;charset=[\w-]+)?(;base64)?,/);
@@ -83,7 +71,7 @@ const restoreUser = (app, User) => {
    ? readStorage('scanthng-' + app.id)
    : readCookie('scanthng-' + app.id);
 
-  if (isObject(userData)) {
+  if (typeof userData === 'object') {
     return new User(userData.apiKey);
   }
 };
@@ -100,10 +88,6 @@ const storeUser = (app, user) => {
 };
 
 module.exports = {
-  isFunction,
-  isString,
-  isArray,
-  isObject,
   isDataUrl,
   extend,
   isFirefoxMobileBrowser,

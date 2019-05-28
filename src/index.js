@@ -3,20 +3,24 @@
 const Utils = require('./utils');
 const Prepare = require('./prepare');
 
-// The ID of the <video> element inserted by the SDK.
+const API_PATH = '/scan/identifications';
+
+/** The ID of the <video> element inserted by the SDK. */
 const VIDEO_ELEMENT_ID = 'scanthng-video-' + Date.now();
-// The interval between QR code local stream samples.
+/** The interval between QR code local stream samples. */
 const SAMPLE_INTERVAL_FAST = 300;
-// The interval between other image requests.
+/** The interval between other image requests. */
 const SAMPLE_INTERVAL_SLOW = 2000;
 
-// Setup default settings:
-// - _**invisible**: File input visibility_
-// - _**imageConversion.greyscale**: Send black & white image, instead of colors_
-// - _**imageConversion.resizeTo**: Maximum smaller dimension of the image sent_
-// - _**imageConversion.exportQuality**: Conversion quality (0 no quality - 1 original quality)_
-// - _**createAnonymousUser**: Create anonymous user when making scan actions_
-const defaultSettings = {
+/** 
+ * Setup default settings:
+ * - _**invisible**: File input visibility_
+ * - _**imageConversion.greyscale**: Send black & white image, instead of colors_
+ * - _**imageConversion.resizeTo**: Maximum smaller dimension of the image sent_
+ * - _**imageConversion.exportQuality**: Conversion quality (0 no quality - 1 original quality)_
+ * - _**createAnonymousUser**: Create anonymous user when making scan actions_
+ */
+const DEFAULT_OPTIONS = {
   invisible: true,
   imageConversion: {
     greyscale: true,
@@ -26,18 +30,18 @@ const defaultSettings = {
   createAnonymousUser: false
 };
 
-const API_PATH = '/scan/identifications';
-
-let app;
-let currentOptions;
-
-// Deep extension of options.
-const _extendOptions = (defaultOptions, userOptions) => {
-  const fullOptions = Utils.extend(defaultOptions, userOptions);
+/**
+ * Deeply extend options.
+ *
+ * @param {object} userOptions - The user options.
+ * @returns {object} The full options object.
+ */
+const _extendOptions = (userOptions) => {
+  const fullOptions = Utils.extend(DEFAULT_OPTIONS, userOptions);
 
   // Setup all nested object as copies of the default
   fullOptions.imageConversion = Utils.extend(
-    defaultOptions.imageConversion,
+    DEFAULT_OPTIONS.imageConversion,
     userOptions && userOptions.imageConversion || {}
   );
 
@@ -52,74 +56,105 @@ const _extendOptions = (defaultOptions, userOptions) => {
   return fullOptions;
 };
 
-// Effectively send the recognition request to the API, passing in the
-// Base64 image data and request options.
-const _decodeRequest = (data) => {
+/**
+ * Effectively send the recognition request to the API, passing in the
+ * Base64 image data and request options.
+ *
+ * @param {object} app - The Application scope.
+ * @param {object} options - Current options.
+ * @param {object} [data] - Optional request data.
+ * @returns {Promise}
+ */
+const _decodeRequest = (app, options, data) => {
   const params = {};
   ['debug', 'perPage', 'filter'].forEach((option) => {
-    if (currentOptions[option]) {
-      params[option] = currentOptions[option];
+    if (options[option]) {
+      params[option] = options[option];
     }
   });
 
+  console.log({ params });
+  const paramsStr = Object.entries(params).map(p => `${p[0]}=${p[1]}`).join('&');
   const requestOptions = {
-    url: API_PATH,
+    url: `${API_PATH}?${paramsStr}`,
     method: data ? 'post' : 'get',
     apiKey: app.apiKey,
-    params,
   };
 
   if (data) {
     requestOptions.formData = data;
   }
+  console.log({ requestOptions });
 
   return evrythng.api(requestOptions);
 };
 
-// Process response of the decode request.
-const _processResponse = response => _getAnonymousUser()
+/**
+ * Process response of the decode request.
+ *
+ * @param {object} response - The response.
+ * @param {object} options - Current options.
+ * @returns {Promise}
+ */
+const _processResponse = (response, options) => _getAnonymousUser(options)
   .then(anonUser => response.map((item) => {
     // Attach user if avaialble.
-    if (Utils.isObject(anonUser)) {
+    if (typeof anonUser === 'object') {
       item.user = anonUser;
     }
 
     return item;
   }));
 
-// If `createAnonymousUser` options is enabled, will try to restore anonymous user saved
-// in local storage (or cookie) and create a new anonymous user if there's no saved one.
-const _getAnonymousUser = async () => {
-  if (!currentOptions.createAnonymousUser) {
+/**
+ * If `createAnonymousUser` options is enabled, will try to restore anonymous 
+ * user saved in local storage (or cookie) and create a new anonymous user if 
+ * there's no saved one.
+ *
+ * @param {object} options - Current options.
+ * @returns {Promise}
+ */
+const _getAnonymousUser = async function (options) {
+  if (!options.createAnonymousUser) {
     return;
   }
 
-  const anonUser = Utils.restoreUser(app, evrythng.User);
-  if (Utils.isObject(anonUser)) {
+
+  const anonUser = Utils.restoreUser(this, evrythng.User);
+  if (typeof anonUser === 'object') {
     return anonUser;
   }
 
   const payload = { anonymous: true };
-  return app.appUser().create(payload)
-    .then((createdUser) => {
-      Utils.storeUser(app, createdUser);
+  return this.appUser().create(payload)
+    .then(function (createdUser) {
+      Utils.storeUser(this, createdUser);
       return createdUser;
     });
-};
+}
 
-// Decode image (send request to IR API and process the response)
-const _decode = data => _decodeRequest(data).then(_processResponse);
+/**
+ * Decode image (send request to IR API and process the response)
+ *
+ * @param {object} app - The Application scope.
+ * @param {object} options - Current options.
+ * @param {object} [data] - Optional request data.
+ * @returns {Promise}
+ */
+const _decode = (app, options, data) => 
+  _decodeRequest(app, options, data).then(res => _processResponse(res, options));
 
 /**
  * Process a sample frame from the stream, and find any code present.
  * A callback is required since any promise per-frame won't necessarily resolve or reject.
  *
+ * @param {object} app - The app performing the scan.
  * @param {object} canvas - The canvas element.
  * @param {object} video - The SDK-inserted <video> element.
  * @param {object} filter - The scanning filter.
  * @param {function} foundCb - Callback for if a code is found.
  */
-const scanSample = (canvas, video, filter, foundCb) => {
+const scanSample = (app, canvas, video, filter, foundCb) => {
   // Match canvas internal dimensions to that of the video and draw for the user
   const context = canvas.getContext('2d');
   canvas.width = video.videoWidth;
@@ -161,11 +196,12 @@ const scanSample = (canvas, video, filter, foundCb) => {
 /**
  * Consume a getUserMedia() video stream and resolves once recognition is completed.
  *
+ * @param {object} app - The app performing the scan.
  * @param {object} stream - The stream to consume.
  * @param {object} opts - The scanning options.
  * @returns {Promise} A Promise that resolves once recognition is completed.
  */
-const findBarcode = (stream, opts) => {
+const findBarcode = (app, stream, opts) => {
   const video = document.getElementById(VIDEO_ELEMENT_ID);
   video.srcObject = stream;
   video.play();
@@ -179,7 +215,7 @@ const findBarcode = (stream, opts) => {
     const handle = setInterval(() => {
       try {
         // Scan each sample for a barcode, and resolve if a result is found.
-        scanSample(canvas, video, opts.filter, (res) => {
+        scanSample(app, canvas, video, opts.filter, (res) => {
           clearInterval(handle);
           stream.getVideoTracks()[0].stop();
 
@@ -226,10 +262,10 @@ const insertVideoElement = (containerId) => {
  * @param {object} opts - Scanning options including standard 'filter' and 'containerId'.
  * @returns {Promise} A Promise that resolves with any scan results.
  */
-function scanStream (opts) {
+const scanStream = function (opts) {
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
     console.log('getUserMedia() is not supported with this browser; falling back to Media Capture.');
-    return app.scan(opts);
+    return this.scan(opts);
   }
 
   if (!window.jsQR) {
@@ -249,10 +285,11 @@ function scanStream (opts) {
   opts.filter.type = opts.filter.type.toLowerCase();
 
   // Open the stream, identify barcode, then inform the caller.
+  const _app = this
   return navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
-    .then((stream) => {
+    .then(function (stream) {
       insertVideoElement(opts.containerId);
-      return findBarcode(stream, opts);
+      return findBarcode(_app, stream, opts);
     })
     .then(_processResponse);
 };
@@ -270,68 +307,42 @@ const redirect = (url) => {
  * Identify a scanned value.
  *
  * @param {object} opts - Additional options.
- * @param {function} successCb - Success callback.
- * @param {function} errorCb - Error callback.
  */
-async function identify (opts, successCb, errorCb) {
-  if (!(Utils.isObject(opts) && opts.hasOwnProperty('filter'))) {
+const identify = async function (opts) {
+  if (!(typeof opts === 'object' && opts.filter)) {
     throw new Error('Missing filter option.');
   }
 
-  currentOptions = _extendOptions(ScanThng.settings, opts);
+  return _decode(this, _extendOptions(opts));
+};
 
-  return _decode().then((result) => {
-    if (Utils.isFunction(successCb)) {
-      successCb(result);
-    }
+/**
+ * Begin an image scan.
+ *
+ * @param {string} [imgData] - Optional image data. If not supplued, 'catch all' mode is used.
+ * @param {object} [opts] - Optional options.
+ * @returns {Promise}
+ */
+const scan  = async function (imgData, opts) {
+  let imageData, options;
 
-    return result;
-  }).catch((err) => {
-    if (Utils.isFunction(errorCb)) {
-      errorCb(err);
-    }
-
-    throw err;
-  });
-}
-
-async function scan (imgData, opts, successCallback, errorCallback) {
-  var imageData, options, successCb, errorCb;
-
-  // Process and prepare options and arguments.
-  if (Utils.isFunction(arguments[0])) {
-    /* callback first */
-    successCb = arguments[0];
-    errorCb = arguments[1];
-  } else if (Utils.isObject(arguments[0])) {
-    /* options first */
+  if (typeof arguments[0] === 'object') {
+    // options first, no image data
     options = arguments[0];
-    successCb = arguments[1];
-    errorCb = arguments[2];
   } else {
-    /* image first */
+    // image first
     imageData = arguments[0];
-    if (Utils.isFunction(arguments[1])) {
-      /* callback second */
-      successCb = arguments[1];
-      errorCb = arguments[2];
-    } else {
-      /* options second */
-      options = arguments[1];
-      successCb = arguments[2];
-      errorCb = arguments[3];
-    }
+    options = arguments[1];
   }
 
-  currentOptions = _extendOptions(ScanThng.settings, options);
-
+  options = _extendOptions(options);
   const prepareOptions = {
-    invisible: currentOptions.invisible,
-    imageConversion: currentOptions.imageConversion
+    invisible: options.invisible,
+    imageConversion: options.imageConversion
   };
 
   let preparePromise;
-  if (Utils.isString(imageData)) {
+  if (typeof imageData === 'string') {
     // Reject if string is not a valid Image Data Url
     if (!Utils.isDataUrl(imageData)) {
       throw new Error('Invalid Image Data URL.');
@@ -345,36 +356,17 @@ async function scan (imgData, opts, successCallback, errorCallback) {
   }
 
   // Send recognition request to the EVRYTHNG API once image is done processing
-  preparePromise.then(_decode).then((result) => {
-    if (Utils.isFunction(successCb)) {
-      successCb(result);
-    }
-
-    return result;
-  }).catch((err) => {
-    if (Utils.isFunction(errorCb)) {
-      errorCb(err);
-    }
-
-    throw err;
+  return preparePromise.then(function (data) {
+    return _decode(this, options, data);
   });
-}
+};
 
 // Plugin API
 const ScanThng = {
-  settings: defaultSettings,
-
   install: (api) => {
-    // Add redirect method to the ApplicationScope
     api.scopes.Application.prototype.redirect = redirect;
-
-    // Add identify method to the ApplicationScope
     api.scopes.Application.prototype.identify = identify;
-
-    // Scan a video stream for QR codes
     api.scopes.Application.prototype.scanStream = scanStream;
-
-    // Scan an image from the camera or local file.
     api.scopes.Application.prototype.scan = scan;
   },
 

@@ -49,7 +49,7 @@ const _insertMediaCapture = () => new Promise((resolve, reject) => {
   document.getElementsByTagName('body')[0].appendChild(captureForm);
 
   // Add listener for changes in our Media Capture element
-  captureInput.addEventListener('change', () => {
+  captureInput.addEventListener('change', function () {
     const [file] = this.files;
     if (!file) {
       reject(new Error('No file selected.'));
