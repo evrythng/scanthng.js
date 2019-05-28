@@ -81,9 +81,10 @@ const decodeRequest = (app, options, data) => {
   }
 
   const requestOptions = {
-    url: `${API_PATH}?${getParamStr(params)}`,
+    url: API_PATH,
     method: data ? 'post' : 'get',
     apiKey: app.apiKey,
+    params,
   };
 
   if (data) {
