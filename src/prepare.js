@@ -144,16 +144,10 @@ const _convertToBlackWhite = (canvas) => {
 };
 
 // Export the image from canvas to a blob
-const _exportBlob = canvas => new Promise((resolve) => {
-  canvas.toBlob((blob) => {
-      // Destroy the canvas - prepare for GC
-      canvas = null;
-      resolve(blob);
-    },
-    prepareOptions.imageConversion.exportFormat,
-    prepareOptions.imageConversion.exportQuality,
-  );
-});
+const _exportDataUrl = async canvas => canvas.toDataURL(
+  prepareOptions.imageConversion.exportFormat,
+  prepareOptions.imageConversion.exportQuality,
+);
 
 const _setup = (userOptions) => {
   prepareOptions = {
@@ -180,8 +174,8 @@ const _processImage = (imageData, options) => {
 
   return _loadImage(imageData)
     .then(_convertImage)
-    .then(_exportBlob)
-    .then(image => ({ image }));
+    .then(_exportDataUrl)
+    .then(dataUrl => ({ image: dataUrl }));
 };
 
 module.exports = {

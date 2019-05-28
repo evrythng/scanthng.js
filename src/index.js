@@ -36,7 +36,7 @@ const DEFAULT_OPTIONS = {
  * @param {object} userOptions - The user options.
  * @returns {object} The full options object.
  */
-const extendOptions = (userOptions) => {
+const getMergedOptions = (userOptions) => {
   const fullOptions = Utils.extend(DEFAULT_OPTIONS, userOptions);
 
   // Setup all nested object as copies of the default
@@ -64,7 +64,7 @@ const getParamStr = params => Object.entries(params).map(p => `${p[0]}=${p[1]}`)
  *
  * @param {object} app - The Application scope.
  * @param {object} options - Current options.
- * @param {object} [data] - Optional request data.
+ * @param {object} [data] - Optional request data as { image }.
  * @returns {Promise}
  */
 const decodeRequest = (app, options, data) => {
@@ -87,7 +87,7 @@ const decodeRequest = (app, options, data) => {
   };
 
   if (data) {
-    requestOptions.body = data;
+    requestOptions.body = JSON.stringify(data);
   }
   console.log({ requestOptions });
 
@@ -99,23 +99,24 @@ const decodeRequest = (app, options, data) => {
  * user saved in local storage (or cookie) and create a new anonymous user if 
  * there's no saved one.
  *
+ * @param {object} app - The Application scope.
  * @param {object} options - Current options.
  * @returns {Promise}
  */
-const getAnonymousUser = async function (options) {
+const getAnonymousUser = async (app, options) => {
   if (!options.createAnonymousUser) {
     return;
   }
 
-  const anonUser = Utils.restoreUser(this, evrythng.User);
+  const anonUser = Utils.restoreUser(app, evrythng.User);
   if (typeof anonUser === 'object') {
     return anonUser;
   }
 
   const payload = { anonymous: true };
-  return this.appUser().create(payload)
-    .then(function (createdUser) {
-      Utils.storeUser(this, createdUser);
+  return app.appUser().create(payload)
+    .then((createdUser) => {
+      Utils.storeUser(app, createdUser);
       return createdUser;
     });
 };
@@ -123,11 +124,12 @@ const getAnonymousUser = async function (options) {
 /**
  * Process response of the decode request, adding an anonymous user if requested.
  *
+ * @param {object} app - The Application scope.
  * @param {object} response - The response.
  * @param {object} options - Current options.
  * @returns {Promise}
  */
-const processResponse = (response, options) => getAnonymousUser(options)
+const processResponse = (app, response, options) => getAnonymousUser(app, options)
   .then(anonUser => response.map((item) => {
     // Attach user if avaialble.
     if (typeof anonUser === 'object') {
@@ -146,7 +148,7 @@ const processResponse = (response, options) => getAnonymousUser(options)
  * @returns {Promise}
  */
 const decode = (app, options, data) => 
-  decodeRequest(app, options, data).then(res => processResponse(res, options));
+  decodeRequest(app, options, data).then(res => processResponse(app, res, options));
 
 /**
  * Process a sample frame from the stream, and find any code present.
@@ -317,7 +319,7 @@ const identify = async function (opts) {
     throw new Error('Missing filter option.');
   }
 
-  return decode(this, extendOptions(opts));
+  return decode(this, getMergedOptions(opts));
 };
 
 /**
@@ -327,13 +329,13 @@ const identify = async function (opts) {
  * @param {object} [param2] - Optional options.
  * @returns {Promise}
  */
-const scan  = async function (param1, param2) {
+const scan = async function (param1, param2) {
   let imageData, options;
   if (!param2) {
-    options = extendOptions(param1);
+    options = param1;
   } else {
     imageData = param1;
-    options = extendOptions(param2);
+    options = param2;
   }
 
   const prepareOptions = {
@@ -349,7 +351,7 @@ const scan  = async function (param1, param2) {
 
   // Send recognition request to the EVRYTHNG API once image is done processing
   const thisApp = this;
-  return preparePromise.then(data => decode(thisApp, options, data));
+  return preparePromise.then(data => decode(thisApp, getMergedOptions(options), data));
 };
 
 // Plugin API
