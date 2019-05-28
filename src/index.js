@@ -36,13 +36,13 @@ const DEFAULT_OPTIONS = {
  * @param {object} userOptions - The user options.
  * @returns {object} The full options object.
  */
-const _extendOptions = (userOptions) => {
+const extendOptions = (userOptions) => {
   const fullOptions = Utils.extend(DEFAULT_OPTIONS, userOptions);
 
   // Setup all nested object as copies of the default
   fullOptions.imageConversion = Utils.extend(
     DEFAULT_OPTIONS.imageConversion,
-    userOptions && userOptions.imageConversion || {}
+    userOptions ? userOptions.imageConversion : {}
   );
 
   // Use biggest size from default and what user defines.
@@ -56,6 +56,8 @@ const _extendOptions = (userOptions) => {
   return fullOptions;
 };
 
+const getParamStr = params => Object.entries(params).map(p => `${p[0]}=${p[1]}`).join('&');
+
 /**
  * Effectively send the recognition request to the API, passing in the
  * Base64 image data and request options.
@@ -65,7 +67,7 @@ const _extendOptions = (userOptions) => {
  * @param {object} [data] - Optional request data.
  * @returns {Promise}
  */
-const _decodeRequest = (app, options, data) => {
+const decodeRequest = (app, options, data) => {
   const params = {};
   ['debug', 'perPage', 'filter'].forEach((option) => {
     if (options[option]) {
@@ -73,38 +75,24 @@ const _decodeRequest = (app, options, data) => {
     }
   });
 
-  console.log({ params });
-  const paramsStr = Object.entries(params).map(p => `${p[0]}=${p[1]}`).join('&');
+  // Handle object filter
+  if (typeof params.filter === 'object') {
+    params.filter = getParamStr(params.filter);
+  }
+
   const requestOptions = {
-    url: `${API_PATH}?${paramsStr}`,
+    url: `${API_PATH}?${getParamStr(params)}`,
     method: data ? 'post' : 'get',
     apiKey: app.apiKey,
   };
 
   if (data) {
-    requestOptions.formData = data;
+    requestOptions.body = data;
   }
   console.log({ requestOptions });
 
   return evrythng.api(requestOptions);
 };
-
-/**
- * Process response of the decode request.
- *
- * @param {object} response - The response.
- * @param {object} options - Current options.
- * @returns {Promise}
- */
-const _processResponse = (response, options) => _getAnonymousUser(options)
-  .then(anonUser => response.map((item) => {
-    // Attach user if avaialble.
-    if (typeof anonUser === 'object') {
-      item.user = anonUser;
-    }
-
-    return item;
-  }));
 
 /**
  * If `createAnonymousUser` options is enabled, will try to restore anonymous 
@@ -114,11 +102,10 @@ const _processResponse = (response, options) => _getAnonymousUser(options)
  * @param {object} options - Current options.
  * @returns {Promise}
  */
-const _getAnonymousUser = async function (options) {
+const getAnonymousUser = async function (options) {
   if (!options.createAnonymousUser) {
     return;
   }
-
 
   const anonUser = Utils.restoreUser(this, evrythng.User);
   if (typeof anonUser === 'object') {
@@ -131,7 +118,24 @@ const _getAnonymousUser = async function (options) {
       Utils.storeUser(this, createdUser);
       return createdUser;
     });
-}
+};
+
+/**
+ * Process response of the decode request, adding an anonymous user if requested.
+ *
+ * @param {object} response - The response.
+ * @param {object} options - Current options.
+ * @returns {Promise}
+ */
+const processResponse = (response, options) => getAnonymousUser(options)
+  .then(anonUser => response.map((item) => {
+    // Attach user if avaialble.
+    if (typeof anonUser === 'object') {
+      item.user = anonUser;
+    }
+
+    return item;
+  }));
 
 /**
  * Decode image (send request to IR API and process the response)
@@ -141,8 +145,8 @@ const _getAnonymousUser = async function (options) {
  * @param {object} [data] - Optional request data.
  * @returns {Promise}
  */
-const _decode = (app, options, data) => 
-  _decodeRequest(app, options, data).then(res => _processResponse(res, options));
+const decode = (app, options, data) => 
+  decodeRequest(app, options, data).then(res => processResponse(res, options));
 
 /**
  * Process a sample frame from the stream, and find any code present.
@@ -285,13 +289,13 @@ const scanStream = function (opts) {
   opts.filter.type = opts.filter.type.toLowerCase();
 
   // Open the stream, identify barcode, then inform the caller.
-  const _app = this
+  const thisApp = this;
   return navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
     .then(function (stream) {
       insertVideoElement(opts.containerId);
-      return findBarcode(_app, stream, opts);
+      return findBarcode(thisApp, stream, opts);
     })
-    .then(_processResponse);
+    .then(processResponse);
 };
 
 /**
@@ -313,52 +317,39 @@ const identify = async function (opts) {
     throw new Error('Missing filter option.');
   }
 
-  return _decode(this, _extendOptions(opts));
+  return decode(this, extendOptions(opts));
 };
 
 /**
  * Begin an image scan.
  *
- * @param {string} [imgData] - Optional image data. If not supplued, 'catch all' mode is used.
- * @param {object} [opts] - Optional options.
+ * @param {string} [param1] - Optional image data. If not supplued, 'catch all' mode is used.
+ * @param {object} [param2] - Optional options.
  * @returns {Promise}
  */
-const scan  = async function (imgData, opts) {
+const scan  = async function (param1, param2) {
   let imageData, options;
-
-  if (typeof arguments[0] === 'object') {
-    // options first, no image data
-    options = arguments[0];
+  if (!param2) {
+    options = extendOptions(param1);
   } else {
-    // image first
-    imageData = arguments[0];
-    options = arguments[1];
+    imageData = param1;
+    options = extendOptions(param2);
   }
 
-  options = _extendOptions(options);
   const prepareOptions = {
     invisible: options.invisible,
     imageConversion: options.imageConversion
   };
 
-  let preparePromise;
-  if (typeof imageData === 'string') {
-    // Reject if string is not a valid Image Data Url
-    if (!Utils.isDataUrl(imageData)) {
-      throw new Error('Invalid Image Data URL.');
-    }
-
+  const preparePromise = (typeof imageData === 'string')
     // We already have the image string data, so we only need to process it.
-    preparePromise = Prepare.processImage(imageData, prepareOptions);
-  } else {
+    ? Prepare.processImage(imageData, prepareOptions)
     // Fetch the image data from the file input, before processing.
-    preparePromise = Prepare.getFile(prepareOptions).then(Prepare.processImage);
-  }
+    : Prepare.getFile(prepareOptions).then(Prepare.processImage);
 
   // Send recognition request to the EVRYTHNG API once image is done processing
-  return preparePromise.then(function (data) {
-    return _decode(this, options, data);
-  });
+  const thisApp = this;
+  return preparePromise.then(data => decode(thisApp, options, data));
 };
 
 // Plugin API

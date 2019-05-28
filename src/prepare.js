@@ -174,6 +174,10 @@ const _processImage = (imageData, options) => {
     _setup(options);
   }
 
+  if (!Utils.isDataUrl(imageData)) {
+    throw new Error('Invalid Image Data URL.');
+  }
+
   return _loadImage(imageData)
     .then(_convertImage)
     .then(_exportBlob)
