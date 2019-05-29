@@ -103,14 +103,16 @@ const decodeRequest = (app, options, data) => {
  * @param {object} options - Current options.
  * @returns {Promise}
  */
-const getAnonymousUser = async (app, options) => {
+const getAnonymousUser = (app, options) => new Promise((resolve) => {
   if (!(options && options.createAnonymousUser)) {
+    resolve();
     return;
   }
 
   const anonUser = Utils.restoreUser(app, evrythng.User);
   if (typeof anonUser === 'object') {
-    return anonUser;
+    resolve(anonUser);
+    return;
   }
 
   const payload = { anonymous: true };
@@ -119,7 +121,7 @@ const getAnonymousUser = async (app, options) => {
       Utils.storeUser(app, createdUser);
       return createdUser;
     });
-};
+});
 
 /**
  * Process response of the decode request, adding an anonymous user if requested.
@@ -132,7 +134,7 @@ const getAnonymousUser = async (app, options) => {
 const processResponse = (app, response, options) => getAnonymousUser(app, options)
   .then(anonUser => response.map((item) => {
     // Attach user if avaialble.
-    if (typeof anonUser === 'object') {
+    if (anonUser) {
       item.user = anonUser;
     }
 
@@ -314,7 +316,7 @@ const redirect = (url) => {
  *
  * @param {object} opts - Additional options.
  */
-const identify = async function (opts) {
+const identify = function (opts) {
   if (!(typeof opts === 'object' && opts.filter)) {
     throw new Error('Missing filter option.');
   }
@@ -329,11 +331,16 @@ const identify = async function (opts) {
  * @param {object} [param2] - Optional options.
  * @returns {Promise}
  */
-const scan = async function (param1, param2) {
-  let imageData, options;
-  if (!param2) {
+const scan = function (param1, param2) {
+  let imageData;
+  let options = {};
+  if (!param1) {
+    // Default mode
+  } else if (!param2) {
+    // Options only
     options = param1;
   } else {
+    // Data, then options
     imageData = param1;
     options = param2;
   }
