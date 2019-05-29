@@ -8,17 +8,17 @@
     <link rel="stylesheet" type="text/css" href="./styles.css">
   </head>
   <body>
-    <h1>scanthng.js test page</h1>
+    <h2>scanthng.js test page</h2>
     <p>Use this page to test various scanthng.js functions.</p>
     <p>Open devtools to see responses.</p>
 
-    <h2>Application API Key</h2>
+    <h3>Application API Key</h3>
     <div>
       <input type="text" id="input-app-api-key" class="input-app-api-key">
       <input type="button" id="input-use-api-key" value="Use">
     </div>
 
-    <h2>.identify()</h2>
+    <h3>.identify({ filter })</h3>
     <table>
       <tr>
         <td><span>type:</span></td>
@@ -33,7 +33,7 @@
       </tr>
     </table>
 
-    <h2>.scan()</h2>
+    <h3>.scan({ filter })</h3>
     <table>
       <tr>
         <td><span>method:</span></td>
@@ -48,7 +48,7 @@
       </tr>
     </table>
 
-    <h2>.scan(base64Data)</h2>
+    <h3>.scan(base64Data)</h3>
     <table>
       <tr>
         <td><span>data:</span></td>
@@ -59,7 +59,7 @@
       </tr>
     </table>
 
-    <h2>.scanStream()</h2>
+    <h3>.scanStream({ filter, containerId })</h3>
     <p>Native scanning occurs only for <code>method: 2d</code> and <code>type: qr_code</code>.</p>
     <table>
       <tr>
