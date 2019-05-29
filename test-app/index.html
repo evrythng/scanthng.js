@@ -49,12 +49,15 @@
     </table>
 
     <h2>.scanStream()</h2>
+    <p>Native scanning occurs only for <code>method: 2d</code> and <code>type: qr_code</code>.</p>
     <table>
       <tr>
-        <select id="select-scanstream-mode">
-          <option value="qrcode">QR Code (native)</option>
-          <option value="other">Other (API)</option>
-        </select>
+        <td><span>method:</span></td>
+        <td><input type="text" id="input-scanstream-method" placeholder="method" value="2d"></td>
+      </tr>
+      <tr>
+        <td><span>type:</span></td>
+        <td><input type="text" id="input-scanstream-type" placeholder="type" value="qr_code"></td>
       </tr>
       <tr>
         <td colspan="2"><input type="button" id="input-scanstream" value="Scan Stream"></td>

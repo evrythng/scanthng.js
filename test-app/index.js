@@ -23,7 +23,8 @@ const UI = {
   inputIdentifyValue: document.getElementById('input-identify-value'),
   inputScanMethod: document.getElementById('input-scan-method'),
   inputScanType: document.getElementById('input-scan-type'),
-  selectScanstreamMode: document.getElementById('select-scanstream-mode'),
+  inputScanstreamMethod: document.getElementById('input-scanstream-method'),
+  inputScanstreamType: document.getElementById('input-scanstream-type'),
 };
 
 const CONTAINER_ID = 'scanstream-container';
@@ -69,13 +70,11 @@ const onLoad = () => {
   });
 
   UI.buttonScanStream.addEventListener('click', () => {
-    const mode = UI.selectScanstreamMode.value;
+    const method = UI.inputScanstreamMethod.value;
+    const type = UI.inputScanstreamType.value;
     
-    const filter = (mode === 'qrcode')
-      ? { method: '2d', type: 'qr_code' }
-      : {};
-
     runAsync(async () => {
+      const filter = { method, type };
       const res = await window.app.scanStream({ filter, containerId: CONTAINER_ID });
       console.log(JSON.stringify(res, null, 2));
     });
