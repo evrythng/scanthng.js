@@ -29,8 +29,10 @@ const UI = {
 
 const CONTAINER_ID = 'scanstream-container';
 
-const reloadApp = () => {
-  const apiKey = localStorage.getItem('api_key');
+const getUrlParam = key => new URLSearchParams(window.location.search).get(key);
+
+const loadApp = () => {
+  const apiKey = getUrlParam('app');
   if (apiKey) {
     UI.inputApiKey.value = apiKey || '';
     window.app = new evrythng.Application(apiKey);
@@ -39,13 +41,22 @@ const reloadApp = () => {
 
 const runAsync = f => f().catch(console.log);
 
+const handleResults = (res) => {
+  console.log(JSON.stringify(res, null, 2));
+  const numResults = res.length;
+  let numFound = 0;
+  if (numResults) {
+    numFound = res[0].results.length;
+  }
+  alert(`numResults: ${numResults}, numFound: ${numFound}`);
+};
+
 const onLoad = () => {
-  reloadApp();
+  loadApp();
 
   UI.buttonUseKey.addEventListener('click', () => {
     window.app = new evrythng.Application(UI.inputApiKey.value);
     window.app.init()
-      .then(app => localStorage.setItem('api_key', app.apiKey))
       .catch(e => alert('Invalid Application API Key'));
   });
 
@@ -55,7 +66,7 @@ const onLoad = () => {
 
     runAsync(async () => {
       const res = await window.app.identify({ filter: { type, value } });
-      console.log(JSON.stringify(res, null, 2));
+      handleResults(res);
     });
   });
 
@@ -65,7 +76,7 @@ const onLoad = () => {
 
     runAsync(async () => {
       const res = await window.app.scan({ filter: { method, type } });
-      console.log(JSON.stringify(res, null, 2));
+      handleResults(res);
     });
   });
 
@@ -76,7 +87,7 @@ const onLoad = () => {
     runAsync(async () => {
       const filter = { method, type };
       const res = await window.app.scanStream({ filter, containerId: CONTAINER_ID });
-      console.log(JSON.stringify(res, null, 2));
+      handleResults(res);
     });
   });
 };
