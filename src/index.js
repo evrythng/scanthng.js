@@ -187,7 +187,7 @@ const scanSample = (app, canvas, video, filter, foundCb) => {
   }
 
   // Else, send image data to ScanThng - 1d && ir implicitly included
-  app.scan(canvas.toDataURL()).then((res) => {
+  app.scan(canvas.toDataURL(), { filter }).then((res) => {
     if (res.length) {
       foundCb(res);
     }
@@ -270,7 +270,7 @@ const insertVideoElement = (containerId) => {
  * @param {object} opts - Scanning options including standard 'filter' and 'containerId'.
  * @returns {Promise} A Promise that resolves with any scan results.
  */
-const scanStream = function (opts) {
+const scanStream = function (opts = {}) {
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
     console.log('getUserMedia() is not supported with this browser; falling back to Media Capture.');
     return this.scan(opts);
@@ -284,13 +284,10 @@ const scanStream = function (opts) {
     throw new Error('Please specify \'containerId\' where the video element can be added as a child');
   }
 
-  if (!(opts.filter.method && opts.filter.type)) {
-    throw new Error('Please specify both \'method\' and \'type\' in \'filter\'.');
-  }
-
-  // Handle '2D' instead of '2d' entered by user
-  opts.filter.method = opts.filter.method.toLowerCase();
-  opts.filter.type = opts.filter.type.toLowerCase();
+  // Handle defaults and casing
+  opts.filter = opts.filter || {};
+  opts.filter.method = (opts.filter.method || '2d').toLowerCase();
+  opts.filter.type = (opts.filter.type || 'qr_code').toLowerCase();
 
   // Open the stream, identify barcode, then inform the caller.
   const thisApp = this;
@@ -337,8 +334,13 @@ const scan = function (param1, param2) {
   if (!param1) {
     // Default mode
   } else if (!param2) {
-    // Options only
-    options = param1;
+    if (typeof param1 === 'string') {
+      // Data only
+      imageData = param1;
+    } else {
+      // Options only
+      options = param1;
+    }
   } else {
     // Data, then options
     imageData = param1;
