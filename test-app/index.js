@@ -1,6 +1,7 @@
 evrythng.use(ScanThng);
 
 const UI = {
+  buttonBase64DataScan: document.getElementById('input-base64data-scan'),
   buttonIdentify: document.getElementById('input-identify'),
   buttonScan: document.getElementById('input-scan'),
   buttonScanStream: document.getElementById('input-scanstream'),
@@ -8,10 +9,11 @@ const UI = {
   inputApiKey: document.getElementById('input-app-api-key'),
   inputIdentifyType: document.getElementById('input-identify-type'),
   inputIdentifyValue: document.getElementById('input-identify-value'),
+  inputScanBase64Data: document.getElementById('input-scan-base64data-data'),
   inputScanMethod: document.getElementById('input-scan-method'),
-  inputScanType: document.getElementById('input-scan-type'),
   inputScanstreamMethod: document.getElementById('input-scanstream-method'),
   inputScanstreamType: document.getElementById('input-scanstream-type'),
+  inputScanType: document.getElementById('input-scan-type'),
 };
 
 const CONTAINER_ID = 'scanstream-container';
@@ -23,6 +25,7 @@ const loadApp = () => {
   if (apiKey) {
     UI.inputApiKey.value = apiKey || '';
     window.app = new evrythng.Application(apiKey);
+    window.app.init().catch(e => alert('Invalid Application API Key'));
   }
 };
 
@@ -37,36 +40,37 @@ const handleResults = (res) => {
   alert(`numResults: ${numResults}, numFound: ${numFound}`);
 };
 
-const runAsync = f => f().catch(console.log).then(handleResults);
+const testFunction = f => f().catch(console.log).then(handleResults);
 
 const onLoad = () => {
   loadApp();
 
   UI.buttonUseKey.addEventListener('click', () => {
     window.app = new evrythng.Application(UI.inputApiKey.value);
-    window.app.init()
-      .catch(e => alert('Invalid Application API Key'));
+    window.app.init().catch(e => alert('Invalid Application API Key'));
   });
 
   UI.buttonIdentify.addEventListener('click', () => {
     const type = UI.inputIdentifyType.value;
     const { value } = UI.inputIdentifyValue;
-
-    runAsync(() => window.app.identify({ filter: { type, value } }));
+    testFunction(() => window.app.identify({ filter: { type, value } }));
   });
 
   UI.buttonScan.addEventListener('click', () => {
     const method = UI.inputScanMethod.value;
     const type = UI.inputScanType.value;
+    testFunction(() => window.app.scan({ filter: { method, type } }));
+  });
 
-    runAsync(() => window.app.scan({ filter: { method, type } }));
+  UI.buttonBase64DataScan.addEventListener('click', () => {
+    const base64Data = UI.inputScanBase64Data.value;
+    testFunction(() => window.app.scan(base64Data));
   });
 
   UI.buttonScanStream.addEventListener('click', () => {
     const method = UI.inputScanstreamMethod.value;
     const type = UI.inputScanstreamType.value;
-    
-    runAsync(() => window.app.scanStream({ filter: { method, type }, containerId: CONTAINER_ID }));
+    testFunction(() => window.app.scanStream({ filter: { method, type }, containerId: CONTAINER_ID }));
   });
 };
 
