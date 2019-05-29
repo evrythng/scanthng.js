@@ -6,6 +6,11 @@ body {
   margin-left: 20px;
 }
 
+h3 {
+  margin-top: 25px;
+  margin-bottom: 5px;
+}
+
 input[type="text"] {
   font-family: monospace;
   font-size: 1.1rem;
