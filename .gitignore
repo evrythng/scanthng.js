@@ -29,3 +29,6 @@ node_modules
 
 # Builds
 dist
+
+# test-app
+test-app/lib/*

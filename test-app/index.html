@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <title>scanthng.js test page</title>
+
+    <link rel="stylesheet" type="text/css" href="./styles.css">
+  </head>
+  <body>
+    <h1>scanthng.js test page</h1>
+    <p>Use this page to test various scanthng.js functions.</p>
+    <p>Open devtools to see responses.</p>
+
+    <h2>Application API Key</h2>
+    <div>
+      <input type="text" id="input-app-api-key" class="input-app-api-key">
+      <input type="button" id="input-use-api-key" value="Use">
+    </div>
+
+    <h2>.identify()</h2>
+    <table>
+      <tr>
+        <td><span>type:</span></td>
+        <td><input type="text" id="input-identify-type" placeholder="type" value="qr_code"></td>
+      </tr>
+      <tr>
+        <td><span>value:</span></td>
+        <td><input type="text" id="input-identify-value" placeholder="value/short URL"></td>
+      </tr>
+      <tr>
+        <td colspan="2"><input type="button" id="input-identify" value="Identify"></td>
+      </tr>
+    </table>
+
+    <h2>.scan()</h2>
+    <table>
+      <tr>
+        <td><span>method:</span></td>
+        <td><input type="text" id="input-scan-method" placeholder="method" value="2d"></td>
+      </tr>
+      <tr>
+        <td><span>type:</span></td>
+        <td><input type="text" id="input-scan-type" placeholder="type" value="qr_code"></td>
+      </tr>
+      <tr>
+        <td colspan="2"><input type="button" id="input-scan" value="Scan Image"></td>
+      </tr>
+    </table>
+
+    <h2>.scanStream()</h2>
+    <table>
+      <tr>
+        <select id="select-scanstream-mode">
+          <option value="qrcode">QR Code (native)</option>
+          <option value="other">Other (API)</option>
+        </select>
+      </tr>
+      <tr>
+        <td colspan="2"><input type="button" id="input-scanstream" value="Scan Stream"></td>
+      </tr>
+      <tr>
+        <td colspan="2"><div id="scanstream-container"></td>
+      </tr>
+    </table>
+
+    <script type="text/javascript" src="./lib/evrythng.js"></script>
+    <script type="text/javascript" src="./lib/jsQR.js"></script>
+    <script type="text/javascript" src="../dist/scanthng.js"></script>
+    <script type="text/javascript" src="./index.js"></script>
+  </body>
+</html>
