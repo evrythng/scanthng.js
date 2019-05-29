@@ -5,7 +5,6 @@
   "main": "dist/scanthng.js",
   "scripts": {
     "build": "webpack --config webpack.config.js --mode production",
-    "test": "mocha tests/index.spec.js",
     "build-dev": "webpack --config webpack.config.js --mode development"
   },
   "repository": {

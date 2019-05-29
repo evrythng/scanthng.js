@@ -1,16 +1,3 @@
-
-// should ask for image and return results
-
-// should ask for image and scan with options
-
-// should scan with image data
-
-// should scan with image data and options
-
-// should identify an existing redirection
-
-// should scan from a video stream
-
 evrythng.use(ScanThng);
 
 const UI = {
