@@ -24,8 +24,8 @@ const DEFAULT_OPTIONS = {
   invisible: true,
   imageConversion: {
     greyscale: true,
-    resizeTo: 600,
-    exportQuality: 0.8
+    resizeTo: 1000,
+    exportQuality: 0.9
   },
   createAnonymousUser: false
 };
@@ -331,6 +331,7 @@ const identify = function (opts) {
 const scan = function (param1, param2) {
   let imageData;
   let options = {};
+
   if (!param1) {
     // Default mode
   } else if (!param2) {

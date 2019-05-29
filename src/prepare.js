@@ -6,9 +6,9 @@ const DEFAULT_OPTIONS = {
   invisible: true,
   imageConversion:{
     greyscale: true,
-    resizeTo: 240,
-    exportFormat: 'image/jpeg',
-    exportQuality: 0.8,
+    resizeTo: 480,
+    exportFormat: 'image/png',
+    exportQuality: 0.9,
   }
 };
 
