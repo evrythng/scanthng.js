@@ -26,8 +26,6 @@ const loadApp = () => {
   }
 };
 
-const runAsync = f => f().catch(console.log);
-
 const handleResults = (res) => {
   console.log(JSON.stringify(res, null, 2));
   const numResults = res.length;
@@ -35,8 +33,11 @@ const handleResults = (res) => {
   if (numResults) {
     numFound = res[0].results.length;
   }
+
   alert(`numResults: ${numResults}, numFound: ${numFound}`);
 };
+
+const runAsync = f => f().catch(console.log).then(handleResults);
 
 const onLoad = () => {
   loadApp();
@@ -51,31 +52,21 @@ const onLoad = () => {
     const type = UI.inputIdentifyType.value;
     const { value } = UI.inputIdentifyValue;
 
-    runAsync(async () => {
-      const res = await window.app.identify({ filter: { type, value } });
-      handleResults(res);
-    });
+    runAsync(() => window.app.identify({ filter: { type, value } }));
   });
 
   UI.buttonScan.addEventListener('click', () => {
     const method = UI.inputScanMethod.value;
     const type = UI.inputScanType.value;
 
-    runAsync(async () => {
-      const res = await window.app.scan({ filter: { method, type } });
-      handleResults(res);
-    });
+    runAsync(() => window.app.scan({ filter: { method, type } }));
   });
 
   UI.buttonScanStream.addEventListener('click', () => {
     const method = UI.inputScanstreamMethod.value;
     const type = UI.inputScanstreamType.value;
     
-    runAsync(async () => {
-      const filter = { method, type };
-      const res = await window.app.scanStream({ filter, containerId: CONTAINER_ID });
-      handleResults(res);
-    });
+    runAsync(() => window.app.scanStream({ filter: { method, type }, containerId: CONTAINER_ID }));
   });
 };
 
