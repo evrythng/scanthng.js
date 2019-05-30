@@ -95,23 +95,23 @@ const testUtils = async () => {
     );
   });
 
-  await it('Utils - should recognise Firefox mobile browser from UA', async () => {
+  await it('Utils - should recognise Firefox mobile browser from User Agent', async () => {
     const uaStr = 'Mozilla/5.0 (Android 7.0; Mobile; rv:54.0) Gecko/54.0 Firefox/54.0';
     
     return isFirefoxMobileBrowser(uaStr);
   });
 
-  await it('Utils - should recognise Android browser from UA', async () => {
+  await it('Utils - should recognise Android browser from User Agent', async () => {
     const uaStr = 'Mozilla/5.0 (Linux; U; Android 4.4.2; en-us; SCH-I535 Build/KOT49H) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Mobile Safari/534.30';
     
     return isAndroidBrowser(uaStr);
   });
 
-  await it('Utils - should recognise non-Firefox mobile browser from UA', async () => {
+  await it('Utils - should recognise non-Firefox mobile browser from User Agent', async () => {
     return !isFirefoxMobileBrowser(window.navigator.userAgent);
   });
 
-  await it('Utils - should recognise non-Android browser from UA', async () => {
+  await it('Utils - should recognise non-Android browser from User Agent', async () => {
     return !isAndroidBrowser(window.navigator.userAgent);
   });
 

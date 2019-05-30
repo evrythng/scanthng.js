@@ -39,26 +39,23 @@ const extend = (source, obj, override) => {
 /**
  * Check if the user agent is a Firefox Mobile browser.
  *
+ * @param {string} [uaStr] - Specific User Agent string, used for testing.
  * @returns {boolean} true if the user agent is a Firefox Mobile browser.
  */
-const isFirefoxMobileBrowser = () => {
-  const ua = navigator.userAgent.toLowerCase();
-  if (ua.includes('firefox') && ua.includes('mobile')) {
-    const version = ua.match(/firefox\/([\d.]+)/)[1];
-    const majorVersion = version.split('.')[0];
-    return majorVersion >= 10;
-  }
-
-  return false;
+const isFirefoxMobileBrowser = (uaStr) => {
+  const ua = uaStr || navigator.userAgent.toLowerCase();
+  return uaStr.includes('firefox') && uaStr.includes('mobile');
 };
 
 /**
  * Check if the user agent is the Android browser.
  *
+ * @param {string} [uaStr] - Specific User Agent string, used for testing.
  * @returns {boolean} true if the user agent is the Android browser.
  */
-const isAndroidBrowser = () => {
-  const rxaosp = window.navigator.userAgent.match(/Android.*AppleWebKit\/([\d.]+)/);
+const isAndroidBrowser = (uaStr) => {
+  const ua = uaStr || navigator.userAgent;;
+  const rxaosp = ua.match(/Android.*AppleWebKit\/([\d.]+)/);
   return rxaosp && rxaosp[1] < 537;
 };
 
@@ -135,15 +132,17 @@ const restoreUser = (app, User) => {
   }
 };
 
-module.exports = {
-  isDataUrl,
-  extend,
-  isFirefoxMobileBrowser,
-  isAndroidBrowser,
-  writeStorage,
-  readStorage,
-  writeCookie,
-  readCookie,
-  restoreUser,
-  storeUser,
-};
+if (typeof module !== 'undefined') {
+  module.exports = {
+    isDataUrl,
+    extend,
+    isFirefoxMobileBrowser,
+    isAndroidBrowser,
+    writeStorage,
+    readStorage,
+    writeCookie,
+    readCookie,
+    restoreUser,
+    storeUser,
+  };
+}

@@ -24,6 +24,7 @@ const it = async (summary, cb) => {
     const result = await cb();
     addResult(summary, result);
   } catch (e) {
+    console.log(e);
     addResult(summary, false);
   }
 };
