@@ -169,7 +169,7 @@ const scanSample = (app, canvas, video, filter, foundCb) => {
   canvas.height = video.videoHeight;
   context.drawImage(video, 0, 0);
 
-  if (filter.method === '2d' && filter.type === 'qr_code') {
+  if (filter && filter.method === '2d' && filter.type === 'qr_code') {
     let imgData;
     try {
       imgData = context.getImageData(0, 0, video.videoWidth, video.videoHeight);
@@ -215,7 +215,7 @@ const findBarcode = (app, stream, opts) => {
   video.play();
 
   return new Promise((resolve, reject) => {
-    const interval = (opts.filter.method === '2d' && opts.filter.type === 'qr_code')
+    const interval = (opts.filter && opts.filter.method === '2d' && opts.filter.type === 'qr_code')
       ? SAMPLE_INTERVAL_FAST
       : SAMPLE_INTERVAL_SLOW;
 
@@ -283,11 +283,6 @@ const scanStream = function (opts = {}) {
   if (!document.getElementById(opts.containerId)) {
     throw new Error('Please specify \'containerId\' where the video element can be added as a child');
   }
-
-  // Handle defaults and casing
-  opts.filter = opts.filter || {};
-  opts.filter.method = (opts.filter.method || '2d').toLowerCase();
-  opts.filter.type = (opts.filter.type || 'qr_code').toLowerCase();
 
   // Open the stream, identify barcode, then inform the caller.
   const thisApp = this;
