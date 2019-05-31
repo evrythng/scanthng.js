@@ -1,5 +1,5 @@
-const MegaPixImage = require('@koba04/ios-imagefile-megapixel');
-const Utils = require('./utils');
+let Convert;
+let Utils;
 
 /** The default prepare options. */
 const DEFAULT_OPTIONS = {
@@ -12,18 +12,33 @@ const DEFAULT_OPTIONS = {
   }
 };
 
-/** minimum image size accepted by API */
-const MIN_SIZE = 144;
+/** Class shared by all media capture forms. */
+const FORM_CLASS = 'scanthng_form';
+
+/**
+ * Remove previous media capture forms before creating a new one (multiple scans)
+ */
+const removeExistingForms = () => {
+  const existing = document.getElementsByClassName(FORM_CLASS);
+  for (let i = 0; i < existing.length; i++) {
+    if (existing[i].parentElement) {
+      existing[i].parentElement.removeChild(existing[i]);
+    }
+  }
+};
 
 /** 
  * Create the DOM elements to handle user image selection.
  *
  * @param {object} options - The prepare options.
+ * @returns {object} The created input for media capture.
  */
-const insertMediaCapture = options => new Promise((resolve, reject) => {
+const insertMediaCapture = options => new Promise((resolve) => {
+  removeExistingForms();
+
   const captureForm = document.createElement('form');
   captureForm.setAttribute('id', `scanthng${Date.now()}`);
-  captureForm.setAttribute('class', 'scanthng_form');
+  captureForm.setAttribute('class', FORM_CLASS);
   captureForm.style.visibility = options.invisible ? 'hidden' : 'initial';
 
   const captureInput = document.createElement('input');
@@ -33,19 +48,21 @@ const insertMediaCapture = options => new Promise((resolve, reject) => {
   captureInput.setAttribute('capture', 'camera');
   captureForm.appendChild(captureInput);
 
-  // Remove previous  media capture forms before creating a new one (multiple scans)
-  const existing = document.getElementsByClassName('scanthng_form');
-  if (existing.length) {
-    for (let i = 0; i < existing.length; i++) {
-      if (existing[i] && existing[i].parentElement) {
-        existing[i].parentElement.removeChild(existing[i]);
-      }
-    }
-  }
+  document.body.appendChild(captureForm);
 
+  resolve(captureInput);
+});
+
+/**
+ * Trigger a click event on an input.
+ *
+ * @param {object} input - The <input> to trigger.
+ * @returns {Promise} Promise that resolves the chosen file.
+ */
+const triggerMediaCapture = input => new Promise((resolve, reject) => {
   // Add listener for changes in our Media Capture element
-  captureInput.addEventListener('change', function () {
-    const [file] = this.files;
+  input.addEventListener('change', (e) => {
+    const [file] = e.target.files;
     if (!file) {
       reject(new Error('No file selected.'));
       return;
@@ -54,14 +71,7 @@ const insertMediaCapture = options => new Promise((resolve, reject) => {
     resolve(file);
   });
 
-  document.body.appendChild(captureForm);
-
-  if (Utils.isAndroidBrowser() || Utils.isFirefoxMobileBrowser()) {
-    window.setTimeout(() => captureInput.click(), 800);
-    return;
-  }
-
-  captureInput.click();
+  input.click();
 });
 
 /**
@@ -105,58 +115,6 @@ const loadImage = dataUrl => new Promise((resolve, reject) => {
 });
 
 /**
- * Run a greyscale filter on the canvas.
- *
- * @param {object} canvas - Canvas object to use in drawing.
- * @returns {object} The updated canvas.
- */
-const convertToGreyscale = (canvas) => {
-  const context = canvas.getContext('2d');
-  const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-
-  const { data: pixels } = imageData;
-  for (let i = 0; i < pixels.length; i += 4) {
-    const grayscale = pixels[i] * 0.3 + pixels[i + 1] * 0.59 + pixels[i + 2] * 0.11;
-    pixels[i] = grayscale; // red
-    pixels[i + 1] = grayscale; // green
-    pixels[i + 2] = grayscale; // blue
-    // alpha - n/a
-  }
-
-  context.putImageData(imageData, 0, 0);
-  return canvas;
-};
-
-/**
- * Load the image to canvas, resize and optionally run greyscale filter.
- *
- * @param {object} image - The image to convert.
- * @param {object} options - The prepare options.
- * @returns {object} The updated canvas.
- */
-const convertImage = (image, { imageConversion }) => new Promise((resolve) => {
-  const canvas = document.createElement('canvas');
-
-  // resize the image so it's smaller dimension equals the option value
-  // but not smaller than minimum dimensions allowed
-  const smaller = Math.max(imageConversion.resizeTo, MIN_SIZE);
-  const ratio = image.width / image.height;
-  const zoom = smaller / Math.min(image.width, image.height);
-  const width = ratio > 1 ? image.width * zoom : smaller;
-  const height = ratio > 1 ? smaller : image.height * zoom;
-
-  // render image on canvas using Megapixel library (Fixes problems for
-  // iOS Safari) https://github.com/stomita/ios-imagefile-megapixel
-  new MegaPixImage(image).render(canvas, { width, height });
-
-  if (imageConversion.greyscale) {
-    convertToGreyscale(canvas);
-  }
-
-  resolve(canvas);
-});
-
-/**
  * Export the image from canvas to a data URL.
  *
  * @param {object} canvas - The canvas to export.
@@ -183,7 +141,9 @@ const mergeOptions = (userOptions = {}) => ({
  * @param {object} userOptions - User options, if any.
  * @returns {Promise}
  */
-const getFile = userOptions => insertMediaCapture(mergeOptions(userOptions)).then(readUserFile);
+const getFile = userOptions => insertMediaCapture(mergeOptions(userOptions))
+  .then(triggerMediaCapture)
+  .then(readUserFile);
 
 /**
  * Put image on canvas, convert it and export as data URL.
@@ -193,18 +153,23 @@ const getFile = userOptions => insertMediaCapture(mergeOptions(userOptions)).the
  * @returns {Promise}
  */
 const processImage = (imageData, userOptions) => {
-  const options = mergeOptions(userOptions);
   if (!Utils.isDataUrl(imageData)) {
     throw new Error('Invalid Image Data URL.');
   }
 
+  const options = mergeOptions(userOptions);
   return loadImage(imageData)
-    .then(image => convertImage(image, options))
+    .then(image => Convert.convertImage(image, options))
     .then(canvas => exportDataUrl(canvas, options))
     .then(dataUrl => ({ image: dataUrl }));
 };
 
-module.exports = {
-  getFile,
-  processImage,
-};
+if (typeof module !== 'undefined') {
+  Convert = require('./convert');
+  Utils = require('./utils');
+
+  module.exports = {
+    getFile,
+    processImage,
+  };
+}

@@ -37,29 +37,6 @@ const extend = (source, obj, override) => {
 };
 
 /**
- * Check if the user agent is a Firefox Mobile browser.
- *
- * @param {string} [uaStr] - Specific User Agent string, used for testing.
- * @returns {boolean} true if the user agent is a Firefox Mobile browser.
- */
-const isFirefoxMobileBrowser = (uaStr) => {
-  const ua = (uaStr || navigator.userAgent).toLowerCase();
-  return ua.includes('firefox') && ua.includes('mobile');
-};
-
-/**
- * Check if the user agent is the Android browser.
- *
- * @param {string} [uaStr] - Specific User Agent string, used for testing.
- * @returns {boolean} true if the user agent is the Android browser.
- */
-const isAndroidBrowser = (uaStr) => {
-  const ua = uaStr || navigator.userAgent;
-  const rxaosp = ua.match(/Android.*AppleWebKit\/([\d.]+)/);
-  return rxaosp && rxaosp[1] < 537;
-};
-
-/**
  * Write a key-value pair to localStorage.
  *
  * @param {string} key - The key.
@@ -136,8 +113,6 @@ if (typeof module !== 'undefined') {
   module.exports = {
     isDataUrl,
     extend,
-    isFirefoxMobileBrowser,
-    isAndroidBrowser,
     writeStorage,
     readStorage,
     writeCookie,

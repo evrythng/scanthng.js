@@ -1,7 +1,7 @@
 /* globals jsQR */
 
 const Utils = require('./utils');
-const Prepare = require('./prepare');
+const Media = require('./media');
 
 const API_PATH = '/scan/identifications';
 
@@ -350,9 +350,9 @@ const scan = function (param1, param2) {
 
   const preparePromise = (typeof imageData === 'string')
     // We already have the image string data, so we only need to process it.
-    ? Prepare.processImage(imageData, prepareOptions)
+    ? Media.processImage(imageData, prepareOptions)
     // Fetch the image data from the file input, before processing.
-    : Prepare.getFile(prepareOptions).then(Prepare.processImage);
+    : Media.getFile(prepareOptions).then(Media.processImage);
 
   // Send recognition request to the EVRYTHNG API once image is done processing
   const thisApp = this;
