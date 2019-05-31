@@ -44,7 +44,7 @@ const extend = (source, obj, override) => {
  */
 const isFirefoxMobileBrowser = (uaStr) => {
   const ua = uaStr || navigator.userAgent.toLowerCase();
-  return uaStr.includes('firefox') && uaStr.includes('mobile');
+  return ua.includes('firefox') && ua.includes('mobile');
 };
 
 /**
@@ -54,7 +54,7 @@ const isFirefoxMobileBrowser = (uaStr) => {
  * @returns {boolean} true if the user agent is the Android browser.
  */
 const isAndroidBrowser = (uaStr) => {
-  const ua = uaStr || navigator.userAgent;;
+  const ua = uaStr || navigator.userAgent;
   const rxaosp = ua.match(/Android.*AppleWebKit\/([\d.]+)/);
   return rxaosp && rxaosp[1] < 537;
 };

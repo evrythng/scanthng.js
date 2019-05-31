@@ -40,19 +40,18 @@ In addition to the instructions below, make sure to also install the
 according to their instructions.
 
 
-### Bower
+### npm
+
+Install the `scanthng` npm module:
 
 ```
-bower install scanthng --save
+npm i -D scanthng
 ```
 
-The Bower package is [AMD](http://requirejs.org/docs/whyamd.html)-compatible.
-This means you can load it asynchronously using tools like
-[Require.js](http://requirejs.org/) or simply dropping the script tag into your
-HTML page:
+Include using a script tag:
 
 ```html
-<script src="bower_components/scanthng/dist/scanthng.min.js"></script>
+<script src="./node_modules/scanthng/dist/scanthng.js"></script>
 ```
 
 
@@ -244,7 +243,7 @@ Web API. To use the `scanStream()` method, make sure you add this library to
 your project and include it with a `<script>` tag, for example:
 
 ```html
-<script src="lib/jsQR/jsQR.js"></script>
+<script src="./lib/jsQR/jsQR.js"></script>
 ```
 
 The developer must supply the `id` of a container such as a `<div>` that the SDK
