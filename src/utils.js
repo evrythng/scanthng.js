@@ -43,7 +43,7 @@ const extend = (source, obj, override) => {
  * @returns {boolean} true if the user agent is a Firefox Mobile browser.
  */
 const isFirefoxMobileBrowser = (uaStr) => {
-  const ua = uaStr || navigator.userAgent.toLowerCase();
+  const ua = (uaStr || navigator.userAgent).toLowerCase();
   return ua.includes('firefox') && ua.includes('mobile');
 };
 
