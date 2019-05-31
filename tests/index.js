@@ -50,8 +50,6 @@ const testUtils = async () => {
     return (
       typeof isDataUrl === 'function' &&
       typeof extend === 'function' &&
-      typeof isFirefoxMobileBrowser === 'function' &&
-      typeof isAndroidBrowser === 'function' &&
       typeof writeStorage === 'function' &&
       typeof readStorage === 'function' &&
       typeof writeCookie === 'function' &&
@@ -95,26 +93,6 @@ const testUtils = async () => {
     );
   });
 
-  await it('Utils - should recognise Firefox mobile browser from User Agent', async () => {
-    const uaStr = 'Mozilla/5.0 (Android 7.0; Mobile; rv:54.0) Gecko/54.0 Firefox/54.0';
-    
-    return isFirefoxMobileBrowser(uaStr);
-  });
-
-  await it('Utils - should recognise Android browser from User Agent', async () => {
-    const uaStr = 'Mozilla/5.0 (Linux; U; Android 4.4.2; en-us; SCH-I535 Build/KOT49H) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Mobile Safari/534.30';
-    
-    return isAndroidBrowser(uaStr);
-  });
-
-  await it('Utils - should recognise non-Firefox mobile browser from User Agent', async () => {
-    return !isFirefoxMobileBrowser(window.navigator.userAgent);
-  });
-
-  await it('Utils - should recognise non-Android browser from User Agent', async () => {
-    return !isAndroidBrowser(window.navigator.userAgent);
-  });
-
   await it('Utils - should write to localStorage', async () => {
     writeStorage('foo', { foo: 'bar' });
 
@@ -151,7 +129,48 @@ const testUtils = async () => {
 
     return user.apiKey.length === 80;
   });
-}
+};
+
+/**
+ * Test Media.js functionality.
+ */
+const testMedia = async () => {
+  let file, dataUrl;
+
+  await it('Media - should insert a form for media capture', async () => {
+    await insertMediaCapture({});
+
+    return document.getElementsByClassName(FORM_CLASS).length === 1;
+  });
+
+  await it('Media - should remove all existing media capture forms', async () => {
+    removeExistingForms();
+
+    return document.getElementsByClassName(FORM_CLASS).length === 0;
+  });
+
+  await it('Media - should trigger media capture', async () => {
+    alert('Please choose any image file');
+
+    const input = await insertMediaCapture({});
+    file = await triggerMediaCapture(input);
+    removeExistingForms();
+
+    return file !== undefined;
+  });
+
+  await it('Media - should read a user file into a data URL', async () => {
+    dataUrl = await readUserFile(file);
+
+    return dataUrl.length > 10 && dataUrl.includes('data');
+  });
+
+  await it('Media - should read the dataUrl into an img element', async () => {
+    const image = await loadImage(dataUrl);
+
+    return image.tagName === 'IMG';
+  });
+};
 
 /**
  * The tests. Each is asynchronous.
@@ -160,6 +179,7 @@ const main = async () => {
   await setup();
   await testScope();
   await testUtils();
+  await testMedia();
 };
 
 main();
