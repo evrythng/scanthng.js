@@ -525,6 +525,13 @@ page for full details on the EVRYTHNG Platform API behind the scenes of this
 SDK.
 
 
+## Testing
+
+The `tests` and `test-app` directories contain simple pages that allow quick
+testing of SDK functionality. See their respective `README.md` files for more
+details.
+
+
 ## Related tools
 
 ### evrythng.js
