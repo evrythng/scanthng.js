@@ -3,8 +3,7 @@
 ![](assets/infographic.png)
 
 `scanthng.js` is a plugin to be used with the
-[evrythng.js](https://github.com/evrythng/evrythng.js) (or
-[evrythng-extended.js](https://github.com/evrythng/evrythng-extended.js))
+[evrythng.js](https://github.com/evrythng/evrythng.js)
 Web SDKs to quickly and easily identify products stored in the EVRYTHNG
 Platform via 1D, 2D barcodes or image recognition.
 
@@ -40,7 +39,7 @@ In addition to the instructions below, make sure to also install the
 according to their instructions.
 
 
-### npm
+### npm
 
 Install the `scanthng` npm module:
 
