@@ -60,7 +60,7 @@ Include using a script tag:
 Add the script tag to your HTML page, specifying the version you will use:
 
 ```html
-<script src="https://d10ka0m22z5ju5.cloudfront.net/toolkit/evrythng-js-sdk/scanthng-3.1.0.min.js"></script>
+<script src="https://d10ka0m22z5ju5.cloudfront.net/js/scanthng/4.0.0/scanthng-4.0.0.js"></script>
 ```
 
 ### Supported Devices

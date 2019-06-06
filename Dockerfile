@@ -3,7 +3,7 @@ FROM node:8-alpine
 WORKDIR /srv
 COPY . /srv
 
-# Install dependencues
+# Install dependencies
 RUN apk add --no-cache python3
 RUN pip3 install awscli --upgrade --user
 RUN npm i
