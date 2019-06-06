@@ -1,0 +1,33 @@
+* {
+  font-family: sans-serif;
+}
+
+body {
+  margin-left: 20px;
+}
+
+h3 {
+  margin-top: 25px;
+  margin-bottom: 5px;
+}
+
+input[type="text"] {
+  font-family: monospace;
+  font-size: 1.1rem;
+}
+
+input[type="button"] {
+  font-size: 1.1rem;
+  border: 1px solid black;
+  background-color: black;
+  color: white;
+  margin-top: 5px;
+}
+
+select {
+  font-size: 1rem;
+}
+
+.input-app-api-key {
+  width: 200px;
+}

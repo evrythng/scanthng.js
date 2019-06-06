@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <title>scanthng.js test page</title>
+
+    <link rel="stylesheet" type="text/css" href="./styles.css">
+  </head>
+  <body>
+    <h2>scanthng.js test page</h2>
+    <p>Use this page to test various scanthng.js functions.</p>
+    <p>Open devtools to see responses.</p>
+
+    <h3>Application API Key</h3>
+    <div>
+      <input type="text" id="input-app-api-key" class="input-app-api-key">
+      <input type="button" id="input-use-api-key" value="Use">
+    </div>
+
+    <h3>.identify({ filter })</h3>
+    <table>
+      <tr>
+        <td><span>type:</span></td>
+        <td><input type="text" id="input-identify-type" placeholder="type" value="qr_code"></td>
+      </tr>
+      <tr>
+        <td><span>value:</span></td>
+        <td><input type="text" id="input-identify-value" placeholder="value/short URL"></td>
+      </tr>
+      <tr>
+        <td colspan="2"><input type="button" id="input-identify" value="Identify"></td>
+      </tr>
+    </table>
+
+    <h3>.scan({ filter })</h3>
+    <table>
+      <tr>
+        <td><span>method:</span></td>
+        <td><input type="text" id="input-scan-method" placeholder="method" value="2d"></td>
+      </tr>
+      <tr>
+        <td><span>type:</span></td>
+        <td><input type="text" id="input-scan-type" placeholder="type" value="qr_code"></td>
+      </tr>
+      <tr>
+        <td colspan="2"><input type="button" id="input-scan" value="Scan Image"></td>
+      </tr>
+    </table>
+
+    <h3>.scan(base64Data)</h3>
+    <table>
+      <tr>
+        <td><span>data:</span></td>
+        <td><input type="text" id="input-scan-base64data-data" placeholder="base 64 data"></td>
+      </tr>
+      <tr>
+        <td colspan="2"><input type="button" id="input-base64data-scan" value="Scan Data"></td>
+      </tr>
+    </table>
+
+    <h3>.scanStream({ filter, containerId })</h3>
+    <p>Native scanning occurs only for <code>method: 2d</code> and <code>type: qr_code</code>.</p>
+    <table>
+      <tr>
+        <td><span>method:</span></td>
+        <td><input type="text" id="input-scanstream-method" placeholder="method" value="2d"></td>
+      </tr>
+      <tr>
+        <td><span>type:</span></td>
+        <td><input type="text" id="input-scanstream-type" placeholder="type" value="qr_code"></td>
+      </tr>
+      <tr>
+        <td colspan="2"><input type="button" id="input-scanstream" value="Scan Stream"></td>
+      </tr>
+      <tr>
+        <td colspan="2"><div id="scanstream-container"></td>
+      </tr>
+    </table>
+
+    <script src="https://d10ka0m22z5ju5.cloudfront.net/js/evrythng/5.1.0/evrythng-5.1.0.js"></script>
+    <script type="text/javascript" src="./lib/jsQR.js"></script>
+    <script type="text/javascript" src="../dist/scanthng.js"></script>
+    <script type="text/javascript" src="./index.js"></script>
+  </body>
+</html>

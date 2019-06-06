@@ -40,19 +40,18 @@ In addition to the instructions below, make sure to also install the
 according to their instructions.
 
 
-### Bower
+### npm
+
+Install the `scanthng` npm module:
 
 ```
-bower install scanthng --save
+npm i -D scanthng
 ```
 
-The Bower package is [AMD](http://requirejs.org/docs/whyamd.html)-compatible.
-This means you can load it asynchronously using tools like
-[Require.js](http://requirejs.org/) or simply dropping the script tag into your
-HTML page:
+Include using a script tag:
 
 ```html
-<script src="bower_components/scanthng/dist/scanthng.min.js"></script>
+<script src="./node_modules/scanthng/dist/scanthng.js"></script>
 ```
 
 
@@ -61,7 +60,7 @@ HTML page:
 Add the script tag to your HTML page, specifying the version you will use:
 
 ```html
-<script src="https://d10ka0m22z5ju5.cloudfront.net/toolkit/evrythng-js-sdk/scanthng-3.1.0.min.js"></script>
+<script src="https://d10ka0m22z5ju5.cloudfront.net/js/scanthng/4.0.0/scanthng-4.0.0.js"></script>
 ```
 
 ### Supported Devices
@@ -178,13 +177,13 @@ After the HTML page containing the `<script>` tags is loaded, the first step is
 to create an `App` scope representing the EVRYTHNG application.
 
 ```js
-// Use this plugin with evrythng.js
-EVT.use(EVT.Scan);
+// Use this plugin with evrythng.js via the ScanThng global value
+evrythng.use(ScanThng);
 
 const APPLICATION_API_KEY = 'lyBVbCXyieBYjiWde9...';
 
 // Create an application scope
-const app = new EVT.App(APPLICATION_API_KEY);
+const app = new evrythng.Application(APPLICATION_API_KEY);
 ```
 
 This `app` will be able to identify all Thngs and products that are visible in
@@ -244,7 +243,7 @@ Web API. To use the `scanStream()` method, make sure you add this library to
 your project and include it with a `<script>` tag, for example:
 
 ```html
-<script src="lib/jsQR/jsQR.js"></script>
+<script src="./lib/jsQR/jsQR.js"></script>
 ```
 
 The developer must supply the `id` of a container such as a `<div>` that the SDK
@@ -526,17 +525,18 @@ page for full details on the EVRYTHNG Platform API behind the scenes of this
 SDK.
 
 
+## Testing
+
+The `tests` and `test-app` directories contain simple pages that allow quick
+testing of SDK functionality. See their respective `README.md` files for more
+details.
+
+
 ## Related tools
 
 ### evrythng.js
 
-[`evrythng.js`](https://github.com/evrythng/evrythng.js) is the core version of
-*evrythng.js* intended to be used in public applications and/or devices.
-
-### evrythng-extended.js
-
-[`evrythng-extended.js`](https://github.com/evrythng/evrythng-extended.js) is an
-extended version of *evrythng.js* which includes Operator access to the API.
+[`evrythng.js`](https://github.com/evrythng/evrythng.js)
 
 
 ## Third-party Software
