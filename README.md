@@ -423,6 +423,14 @@ If enabled, hides the `<input type=file>` element used to prompt for file
 upload.
 
 
+### `offline`
+Type: `Boolean` Default: `false`
+
+If enabled, will not attempt to resolve the scanned URL as an EVRYTHNG resource,
+but instead return a similar response with only the `meta.value` data set, which
+will contain the raw scanned string value.
+
+
 ### `createAnonymousUser`
 Type: `Boolean` Default: `false`
 
