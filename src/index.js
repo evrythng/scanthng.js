@@ -328,7 +328,7 @@ const stopStream = function () {
   clearInterval(this.frameIntervalHandle);
   this.frameIntervalHandle = null;
 
-  thisApp.stream.getVideoTracks()[0].stop();
+  this.stream.getVideoTracks()[0].stop();
   const video = document.getElementById(VIDEO_ELEMENT_ID);
   video.parentElement.removeChild(video);
 };
