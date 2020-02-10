@@ -5,6 +5,7 @@ const UI = {
   buttonIdentify: document.getElementById('input-identify'),
   buttonScan: document.getElementById('input-scan'),
   buttonScanStream: document.getElementById('input-scanstream'),
+  buttonStopStream: document.getElementById('input-stopstream'),
   buttonUseKey: document.getElementById('input-use-api-key'),
   inputApiKey: document.getElementById('input-app-api-key'),
   inputIdentifyType: document.getElementById('input-identify-type'),
@@ -78,6 +79,10 @@ const onLoad = () => {
       offline,
     };
     testFunction(() => window.app.scanStream(opts));
+  });
+
+  UI.buttonStopStream.addEventListener('click', () => {
+    window.app.stopStream();
   });
 };
 

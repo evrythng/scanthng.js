@@ -156,13 +156,13 @@ const decode = (app, options, data) =>
  * Process a sample frame from the stream, and find any code present.
  * A callback is required since any promise per-frame won't necessarily resolve or reject.
  *
- * @param {object} app - The app performing the scan.
+ * @param {object} thisApp - The app performing the scan.
  * @param {object} canvas - The canvas element.
  * @param {object} video - The SDK-inserted <video> element.
  * @param {object} filter - The scanning filter.
  * @param {function} foundCb - Callback for if a code is found.
  */
-const scanSample = (app, canvas, video, filter, foundCb) => {
+const scanSample = (thisApp, canvas, video, filter, foundCb) => {
   // Match canvas internal dimensions to that of the video and draw for the user
   const context = canvas.getContext('2d');
   canvas.width = video.videoWidth;
@@ -187,7 +187,7 @@ const scanSample = (app, canvas, video, filter, foundCb) => {
   }
 
   // Else, send image data to ScanThng - 1d && ir implicitly included
-  app.scan(canvas.toDataURL(), { filter }).then((res) => {
+  thisApp.scan(canvas.toDataURL(), { filter }).then((res) => {
     if (res.length) {
       foundCb(res);
     }
@@ -204,12 +204,12 @@ const scanSample = (app, canvas, video, filter, foundCb) => {
 /**
  * Consume a getUserMedia() video stream and resolves once recognition is completed.
  *
- * @param {object} app - The app performing the scan.
+ * @param {object} thisApp - The app performing the scan.
  * @param {object} stream - The stream to consume.
  * @param {object} opts - The scanning options.
  * @returns {Promise} A Promise that resolves once recognition is completed.
  */
-const findBarcode = (app, stream, opts) => {
+const findBarcode = (thisApp, stream, opts) => {
   const video = document.getElementById(VIDEO_ELEMENT_ID);
   video.srcObject = stream;
   video.play();
@@ -220,15 +220,15 @@ const findBarcode = (app, stream, opts) => {
       : SAMPLE_INTERVAL_SLOW;
     const canvas = document.createElement('canvas');
 
-    let handle;
     const checkFrame = () => {
       try {
         // Scan each sample for a barcode, and resolve if a result is found.
-        scanSample(app, canvas, video, opts.filter, (res) => {
-          clearInterval(handle);
-          stream.getVideoTracks()[0].stop();
+        scanSample(thisApp, canvas, video, opts.filter, (res) => {
+          clearInterval(thisApp.frameIntervalHandle);
+          this.frameIntervalHandle = null;
 
           // Hide the video's parent element - nothing to show anymore
+          thisApp.stream.getVideoTracks()[0].stop();
           video.parentElement.removeChild(video);
 
           const metaOnlyRes = [{
@@ -245,7 +245,7 @@ const findBarcode = (app, stream, opts) => {
           // Identify a URL with ScanThng, or else return meta-only response
           if (typeof res === 'string') {
             opts.filter = `type=qr_code&value=${res}`;
-            app.identify(opts)
+            thisApp.identify(opts)
               .then(resolve)
               .catch((e) => {
                 console.log('Identification failed, falling back to meta-only response');
@@ -263,7 +263,7 @@ const findBarcode = (app, stream, opts) => {
       }
     };
 
-    handle = setInterval(checkFrame, interval);
+    thisApp.frameIntervalHandle = setInterval(checkFrame, interval);
   });
 };
 
@@ -310,9 +310,27 @@ const scanStream = function (opts = {}) {
   return navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
     .then(function (stream) {
       insertVideoElement(opts.containerId);
+      thisApp.stream = stream;
+
       return findBarcode(thisApp, stream, opts);
     })
     .then(res => processResponse(thisApp, res));
+};
+
+/**
+ * Stop the stream and hide the video.
+ */
+const stopStream = function () {
+  if (!this.frameIntervalHandle) {
+    return;
+  }
+
+  clearInterval(this.frameIntervalHandle);
+  this.frameIntervalHandle = null;
+
+  thisApp.stream.getVideoTracks()[0].stop();
+  const video = document.getElementById(VIDEO_ELEMENT_ID);
+  video.parentElement.removeChild(video);
 };
 
 /**
@@ -386,6 +404,7 @@ const ScanThng = {
     api.scopes.Application.prototype.redirect = redirect;
     api.scopes.Application.prototype.identify = identify;
     api.scopes.Application.prototype.scanStream = scanStream;
+    api.scopes.Application.prototype.stopStream = stopStream;
     api.scopes.Application.prototype.scan = scan;
   },
 
