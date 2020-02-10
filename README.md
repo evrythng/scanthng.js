@@ -430,6 +430,9 @@ If enabled, will not attempt to resolve the scanned URL as an EVRYTHNG resource,
 but instead return a similar response with only the `meta.value` data set, which
 will contain the raw scanned string value.
 
+Note: If this option is enabled, no `implicitScans` action will be created via
+the normal URL resolution process.
+
 
 ### `createAnonymousUser`
 Type: `Boolean` Default: `false`
