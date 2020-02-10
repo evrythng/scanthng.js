@@ -12,7 +12,7 @@ const SAMPLE_INTERVAL_FAST = 300;
 /** The interval between other image requests. */
 const SAMPLE_INTERVAL_SLOW = 2000;
 
-/** 
+/**
  * Setup default settings:
  * - _**invisible**: File input visibility_
  * - _**imageConversion.greyscale**: Send black & white image, instead of colors_
@@ -95,8 +95,8 @@ const decodeRequest = (app, options, data) => {
 };
 
 /**
- * If `createAnonymousUser` options is enabled, will try to restore anonymous 
- * user saved in local storage (or cookie) and create a new anonymous user if 
+ * If `createAnonymousUser` options is enabled, will try to restore anonymous
+ * user saved in local storage (or cookie) and create a new anonymous user if
  * there's no saved one.
  *
  * @param {object} app - The Application scope.
@@ -149,7 +149,7 @@ const processResponse = (app, response, options) => getAnonymousUser(app, option
  * @param {object} [data] - Optional request data.
  * @returns {Promise}
  */
-const decode = (app, options, data) => 
+const decode = (app, options, data) =>
   decodeRequest(app, options, data).then(res => processResponse(app, res, options));
 
 /**
@@ -218,9 +218,10 @@ const findBarcode = (app, stream, opts) => {
     const interval = (opts.filter && opts.filter.method === '2d' && opts.filter.type === 'qr_code')
       ? SAMPLE_INTERVAL_FAST
       : SAMPLE_INTERVAL_SLOW;
-
     const canvas = document.createElement('canvas');
-    const handle = setInterval(() => {
+
+    let handle;
+    const checkFrame = () => {
       try {
         // Scan each sample for a barcode, and resolve if a result is found.
         scanSample(app, canvas, video, opts.filter, (res) => {
@@ -230,10 +231,28 @@ const findBarcode = (app, stream, opts) => {
           // Hide the video's parent element - nothing to show anymore
           video.parentElement.removeChild(video);
 
-          // Identify a URL with ScanThng
+          const metaOnlyRes = [{
+            results: [],
+            meta: { value: res },
+          }];
+
+          if (opts.offline) {
+            // Emulate a meta-only response from the API
+            resolve(metaOnlyRes);
+            return;
+          }
+
+          // Identify a URL with ScanThng, or else return meta-only response
           if (typeof res === 'string') {
             opts.filter = `type=qr_code&value=${res}`;
-            app.identify(opts).then(resolve);
+            app.identify(opts)
+              .then(resolve)
+              .catch((e) => {
+                console.log('Identification failed, falling back to meta-only response');
+                console.log(e);
+
+                resolve(metaOnlyRes);
+              });
             return;
           }
 
@@ -242,7 +261,9 @@ const findBarcode = (app, stream, opts) => {
       } catch (e) {
         reject(e);
       }
-    }, interval);
+    };
+
+    handle = setInterval(checkFrame, interval);
   });
 };
 

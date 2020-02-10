@@ -13,6 +13,7 @@ const UI = {
   inputScanMethod: document.getElementById('input-scan-method'),
   inputScanstreamMethod: document.getElementById('input-scanstream-method'),
   inputScanstreamType: document.getElementById('input-scanstream-type'),
+  inputScanstreamOffline: document.getElementById('input-scanstream-offline'),
   inputScanType: document.getElementById('input-scan-type'),
 };
 
@@ -70,7 +71,13 @@ const onLoad = () => {
   UI.buttonScanStream.addEventListener('click', () => {
     const method = UI.inputScanstreamMethod.value;
     const type = UI.inputScanstreamType.value;
-    testFunction(() => window.app.scanStream({ filter: { method, type }, containerId: CONTAINER_ID }));
+    const offline = UI.inputScanstreamOffline.checked;
+    const opts = {
+      filter: { method, type },
+      containerId: CONTAINER_ID,
+      offline,
+    };
+    testFunction(() => window.app.scanStream(opts));
   });
 };
 
