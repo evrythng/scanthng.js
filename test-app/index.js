@@ -5,6 +5,7 @@ const UI = {
   buttonIdentify: document.getElementById('input-identify'),
   buttonScan: document.getElementById('input-scan'),
   buttonScanStream: document.getElementById('input-scanstream'),
+  buttonStopStream: document.getElementById('input-stopstream'),
   buttonUseKey: document.getElementById('input-use-api-key'),
   inputApiKey: document.getElementById('input-app-api-key'),
   inputIdentifyType: document.getElementById('input-identify-type'),
@@ -13,6 +14,7 @@ const UI = {
   inputScanMethod: document.getElementById('input-scan-method'),
   inputScanstreamMethod: document.getElementById('input-scanstream-method'),
   inputScanstreamType: document.getElementById('input-scanstream-type'),
+  inputScanstreamOffline: document.getElementById('input-scanstream-offline'),
   inputScanType: document.getElementById('input-scan-type'),
 };
 
@@ -70,7 +72,17 @@ const onLoad = () => {
   UI.buttonScanStream.addEventListener('click', () => {
     const method = UI.inputScanstreamMethod.value;
     const type = UI.inputScanstreamType.value;
-    testFunction(() => window.app.scanStream({ filter: { method, type }, containerId: CONTAINER_ID }));
+    const offline = UI.inputScanstreamOffline.checked;
+    const opts = {
+      filter: { method, type },
+      containerId: CONTAINER_ID,
+      offline,
+    };
+    testFunction(() => window.app.scanStream(opts));
+  });
+
+  UI.buttonStopStream.addEventListener('click', () => {
+    window.app.stopStream();
   });
 };
 

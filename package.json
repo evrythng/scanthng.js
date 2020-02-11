@@ -1,11 +1,12 @@
 {
   "name": "scanthng",
-  "version": "4.0.1",
+  "version": "4.1.0",
   "description": "evrythng.js plugin for recognising products in a web app.",
   "main": "dist/scanthng.js",
   "scripts": {
     "build": "webpack --config webpack.config.js --mode production",
-    "build-dev": "webpack --config webpack.config.js --mode development"
+    "build-dev": "webpack --config webpack.config.js --mode development",
+    "prepublishOnly": "npm run build"
   },
   "repository": {
     "type": "git",
