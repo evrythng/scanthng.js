@@ -225,7 +225,7 @@ const findBarcode = (thisApp, stream, opts) => {
         // Scan each sample for a barcode, and resolve if a result is found.
         scanSample(thisApp, canvas, video, opts.filter, (res) => {
           clearInterval(thisApp.frameIntervalHandle);
-          this.frameIntervalHandle = null;
+          thisApp.frameIntervalHandle = null;
 
           // Hide the video's parent element - nothing to show anymore
           thisApp.stream.getVideoTracks()[0].stop();
