@@ -167,7 +167,7 @@ const createResultObject = (thisApp, options, scanValue) => {
 
   // Identify a URL with ScanThng, or else return meta-only response
   if (typeof scanValue === 'string') {
-    options.filter = `type=qr_code&value=${scanValue}`;
+    options.filter = `type=${options.filter.type}&value=${scanValue}`;
     return thisApp.identify(options)
       .catch((e) => {
         console.log('Identification failed, falling back to meta-only response');
