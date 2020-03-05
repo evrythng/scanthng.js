@@ -176,8 +176,6 @@ const createResultObject = (thisApp, options, scanValue) => {
         return metaOnlyRes;
       });
   }
-
-  // Else...?
 };
 
 /**
