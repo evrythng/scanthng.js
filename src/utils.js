@@ -1,3 +1,6 @@
+/** The ID of the <video> element inserted by the SDK. */
+const VIDEO_ELEMENT_ID = 'scanthng-video-' + Date.now();
+
 /**
  * Check if a variable is an Image Data URL.
  *
@@ -109,6 +112,24 @@ const restoreUser = (app, User) => {
   }
 };
 
+/**
+ * Insert a Safari-compatible <video> element inside parent, if it doesn't already exist.
+ *
+ * @param {string} containerId - ID of the user's desired parent element.
+ */
+const insertVideoElement = (containerId) => {
+  // Prevent duplicates
+  if (document.getElementById(VIDEO_ELEMENT_ID)) {
+    return;
+  }
+
+  const video = document.createElement('video');
+  video.id = VIDEO_ELEMENT_ID;
+  video.autoPlay = true;
+  video.playsInline = true;
+  document.getElementById(containerId).appendChild(video);
+};
+
 if (typeof module !== 'undefined') {
   module.exports = {
     isDataUrl,
@@ -119,5 +140,7 @@ if (typeof module !== 'undefined') {
     readCookie,
     restoreUser,
     storeUser,
+    insertVideoElement,
+    VIDEO_ELEMENT_ID,
   };
 }

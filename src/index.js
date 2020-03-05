@@ -2,11 +2,10 @@
 
 const Utils = require('./utils');
 const Media = require('./media');
+const Stream = require('./stream');
 
 const API_PATH = '/scan/identifications';
 
-/** The ID of the <video> element inserted by the SDK. */
-const VIDEO_ELEMENT_ID = 'scanthng-video-' + Date.now();
 /** The interval between QR code local stream samples. */
 const SAMPLE_INTERVAL_FAST = 300;
 /** The interval between other image requests. */
@@ -210,7 +209,7 @@ const scanSample = (thisApp, canvas, video, filter, foundCb) => {
  * @returns {Promise} A Promise that resolves once recognition is completed.
  */
 const findBarcode = (thisApp, stream, opts) => {
-  const video = document.getElementById(VIDEO_ELEMENT_ID);
+  const video = document.getElementById(Utils.VIDEO_ELEMENT_ID);
   video.srcObject = stream;
   video.play();
 
@@ -228,7 +227,7 @@ const findBarcode = (thisApp, stream, opts) => {
           thisApp.frameIntervalHandle = null;
 
           // Hide the video's parent element - nothing to show anymore
-          thisApp.stream.getVideoTracks()[0].stop();
+          stream.getVideoTracks()[0].stop();
           video.parentElement.removeChild(video);
 
           const metaOnlyRes = [{
@@ -268,24 +267,6 @@ const findBarcode = (thisApp, stream, opts) => {
 };
 
 /**
- * Insert a Safari-compatible <video> element inside parent, if it doesn't already exist.
- *
- * @param {string} containerId - ID of the user's desired parent element.
- */
-const insertVideoElement = (containerId) => {
-  // Prevent duplicates
-  if (document.getElementById(VIDEO_ELEMENT_ID)) {
-    return;
-  }
-
-  const video = document.createElement('video');
-  video.id = VIDEO_ELEMENT_ID;
-  video.autoPlay = true;
-  video.playsInline = true;
-  document.getElementById(containerId).appendChild(video);
-};
-
-/**
  * Use getUserMedia() and jsQR.js to scan QR codes locally, using /identifications for lookup.
  *
  * @param {object} opts - Scanning options including standard 'filter' and 'containerId'.
@@ -297,21 +278,10 @@ const scanStream = function (opts = {}) {
     return this.scan(opts);
   }
 
-  if (!window.jsQR) {
-    throw new Error('jsQR (https://github.com/cozmo/jsQR) not found. You must include it in a <script> tag.');
-  }
-
-  if (!document.getElementById(opts.containerId)) {
-    throw new Error('Please specify \'containerId\' where the video element can be added as a child');
-  }
-
   // Open the stream, identify barcode, then inform the caller.
   const thisApp = this;
-  return navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+  return Stream.scanCode(opts)
     .then(function (stream) {
-      insertVideoElement(opts.containerId);
-      thisApp.stream = stream;
-
       return findBarcode(thisApp, stream, opts);
     })
     .then(res => processResponse(thisApp, res));
@@ -329,7 +299,7 @@ const stopStream = function () {
   this.frameIntervalHandle = null;
 
   this.stream.getVideoTracks()[0].stop();
-  const video = document.getElementById(VIDEO_ELEMENT_ID);
+  const video = document.getElementById(Utils.VIDEO_ELEMENT_ID);
   video.parentElement.removeChild(video);
 };
 
@@ -407,9 +377,6 @@ const ScanThng = {
     api.scopes.Application.prototype.stopStream = stopStream;
     api.scopes.Application.prototype.scan = scan;
   },
-
-  // Export for testing
-  insertVideoElement,
 };
 
 module.exports = ScanThng;
