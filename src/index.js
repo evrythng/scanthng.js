@@ -6,11 +6,6 @@ const Stream = require('./stream');
 
 const API_PATH = '/scan/identifications';
 
-/** The interval between QR code local stream samples. */
-const SAMPLE_INTERVAL_FAST = 300;
-/** The interval between other image requests. */
-const SAMPLE_INTERVAL_SLOW = 2000;
-
 /**
  * Setup default settings:
  * - _**invisible**: File input visibility_
@@ -32,8 +27,8 @@ const DEFAULT_OPTIONS = {
 /**
  * Deeply extend options.
  *
- * @param {object} userOptions - The user options.
- * @returns {object} The full options object.
+ * @param {Object} userOptions - The user options.
+ * @returns {Object} The full options object.
  */
 const getMergedOptions = (userOptions) => {
   const fullOptions = Utils.extend(DEFAULT_OPTIONS, userOptions);
@@ -61,9 +56,9 @@ const getParamStr = params => Object.entries(params).map(p => `${p[0]}=${p[1]}`)
  * Effectively send the recognition request to the API, passing in the
  * Base64 image data and request options.
  *
- * @param {object} app - The Application scope.
- * @param {object} options - Current options.
- * @param {object} [data] - Optional request data as { image }.
+ * @param {Object} app - The Application scope.
+ * @param {Object} options - Current options.
+ * @param {Object} [data] - Optional request data as { image }.
  * @returns {Promise}
  */
 const decodeRequest = (app, options, data) => {
@@ -98,8 +93,8 @@ const decodeRequest = (app, options, data) => {
  * user saved in local storage (or cookie) and create a new anonymous user if
  * there's no saved one.
  *
- * @param {object} app - The Application scope.
- * @param {object} options - Current options.
+ * @param {Object} app - The Application scope.
+ * @param {Object} options - Current options.
  * @returns {Promise}
  */
 const getAnonymousUser = (app, options) => new Promise((resolve) => {
@@ -125,9 +120,9 @@ const getAnonymousUser = (app, options) => new Promise((resolve) => {
 /**
  * Process response of the decode request, adding an anonymous user if requested.
  *
- * @param {object} app - The Application scope.
- * @param {object} response - The response.
- * @param {object} options - Current options.
+ * @param {Object} app - The Application scope.
+ * @param {Object} response - The response.
+ * @param {Object} options - Current options.
  * @returns {Promise}
  */
 const processResponse = (app, response, options) => getAnonymousUser(app, options)
@@ -143,147 +138,70 @@ const processResponse = (app, response, options) => getAnonymousUser(app, option
 /**
  * Decode image (send request to IR API and process the response)
  *
- * @param {object} app - The Application scope.
- * @param {object} options - Current options.
- * @param {object} [data] - Optional request data.
+ * @param {Object} app - The Application scope.
+ * @param {Object} options - Current options.
+ * @param {Object} [data] - Optional request data.
  * @returns {Promise}
  */
 const decode = (app, options, data) =>
   decodeRequest(app, options, data).then(res => processResponse(app, res, options));
 
 /**
- * Process a sample frame from the stream, and find any code present.
- * A callback is required since any promise per-frame won't necessarily resolve or reject.
+ * Create a normalised API response object.
  *
- * @param {object} thisApp - The app performing the scan.
- * @param {object} canvas - The canvas element.
- * @param {object} video - The SDK-inserted <video> element.
- * @param {object} filter - The scanning filter.
- * @param {function} foundCb - Callback for if a code is found.
+ * @param {Object} thisApp - Current Application scope.
+ * @param {Object} options - Current options.
+ * @param {string} scanValue - Scanned value.
+ * @returns {Promise<Object>} Promise that resolves an object resembling an API response.
  */
-const scanSample = (thisApp, canvas, video, filter, foundCb) => {
-  // Match canvas internal dimensions to that of the video and draw for the user
-  const context = canvas.getContext('2d');
-  canvas.width = video.videoWidth;
-  canvas.height = video.videoHeight;
-  context.drawImage(video, 0, 0);
+const createResultObject = (thisApp, options, scanValue) => {
+  const metaOnlyRes = [{
+    results: [],
+    meta: { value: scanValue },
+  }];
 
-  if (filter && filter.method === '2d' && filter.type === 'qr_code') {
-    let imgData;
-    try {
-      imgData = context.getImageData(0, 0, video.videoWidth, video.videoHeight);
-    } catch (e) {
-      console.log('Failed to getImageData - device may not be ready.');
-      return;
-    }
-
-    // Scan image data with jsQR
-    const result = window.jsQR(imgData.data, imgData.width, imgData.height);
-    if (result) {
-      foundCb(result.data);
-    }
-    return;
+  // Emulate a meta-only response from the API
+  if (options.offline) {
+    return metaOnlyRes;
   }
 
-  // Else, send image data to ScanThng - 1d && ir implicitly included
-  thisApp.scan(canvas.toDataURL(), { filter }).then((res) => {
-    if (res.length) {
-      foundCb(res);
-    }
-  }).catch((err) => {
-    if (err.errors && err.errors[0].includes('lacking sufficient detail')) {
-      // Handle 'not found' for empty images based on API response
-      return;
-    }
+  // Identify a URL with ScanThng, or else return meta-only response
+  if (typeof scanValue === 'string') {
+    options.filter = `type=qr_code&value=${scanValue}`;
+    return thisApp.identify(options)
+      .catch((e) => {
+        console.log('Identification failed, falling back to meta-only response');
+        console.log(e);
 
-    throw err;
-  });
-};
+        return metaOnlyRes;
+      });
+  }
 
-/**
- * Consume a getUserMedia() video stream and resolves once recognition is completed.
- *
- * @param {object} thisApp - The app performing the scan.
- * @param {object} stream - The stream to consume.
- * @param {object} opts - The scanning options.
- * @returns {Promise} A Promise that resolves once recognition is completed.
- */
-const findBarcode = (thisApp, stream, opts) => {
-  const video = document.getElementById(Utils.VIDEO_ELEMENT_ID);
-  video.srcObject = stream;
-  video.play();
-
-  return new Promise((resolve, reject) => {
-    const interval = (opts.filter && opts.filter.method === '2d' && opts.filter.type === 'qr_code')
-      ? SAMPLE_INTERVAL_FAST
-      : SAMPLE_INTERVAL_SLOW;
-    const canvas = document.createElement('canvas');
-
-    const checkFrame = () => {
-      try {
-        // Scan each sample for a barcode, and resolve if a result is found.
-        scanSample(thisApp, canvas, video, opts.filter, (res) => {
-          clearInterval(thisApp.frameIntervalHandle);
-          thisApp.frameIntervalHandle = null;
-
-          // Hide the video's parent element - nothing to show anymore
-          stream.getVideoTracks()[0].stop();
-          video.parentElement.removeChild(video);
-
-          const metaOnlyRes = [{
-            results: [],
-            meta: { value: res },
-          }];
-
-          if (opts.offline) {
-            // Emulate a meta-only response from the API
-            resolve(metaOnlyRes);
-            return;
-          }
-
-          // Identify a URL with ScanThng, or else return meta-only response
-          if (typeof res === 'string') {
-            opts.filter = `type=qr_code&value=${res}`;
-            thisApp.identify(opts)
-              .then(resolve)
-              .catch((e) => {
-                console.log('Identification failed, falling back to meta-only response');
-                console.log(e);
-
-                resolve(metaOnlyRes);
-              });
-            return;
-          }
-
-          resolve(res);
-        });
-      } catch (e) {
-        reject(e);
-      }
-    };
-
-    thisApp.frameIntervalHandle = setInterval(checkFrame, interval);
-  });
+  // Else...?
 };
 
 /**
  * Use getUserMedia() and jsQR.js to scan QR codes locally, using /identifications for lookup.
  *
- * @param {object} opts - Scanning options including standard 'filter' and 'containerId'.
+ * @param {Object} opts - Scanning options including standard 'filter' and 'containerId'.
  * @returns {Promise} A Promise that resolves with any scan results.
  */
 const scanStream = function (opts = {}) {
+  const { filter, offline } = opts;
+
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
     console.log('getUserMedia() is not supported with this browser; falling back to Media Capture.');
     return this.scan(opts);
   }
 
+  if (!filter || !filter.method || !filter.type) {
+    throw new Error('Please provide valid filter');
+  }
+
   // Open the stream, identify barcode, then inform the caller.
   const thisApp = this;
-  return Stream.scanCode(opts)
-    .then(function (stream) {
-      return findBarcode(thisApp, stream, opts);
-    })
+  return Stream.scanCode(opts, thisApp)
+    .then(scanValue => createResultObject(thisApp, opts, scanValue))
     .then(res => processResponse(thisApp, res));
 };
 
@@ -291,16 +209,7 @@ const scanStream = function (opts = {}) {
  * Stop the stream and hide the video.
  */
 const stopStream = function () {
-  if (!this.frameIntervalHandle) {
-    return;
-  }
-
-  clearInterval(this.frameIntervalHandle);
-  this.frameIntervalHandle = null;
-
-  this.stream.getVideoTracks()[0].stop();
-  const video = document.getElementById(Utils.VIDEO_ELEMENT_ID);
-  video.parentElement.removeChild(video);
+  Stream.stop();
 };
 
 /**
@@ -315,7 +224,7 @@ const redirect = (url) => {
 /**
  * Identify a scanned value.
  *
- * @param {object} opts - Additional options.
+ * @param {Object} opts - Additional options.
  */
 const identify = function (opts) {
   if (!(typeof opts === 'object' && opts.filter)) {
@@ -329,7 +238,7 @@ const identify = function (opts) {
  * Begin an image scan.
  *
  * @param {string} [param1] - Optional image data. If not supplued, 'catch all' mode is used.
- * @param {object} [param2] - Optional options.
+ * @param {Object} [param2] - Optional options.
  * @returns {Promise}
  */
 const scan = function (param1, param2) {
@@ -377,6 +286,7 @@ const ScanThng = {
     api.scopes.Application.prototype.stopStream = stopStream;
     api.scopes.Application.prototype.scan = scan;
   },
+  scanCode: Stream.scanCode,
 };
 
 module.exports = ScanThng;
