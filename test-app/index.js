@@ -6,6 +6,8 @@ const UI = {
   buttonScan: document.getElementById('input-scan'),
   buttonScanStream: document.getElementById('input-scanstream'),
   buttonStopStream: document.getElementById('input-stopstream'),
+  buttonScanCode: document.getElementById('input-scancode'),
+  buttonStopScanCode: document.getElementById('input-stopscancode'),
   buttonUseKey: document.getElementById('input-use-api-key'),
   inputApiKey: document.getElementById('input-app-api-key'),
   inputIdentifyType: document.getElementById('input-identify-type'),
@@ -18,7 +20,8 @@ const UI = {
   inputScanType: document.getElementById('input-scan-type'),
 };
 
-const CONTAINER_ID = 'scanstream-container';
+const SCANSTREAM_CONTAINER_ID = 'scanstream-container';
+const SCANCODE_CONTAINER_ID = 'scancode-container';
 
 const getUrlParam = key => new URLSearchParams(window.location.search).get(key);
 
@@ -32,6 +35,12 @@ const loadApp = () => {
 };
 
 const handleResults = (res) => {
+  if (typeof res === 'string') {
+    console.log(res);
+    alert(res);
+    return;
+  }
+
   console.log(JSON.stringify(res, null, 2));
   const numResults = res.length;
   let numFound = 0;
@@ -75,7 +84,7 @@ const onLoad = () => {
     const offline = UI.inputScanstreamOffline.checked;
     const opts = {
       filter: { method, type },
-      containerId: CONTAINER_ID,
+      containerId: SCANSTREAM_CONTAINER_ID,
       offline,
     };
     testFunction(() => window.app.scanStream(opts));
@@ -83,6 +92,14 @@ const onLoad = () => {
 
   UI.buttonStopStream.addEventListener('click', () => {
     window.app.stopStream();
+  });
+
+  UI.buttonScanCode.addEventListener('click', () => {
+    testFunction(() => ScanThng.scanQrCode(SCANCODE_CONTAINER_ID));
+  });
+
+  UI.buttonStopScanCode.addEventListener('click', () => {
+    ScanThng.stopScanQrCode();
   });
 };
 

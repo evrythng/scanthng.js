@@ -85,6 +85,21 @@
       </tr>
     </table>
 
+    <h3>.scanQrCode(containerId)</h3>
+    <p>Returns scanned string value, does not require Application scope</code>.</p>
+    <p>Note: Supports only QR codes.</p>
+    <table>
+      <tr>
+        <td colspan="2"><input type="button" id="input-scancode" value="Scan QR Code"></td>
+      </tr>
+      <tr>
+        <td colspan="2"><input type="button" id="input-stopscancode" value="Stop"></td>
+      </tr>
+      <tr>
+        <td colspan="2"><div id="scancode-container"></td>
+      </tr>
+    </table>
+
     <script src="https://d10ka0m22z5ju5.cloudfront.net/js/evrythng/5.6.0/evrythng-5.6.0.js"></script>
     <script type="text/javascript" src="./lib/jsQR.js"></script>
     <script type="text/javascript" src="../dist/scanthng.js"></script>

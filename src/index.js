@@ -286,7 +286,11 @@ const ScanThng = {
     api.scopes.Application.prototype.stopStream = stopStream;
     api.scopes.Application.prototype.scan = scan;
   },
-  scanCode: Stream.scanCode,
+  scanQrCode: (containerId) => {
+    const filter = { method: '2d', type: 'qr_code' };
+    return Stream.scanCode({ containerId, filter });
+  },
+  stopScanQrCode: Stream.stop,
 };
 
 module.exports = ScanThng;
