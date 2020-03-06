@@ -277,7 +277,7 @@ instead of analysing the image locally, and at a slower rate.**
 If all you want to do is scan a QR code for a string representation, and do not
 require any kind of lookup of the corresponding Thng or product in the EVRYTHNG
 Platform, use the `scanQrCode()` method. This is similar to `scanStream()`
-available from an `Application` scope (see above), but doesn't commuinicate
+available from an `Application` scope (see above), but doesn't communicate
 with the Platform to enrich the results.
 
 The developer must supply the `id` of a container such as a `<div>` that the SDK
