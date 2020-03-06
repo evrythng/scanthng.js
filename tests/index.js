@@ -185,7 +185,7 @@ const testScanStream = async () => {
     const filter = { method: '2d', type: 'qr_code' };
     const res = await app.scanStream({ filter, containerId: CONTAINER_ID });
     console.log(res);
-    return Array.isArray(res) && res.length > 0;
+    return Array.isArray(res) && res.length > 0 && res[0].meta.value.length > 1;
   });
 
   await it('scanStream - should open a camera stream, then stop it', async () => {
