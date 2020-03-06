@@ -151,13 +151,13 @@ const decode = (app, options, data) =>
  *
  * @param {Object} thisApp - Current Application scope.
  * @param {Object} options - Current options.
- * @param {string} scanValue - Scanned value.
+ * @param {string} res - Scanned value, or API response object.
  * @returns {Promise<Object>} Promise that resolves an object resembling an API response.
  */
-const createResultObject = (thisApp, options, scanValue) => {
+const createResultObject = (thisApp, options, res) => {
   const metaOnlyRes = [{
     results: [],
-    meta: { value: scanValue },
+    meta: { value: res },
   }];
 
   // Emulate a meta-only response from the API
@@ -166,8 +166,8 @@ const createResultObject = (thisApp, options, scanValue) => {
   }
 
   // Identify a URL with ScanThng, or else return meta-only response
-  if (typeof scanValue === 'string') {
-    options.filter = `type=${options.filter.type}&value=${scanValue}`;
+  if (typeof res === 'string') {
+    options.filter = `type=${options.filter.type}&value=${res}`;
     return thisApp.identify(options)
       .catch((e) => {
         console.log('Identification failed, falling back to meta-only response');
@@ -176,6 +176,9 @@ const createResultObject = (thisApp, options, scanValue) => {
         return metaOnlyRes;
       });
   }
+
+  // It's a response object
+  return res;
 };
 
 /**
@@ -199,7 +202,7 @@ const scanStream = function (opts = {}) {
   // Open the stream, identify barcode, then inform the caller.
   const thisApp = this;
   return Stream.scanCode(opts, thisApp)
-    .then(scanValue => createResultObject(thisApp, opts, scanValue))
+    .then(res => createResultObject(thisApp, opts, res))
     .then(res => processResponse(thisApp, res));
 };
 
