@@ -1,3 +1,6 @@
+/** Stream container ID */
+const CONTAINER_ID = 'stream-container';
+
 let app;
 
 /**
@@ -173,6 +176,74 @@ const testMedia = async () => {
 };
 
 /**
+ * Test scanStream functionality.
+ */
+const testScanStream = async () => {
+  await it('scanStream - should open a camera stream to scan a QR code', async () => {
+    alert('Please scan any QR code');
+
+    const filter = { method: '2d', type: 'qr_code' };
+    const res = await app.scanStream({ filter, containerId: CONTAINER_ID });
+    console.log(res);
+    return Array.isArray(res) && res.length > 0;
+  });
+
+  await it('scanStream - should open a camera stream, then stop it', async () => {
+    // Don't know when the permission box is closed
+    alert('Accept camera permission within 5 seconds, but do not scan anything');
+
+    const filter = { method: '2d', type: 'qr_code' };
+    app.scanStream({ filter, containerId: CONTAINER_ID });
+
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        app.stopStream();
+        resolve(true);
+      }, 5000);
+    });
+  });
+};
+
+/**
+ * Test functionality globally available on ScanThng object.
+ */
+const testGlobal = async () => {
+  await it('Global - should export scanQrCode', async () => {
+    return typeof ScanThng.scanQrCode === 'function';
+  });
+
+  await it('Global - should export stopScanQrCode', async () => {
+    return typeof ScanThng.stopScanQrCode === 'function';
+  });
+};
+
+/**
+ * Test scanQrCode functionality.
+ */
+const testScanQrCode = async () => {
+  await it('scanQrCode - should open a camera stream to scan a QR code', async () => {
+    alert('Please scan any QR code');
+
+    const scanValue = await ScanThng.scanQrCode(CONTAINER_ID);
+    return typeof scanValue === 'string' && scanValue.length > 0;
+  });
+
+  await it('scanQrCode - should open a camera stream, then stop it', async () => {
+    // Don't know when the permission box is closed
+    alert('Accept camera permission within 5 seconds, but do not scan anything');
+
+    ScanThng.scanQrCode(CONTAINER_ID);
+
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        ScanThng.stopScanQrCode();
+        resolve(true);
+      }, 5000);
+    });
+  });
+};
+
+/**
  * The tests. Each is asynchronous.
  */
 const main = async () => {
@@ -180,6 +251,9 @@ const main = async () => {
   await testScope();
   await testUtils();
   await testMedia();
+  await testScanStream();
+  await testGlobal();
+  await testScanQrCode();
 };
 
 main();

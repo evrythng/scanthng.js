@@ -1,6 +1,6 @@
 # tests
 
-Simple HTML page and JS test suite that verifies some SDK functionality. 
+Simple HTML page and JS test suite that verifies some SDK functionality.
 
 
 ## Usage
