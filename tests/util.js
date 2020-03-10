@@ -4,7 +4,7 @@ const testList = document.getElementById('test-list');
  * Add a green or red item to the list of test results.
  *
  * @param {string} summary - Test summary.
- * @param {boolean} result - Whether or not the test result.
+ * @param {boolean} result - Whether or not the test result is 'passed'.
  */
 const addResult = (summary, result) => {
   const el = document.createElement('li');
@@ -25,7 +25,7 @@ const it = async (summary, cb) => {
     addResult(summary, result);
   } catch (e) {
     console.log(e);
-    addResult(summary, false);
+    addResult(`${summary} - ${e.message}`, false);
   }
 };
 

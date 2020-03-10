@@ -26,6 +26,7 @@ also offered, applicable for all kinds of scanning use-cases.
 * [Application Setup](#product-setup)
 * [Scan a Single Photo](#scan-a-single-photo)
 * [Scan a Camera Stream](#scan-a-camera-stream)
+* [Scan a QR code value only](#scan-a-qr-code-value-only)
 * [Image Recognition](#image-recognition)
 * [Full Scan Options](#full-scan-options)
 * [Example Scenarios](#example-scenarios)
@@ -59,7 +60,7 @@ Include using a script tag:
 Add the script tag to your HTML page, specifying the version you will use:
 
 ```html
-<script src="https://d10ka0m22z5ju5.cloudfront.net/js/scanthng/4.1.0/scanthng-4.1.0.js"></script>
+<script src="https://d10ka0m22z5ju5.cloudfront.net/js/scanthng/4.2.0/scanthng-4.2.0.js"></script>
 ```
 
 ### Supported Devices
@@ -269,6 +270,39 @@ app.scanStream({
 **Note: specifying other `method` and `type` combinations to `method=2d` and
 `type=qr_code` will still use the camera stream, but will query the web API
 instead of analysing the image locally, and at a slower rate.**
+
+
+## Scan a QR code value only
+
+If all you want to do is scan a QR code for a string representation, and do not
+require any kind of lookup of the corresponding Thng or product in the EVRYTHNG
+Platform, use the `scanQrCode()` method. This is similar to `scanStream()`
+available from an `Application` scope (see above), but doesn't communicate
+with the Platform to enrich the results.
+
+The developer must supply the `id` of a container such as a `<div>` that the SDK
+can insert the camera viewfinder `<video>` element into. This `<video>` should
+be styled as desired to fit the application experience.
+
+```html
+<div id="stream_container">
+</div>
+```
+
+This container is then used when calling `scanQrCode()`. The result is a single
+string decoded from the observed QR code.
+
+```js
+ScanThng.scanQrCode('stream_container')
+  .then(console.log)
+  .catch(console.log);
+```
+
+The scanner can be stopped at any time:
+
+```js
+ScanThng.stopScanQrCode();
+```
 
 
 ## Image Recognition
