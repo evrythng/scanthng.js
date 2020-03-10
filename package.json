@@ -1,6 +1,6 @@
 {
   "name": "scanthng",
-  "version": "4.1.0",
+  "version": "4.2.0",
   "description": "evrythng.js plugin for recognising products in a web app.",
   "main": "dist/scanthng.js",
   "scripts": {
