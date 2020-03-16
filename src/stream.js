@@ -133,27 +133,25 @@ const stop = () => {
  * @param {Object} [app] - App scope, if decoding with the API is to be used.
  * @returns {Promise} Promise resolving the stream opened.
  */
-const scanCode = (opts, app) => new Promise((resolve, reject) => {
+const scanCode = (opts, app) => {
   if (!window.jsQR) {
-    reject(new Error('jsQR (https://github.com/cozmo/jsQR) not found. You must include it in a <script> tag.'));
-    return;
+    throw new Error('jsQR (https://github.com/cozmo/jsQR) not found. You must include it in a <script> tag.');
   }
-
   if (!document.getElementById(opts.containerId)) {
-    reject(new Error('Please specify \'containerId\' where the video element can be added as a child'));
-    return;
+    throw new Error('Please specify \'containerId\' where the video element can be added as a child');
   }
 
   // scanCode the stream, identify barcode, then inform the caller.
-  navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+  return navigator
+    .mediaDevices
+    .getUserMedia({ video: { facingMode: 'environment' } })
     .then(function (newStream) {
       stream = newStream;
       Utils.insertVideoElement(opts.containerId);
 
       return findBarcode(opts, app);
-    })
-    .then(resolve);
-});
+    });
+};
 
 if (typeof module !== 'undefined') {
   module.exports = {
