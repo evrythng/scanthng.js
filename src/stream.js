@@ -1,9 +1,11 @@
 const Utils = require('./utils');
 
 /** The interval between QR code local stream samples. */
-const SAMPLE_INTERVAL_FAST = 300;
+const DEFAULT_LOCAL_INTERVAL = 300;
 /** The interval between other image requests. */
-const SAMPLE_INTERVAL_SLOW = 2000;
+const DEFAULT_REMOTE_INTERVAL = 2000;
+/** The minimum interval between image requests. */
+const MIN_REMOTE_INTERVAL = 500;
 
 let frameIntervalHandle;
 let stream;
@@ -75,13 +77,15 @@ const findBarcode = (opts, app) => {
   video.srcObject = stream;
   video.play();
 
-  const { filter, offline } = opts;
+  const {
+    filter,
+    interval = localQrCodeScan ? DEFAULT_LOCAL_INTERVAL : DEFAULT_REMOTE_INTERVAL,
+  } = opts;
   const localQrCodeScan = (filter.method === '2d' && filter.type === 'qr_code');
   if (!localQrCodeScan && !app) {
     throw new Error('Non-QR code scanning requires specifying an Application scope');
   }
 
-  const interval = localQrCodeScan ? SAMPLE_INTERVAL_FAST : SAMPLE_INTERVAL_SLOW;
   const canvas = document.createElement('canvas');
 
   return new Promise((resolve, reject) => {
@@ -106,7 +110,10 @@ const findBarcode = (opts, app) => {
       }
     };
 
-    frameIntervalHandle = setInterval(checkFrame, interval);
+    frameIntervalHandle = setInterval(
+      checkFrame,
+      localQrCodeScan ? interval : Math.max(MIN_REMOTE_INTERVAL, interval),
+    );
   });
 };
 

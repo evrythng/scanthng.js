@@ -262,6 +262,7 @@ same format as for the `scan()` method.
 app.scanStream({
   filter: { method: '2d', type: 'qr_code' },
   containerId: 'stream_container',
+  interval: 300,
 })
   .then(console.log)
   .catch(console.log);
@@ -269,7 +270,8 @@ app.scanStream({
 
 **Note: specifying other `method` and `type` combinations to `method=2d` and
 `type=qr_code` will still use the camera stream, but will query the web API
-instead of analysing the image locally, and at a slower rate.**
+instead of analysing the image locally, and at a slower rate by default.
+(`300ms` vs `2000ms`)**
 
 
 ## Scan a QR code value only
@@ -564,7 +566,7 @@ app.scan({
 ## More Documentation
 
 Check the
-[Identifier Recognition API](https://developers.evrythng.com/reference#identifier-recognition)
+[Identifier Recognition API](https://developers.evrythng.com/reference/identifier-recognition)
 page for full details on the EVRYTHNG Platform API behind the scenes of this
 SDK.
 

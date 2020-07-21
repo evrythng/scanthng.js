@@ -184,11 +184,11 @@ const createResultObject = (thisApp, options, res) => {
 /**
  * Use getUserMedia() and jsQR.js to scan QR codes locally, using /identifications for lookup.
  *
- * @param {Object} opts - Scanning options including standard 'filter' and 'containerId'.
+ * @param {Object} opts - Scanning options including standard 'filter', 'containerId' and `interval`.
  * @returns {Promise} A Promise that resolves with any scan results.
  */
 const scanStream = function (opts = {}) {
-  const { filter, offline } = opts;
+  const { filter } = opts;
 
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
     console.log('getUserMedia() is not supported with this browser; falling back to Media Capture.');
