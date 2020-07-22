@@ -1,3 +1,20 @@
+# v4.3.0 (22-07-2020)
+
+## Features
+
+- **scanStream**: `app.scanStream()` now accepts `interval` which changes its
+  scan rate. The minimum interval for non-native scanning is 500ms.
+
+```js
+app.scanStream({
+  filter: { method: '2d', type: 'qr_code' },
+  containerId: 'stream_container',
+  interval: 300,
+})
+  .then(console.log)
+  .catch(console.log);
+```
+
 # v3.1.0 (21-11-2018)
 
 ## Features

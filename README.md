@@ -60,7 +60,7 @@ Include using a script tag:
 Add the script tag to your HTML page, specifying the version you will use:
 
 ```html
-<script src="https://d10ka0m22z5ju5.cloudfront.net/js/scanthng/4.2.1/scanthng-4.2.1.js"></script>
+<script src="https://d10ka0m22z5ju5.cloudfront.net/js/scanthng/4.3.0/scanthng-4.3.0.js"></script>
 ```
 
 ### Supported Devices
@@ -268,6 +268,7 @@ same format as for the `scan()` method.
 app.scanStream({
   filter: { method: '2d', type: 'qr_code' },
   containerId: 'stream_container',
+  interval: 300,
 })
   .then(console.log)
   .catch(console.log);
@@ -275,7 +276,8 @@ app.scanStream({
 
 **Note: specifying other `method` and `type` combinations to `method=2d` and
 `type=qr_code` will still use the camera stream, but will query the web API
-instead of analysing the image locally, and at a slower rate.**
+instead of analysing the image locally, and at a slower rate by default
+(300ms vs 2000ms). The minimum scan rate for non-native scanning is 500ms.**
 
 
 ## Scan a QR code value only
@@ -570,7 +572,7 @@ app.scan({
 ## More Documentation
 
 Check the
-[Identifier Recognition API](https://developers.evrythng.com/reference#identifier-recognition)
+[Identifier Recognition API](https://developers.evrythng.com/reference/identifier-recognition)
 page for full details on the EVRYTHNG Platform API behind the scenes of this
 SDK.
 
