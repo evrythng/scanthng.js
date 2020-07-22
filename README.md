@@ -276,8 +276,8 @@ app.scanStream({
 
 **Note: specifying other `method` and `type` combinations to `method=2d` and
 `type=qr_code` will still use the camera stream, but will query the web API
-instead of analysing the image locally, and at a slower rate by default.
-(`300ms` vs `2000ms`)**
+instead of analysing the image locally, and at a slower rate by default
+(300ms vs 2000ms). The minimum scan rate for non-native scanning is 500ms.**
 
 
 ## Scan a QR code value only

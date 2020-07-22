@@ -3,7 +3,7 @@
 ## Features
 
 - **scanStream**: `app.scanStream()` now accepts `interval` which changes its
-  scan rate.
+  scan rate. The minimum interval for non-native scanning is 500ms.
 
 ```js
 app.scanStream({
