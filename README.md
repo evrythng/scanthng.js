@@ -170,6 +170,12 @@ The full range of `method` and `type` parameters are listed below:
 - upc_a
 - upc_e
 
+**`method: digimarc`**
+
+`type`s available:
+- gs1:01
+- gs1:21
+
 
 ## Application Setup
 
