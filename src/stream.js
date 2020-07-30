@@ -16,17 +16,18 @@ let stream;
  *
  * @param {Object} canvas - The canvas element.
  * @param {Object} video - The SDK-inserted <video> element.
- * @param {Object} filter - The scanning filter.
+ * @param {Object} opts - The scanning options.
  * @param {function} foundCb - Callback for if a code is found.
  * @param {Object} [app] - App scope, if decoding with the API is to be used.
  */
-const scanSample = (canvas, video, filter, foundCb, app) => {
+const scanSample = (canvas, video, opts, foundCb, app) => {
   // Match canvas internal dimensions to that of the video and draw for the user
   const context = canvas.getContext('2d');
   canvas.width = video.videoWidth;
   canvas.height = video.videoHeight;
   context.drawImage(video, 0, 0);
 
+  const { filter } = opts;
   if (filter.method === '2d' && filter.type === 'qr_code') {
     let imgData;
     try {
@@ -51,7 +52,7 @@ const scanSample = (canvas, video, filter, foundCb, app) => {
   }
 
   // Else, send image data to ScanThng - whatever filter is requested is passed through.
-  app.scan(canvas.toDataURL(), { filter }).then((res) => {
+  app.scan(canvas.toDataURL(), opts).then((res) => {
     if (res.length) {
       foundCb(res);
     }
@@ -95,7 +96,7 @@ const findBarcode = (opts, app) => {
     const checkFrame = () => {
       try {
         // Scan each sample for a barcode
-        scanSample(canvas, video, filter, (scanValue) => {
+        scanSample(canvas, video, opts, (scanValue) => {
           clearInterval(frameIntervalHandle);
           frameIntervalHandle = null;
 
