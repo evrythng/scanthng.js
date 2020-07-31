@@ -1,3 +1,23 @@
+# v4.4.0 (31-07-2020)
+
+## Feature
+
+- **scanStream**: `app.scanStream()` now accepts `imageConversion`.
+
+```js
+app.scanStream({
+  filter: { method: 'digimarc', type: 'gs1:21' },
+  containerId: 'stream_container',
+  imageConversion: {
+    greyscale: false,
+    exportFormat: 'image/jpeg',
+    resizeTo: 1080,
+  },
+})
+  .then(console.log)
+  .catch(console.log);
+```
+
 # v4.3.0 (22-07-2020)
 
 ## Features
