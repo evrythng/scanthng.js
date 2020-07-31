@@ -60,7 +60,7 @@ Include using a script tag:
 Add the script tag to your HTML page, specifying the version you will use:
 
 ```html
-<script src="https://d10ka0m22z5ju5.cloudfront.net/js/scanthng/4.3.0/scanthng-4.3.0.js"></script>
+<script src="https://d10ka0m22z5ju5.cloudfront.net/js/scanthng/4.4.0/scanthng-4.4.0.js"></script>
 ```
 
 ### Supported Devices
@@ -175,6 +175,16 @@ The full range of `method` and `type` parameters are listed below:
 `type`s available:
 - gs1:01
 - gs1:21
+
+When scanning with `method: digimarc`, the following `imageConversion`
+configuration is required:
+
+```js
+imageConversion: {
+  greyscale: false,
+  exportFormat: 'image/jpeg'
+}
+```
 
 
 ## Application Setup
@@ -430,7 +440,8 @@ before being sent to the API. Does not apply for stream scanning.
 imageConversion: {
   greyscale: Boolean,
   resizeTo: Integer,
-  exportQuality: Float
+  exportQuality: Float,
+  exportFormat: String
 }
 ```
 
@@ -456,6 +467,13 @@ Type: `Integer` Default: `0.8` Range: `0..1`
 
 Sets the quality of exported image in relation to the original (1 being the
 original quality).
+
+
+#### `imageConversion.exportFormat`
+Type: `String` Default: `image/png`
+
+Sets the format of exported image, possible values are `image/png` and
+`image/jpeg`.
 
 
 ### `invisible`
