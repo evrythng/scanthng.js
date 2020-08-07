@@ -5,13 +5,26 @@ Simple app that allows testing of scanthng.js functionality.
 
 ## Setup
 
-1. Build a copy of `scanthng.js` into `../dist`.
-2. Download a copy of `jsQR.js` to `lib/jsQR.js`.
+1. Build scanthng.js from the project root:
+
+```
+npm ci && npm run build
+```
+
+2. Download a copy of `jsQR.js` to `lib/jsQR.js`:
+
+```
+mkdir -r test-app/lib
+
+curl https://raw.githubusercontent.com/cozmo/jsQR/master/dist/jsQR.js > test-app/lib/jsQR.js
+```
+
+All libraries should now be in place.
 
 
 ## Usage
 
-Open `index.html` and enter an Application API Key.
+Open `test-app/index.html` and enter an Application API Key to get started.
 
 Query parameters can be used to simplify testing flow:
 
