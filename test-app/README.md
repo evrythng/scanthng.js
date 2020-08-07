@@ -11,10 +11,10 @@ Simple app that allows testing of scanthng.js functionality.
 npm ci && npm run build
 ```
 
-2. Download a copy of `jsQR.js` to `lib/jsQR.js`:
+2. Download a copy of `jsQR.js` to `test-app/lib/jsQR.js`:
 
 ```
-mkdir -r test-app/lib
+mkdir -p test-app/lib
 
 curl https://raw.githubusercontent.com/cozmo/jsQR/master/dist/jsQR.js > test-app/lib/jsQR.js
 ```
