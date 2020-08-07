@@ -14,24 +14,32 @@ const UI = {
   inputIdentifyValue: document.getElementById('input-identify-value'),
   inputScanBase64Data: document.getElementById('input-scan-base64data-data'),
   inputScanMethod: document.getElementById('input-scan-method'),
+  inputScanType: document.getElementById('input-scan-type'),
   inputScanstreamMethod: document.getElementById('input-scanstream-method'),
   inputScanstreamType: document.getElementById('input-scanstream-type'),
   inputScanstreamOffline: document.getElementById('input-scanstream-offline'),
-  inputScanType: document.getElementById('input-scan-type'),
 };
 
 const SCANSTREAM_CONTAINER_ID = 'scanstream-container';
 const SCANCODE_CONTAINER_ID = 'scancode-container';
 
-const getUrlParam = key => new URLSearchParams(window.location.search).get(key);
+const getQueryParam = key => new URLSearchParams(window.location.search).get(key);
 
 const loadApp = () => {
-  const apiKey = getUrlParam('app');
+  const apiKey = getQueryParam('app');
   if (apiKey) {
     UI.inputApiKey.value = apiKey || '';
     window.app = new evrythng.Application(apiKey);
     window.app.init().catch(e => alert('Invalid Application API Key'));
   }
+};
+
+const loadFilter = () => {
+  const method = getQueryParam('method') || '2d';
+  const type = getQueryParam('type') || 'qr_code';
+
+  UI.inputScanMethod.value = method;
+  UI.inputScanType.value = type;
 };
 
 const handleResults = (res) => {
@@ -55,6 +63,7 @@ const testFunction = f => f().catch(console.log).then(handleResults);
 
 const onLoad = () => {
   loadApp();
+  loadFilter();
 
   UI.buttonUseKey.addEventListener('click', () => {
     window.app = new evrythng.Application(UI.inputApiKey.value);
@@ -70,12 +79,24 @@ const onLoad = () => {
   UI.buttonScan.addEventListener('click', () => {
     const method = UI.inputScanMethod.value;
     const type = UI.inputScanType.value;
-    testFunction(() => window.app.scan({ filter: { method, type } }));
+    testFunction(() => window.app.scan({
+      filter: { method, type },
+      imageConversion: {
+        exportFormat: 'image/jpeg',
+      },
+    }));
   });
 
   UI.buttonBase64DataScan.addEventListener('click', () => {
+    const method = UI.inputScanMethod.value;
+    const type = UI.inputScanType.value;
     const base64Data = UI.inputScanBase64Data.value;
-    testFunction(() => window.app.scan(base64Data));
+    testFunction(() => window.app.scan(base64Data, {
+      filter: { method, type },
+      imageConversion: {
+        exportFormat: 'image/jpeg',
+      },
+    }));
   });
 
   UI.buttonScanStream.addEventListener('click', () => {
