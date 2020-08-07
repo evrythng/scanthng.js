@@ -271,7 +271,7 @@ const scan = function (param1, param2) {
     // We already have the image string data, so we only need to process it.
     ? Media.processImage(imageData, prepareOptions)
     // Fetch the image data from the file input, before processing.
-    : Media.getFile(prepareOptions).then(Media.processImage);
+    : Media.getFile(prepareOptions).then(data => Media.processImage(data, prepareOptions));
 
   // Send recognition request to the EVRYTHNG API once image is done processing
   const thisApp = this;
