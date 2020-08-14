@@ -27,7 +27,7 @@ const removeExistingForms = () => {
   }
 };
 
-/** 
+/**
  * Create the DOM elements to handle user image selection.
  *
  * @param {object} options - The prepare options.
@@ -79,7 +79,7 @@ const triggerMediaCapture = input => new Promise((resolve, reject) => {
  *
  * @param {object} file - The file chosen by the user.
  * @returns {Promise}
- */ 
+ */
 const readUserFile = file => new Promise((resolve, reject) => {
   const reader = new FileReader();
   reader.onload = e => resolve(e.target.result);
@@ -121,7 +121,7 @@ const loadImage = dataUrl => new Promise((resolve, reject) => {
  * @param {object} options - The prepare options.
  * @returns {string} The data URL.
  */
-const exportDataUrl = (canvas, { imageConversion }) => 
+const exportDataUrl = (canvas, { imageConversion }) =>
   canvas.toDataURL(imageConversion.exportFormat, imageConversion.exportQuality);
 
 /**
