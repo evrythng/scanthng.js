@@ -173,8 +173,10 @@ The full range of `method` and `type` parameters are listed below:
 **`method: digimarc`**
 
 `type`s available:
-- gs1:01
-- gs1:21
+- gs1:01 - Watermarks containing GTIN match to `gs1:01` product identifiers.
+- gs1:21 - Watermarks containing Serial or Extra data match to `gs1:21` Thng identifiers.
+- serialized - Watermarks containing GTIN and Serial/Extra Data. Same as `gs1:21`, except Thng and product are both verified as linked. 
+- discover - Watermarks containing a 'discover-type' payload match to `digimarc:discover` Thng identifiers.
 
 When scanning with `method: digimarc`, the following `imageConversion`
 configuration is required:
