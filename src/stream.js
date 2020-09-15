@@ -149,10 +149,20 @@ const scanCode = (opts, app) => {
     throw new Error('Please specify \'containerId\' where the video element can be added as a child');
   }
 
-  // scanCode the stream, identify barcode, then inform the caller.
-  return navigator
-    .mediaDevices
-    .getUserMedia({ video: { facingMode: 'environment' } })
+  return navigator.mediaDevices.enumerateDevices()
+    .then(devices => devices.filter(device => device.kind === 'videoinput'))
+    .then(devices => {
+      const constraints = {
+        video: {
+          facingMode: 'environment',
+          devicesId: devices.length > 0 ? devices[devices.length - 1].deviceId : undefined,
+        },
+      };
+
+      return navigator
+        .mediaDevices
+        .getUserMedia(constraints)
+    })
     .then(function (newStream) {
       stream = newStream;
       Utils.insertVideoElement(opts.containerId);
