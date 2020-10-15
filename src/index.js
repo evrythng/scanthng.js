@@ -280,6 +280,11 @@ const scan = function (param1, param2) {
 
 // Plugin API
 const ScanThng = {
+  /**
+   * Standard plugin interface to set things up.
+   *
+   * @param {Object} api - API object provided by evrythng.js
+   */
   install: (api) => {
     api.scopes.Application.prototype.redirect = redirect;
     api.scopes.Application.prototype.identify = identify;
@@ -287,10 +292,20 @@ const ScanThng = {
     api.scopes.Application.prototype.stopStream = stopStream;
     api.scopes.Application.prototype.scan = scan;
   },
-  scanQrCode: (containerId) => {
+  /**
+   * Convenience function to scan a QR code with a local stream, but not use the API.
+   *
+   * @param {string} containerId - HTML container element ID to place the stream.
+   * @param {Object} opts - Other standard ScanThng options.
+   * @returns {Promise}
+   */
+  scanQrCode: (containerId, opts) => {
     const filter = { method: '2d', type: 'qr_code' };
-    return Stream.scanCode({ containerId, filter });
+    return Stream.scanCode({ containerId, filter, ...opts });
   },
+  /**
+   * Stop a stream previously opened with scanQrCode()
+   */
   stopScanQrCode: Stream.stop,
 };
 

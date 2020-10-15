@@ -18,6 +18,7 @@ const UI = {
   inputScanstreamMethod: document.getElementById('input-scanstream-method'),
   inputScanstreamType: document.getElementById('input-scanstream-type'),
   inputScanstreamOffline: document.getElementById('input-scanstream-offline'),
+  inputScanstreamAutostop: document.getElementById('input-scanstream-autostop'),
 };
 
 const SCANSTREAM_CONTAINER_ID = 'scanstream-container';
@@ -103,10 +104,12 @@ const onLoad = () => {
     const method = UI.inputScanstreamMethod.value;
     const type = UI.inputScanstreamType.value;
     const offline = UI.inputScanstreamOffline.checked;
+    const autoStop = UI.inputScanstreamAutostop.checked;
     const opts = {
       filter: { method, type },
       containerId: SCANSTREAM_CONTAINER_ID,
       offline,
+      autoStop,
     };
     testFunction(() => window.app.scanStream(opts));
   });

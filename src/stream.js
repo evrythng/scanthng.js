@@ -81,6 +81,7 @@ const findBarcode = (opts, app) => {
   const {
     filter,
     interval = localQrCodeScan ? DEFAULT_LOCAL_INTERVAL : DEFAULT_REMOTE_INTERVAL,
+    autoStop = true,
   } = opts;
   const localQrCodeScan = (filter.method === '2d' && filter.type === 'qr_code');
   if (!localQrCodeScan && !app) {
@@ -97,12 +98,14 @@ const findBarcode = (opts, app) => {
       try {
         // Scan each sample for a barcode
         scanSample(canvas, video, opts, (scanValue) => {
-          clearInterval(frameIntervalHandle);
-          frameIntervalHandle = null;
+          // Unless specified otherwise, by default close the stream and remove the video
+          if (autoStop) {
+            clearInterval(frameIntervalHandle);
+            frameIntervalHandle = null;
 
-          // Hide the video's parent element - nothing to show anymore
-          stream.getVideoTracks()[0].stop();
-          video.parentElement.removeChild(video);
+            stream.getVideoTracks()[0].stop();
+            video.parentElement.removeChild(video);
+          }
 
           resolve(scanValue);
         }, app);
