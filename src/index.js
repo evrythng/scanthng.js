@@ -291,6 +291,9 @@ const ScanThng = {
     api.scopes.Application.prototype.scanStream = scanStream;
     api.scopes.Application.prototype.stopStream = stopStream;
     api.scopes.Application.prototype.scan = scan;
+    api.scopes.Operator.prototype.scanStream = scanStream;
+    api.scopes.Operator.prototype.stopStream = stopStream;
+    api.scopes.Operator.prototype.scan = scan;
   },
   /**
    * Convenience function to scan a QR code with a local stream, but not use the API.
