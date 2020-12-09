@@ -33,5 +33,4 @@ node_modules
 dist
 
 # test-app
-test-app/lib/*
-
+test/playground/lib
