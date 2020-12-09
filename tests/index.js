@@ -191,10 +191,19 @@ const testMedia = async () => {
  * Test scanStream functionality.
  */
 const testScanStream = async () => {
-  await it('scanStream - should open a camera stream to scan a QR code', async () => {
+  await it('scanStream - should open a camera stream to scan a QR code (local)', async () => {
     alert('Please scan any QR code');
 
     const filter = { method: '2d', type: 'qr_code' };
+    const res = await scope.scanStream({ filter, containerId: CONTAINER_ID });
+    console.log(res);
+    return Array.isArray(res) && res.length > 0 && res[0].meta.value.length > 1;
+  });
+
+  await it('scanStream - should open a camera stream to scan a datamatrix code (API)', async () => {
+    alert('Please scan any datamatrix code');
+
+    const filter = { method: '2d', type: 'dm' };
     const res = await scope.scanStream({ filter, containerId: CONTAINER_ID });
     console.log(res);
     return Array.isArray(res) && res.length > 0 && res[0].meta.value.length > 1;
@@ -207,12 +216,9 @@ const testScanStream = async () => {
     const filter = { method: '2d', type: 'qr_code' };
     scope.scanStream({ filter, containerId: CONTAINER_ID });
 
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        scope.stopStream();
-        resolve(true);
-      }, 5000);
-    });
+    await waitAsync(5000);
+    scope.stopStream();
+    return true;
   });
 };
 
@@ -265,6 +271,7 @@ const main = async () => {
   await testGlobal();
   await testScanQrCode();
 
+  await waitAsync(500);
   alert('Suite is complete');
 };
 
