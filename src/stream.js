@@ -18,9 +18,9 @@ let stream;
  * @param {Object} video - The SDK-inserted <video> element.
  * @param {Object} opts - The scanning options.
  * @param {function} foundCb - Callback for if a code is found.
- * @param {Object} [app] - App scope, if decoding with the API is to be used.
+ * @param {Object} [scope] - Application or Operator scope, if decoding with the API is to be used.
  */
-const scanSample = (canvas, video, opts, foundCb, app) => {
+const scanSample = (canvas, video, opts, foundCb, scope) => {
   // Match canvas internal dimensions to that of the video and draw for the user
   const context = canvas.getContext('2d');
   canvas.width = video.videoWidth;
@@ -47,12 +47,12 @@ const scanSample = (canvas, video, opts, foundCb, app) => {
 
   // If Application scope not specified, don't try and identify the code.
   // findBarcode checks that this can only be the case if local scanning is done.
-  if (!app) {
+  if (!scope) {
     return;
   }
 
   // Else, send image data to ScanThng - whatever filter is requested is passed through.
-  app.scan(canvas.toDataURL(), opts).then((res) => {
+  scope.scan(canvas.toDataURL(), opts).then((res) => {
     if (res.length) {
       foundCb(res);
     }
@@ -70,10 +70,10 @@ const scanSample = (canvas, video, opts, foundCb, app) => {
  * Consume a getUserMedia() video stream and resolves once recognition is completed.
  *
  * @param {Object} opts - The scanning options.
- * @param {Object} [app] - App scope, if decoding with the API is to be used.
+ * @param {Object} [scope] - Application or Operator scope, if decoding with the API is to be used.
  * @returns {Promise} A Promise that resolves once recognition is completed.
  */
-const findBarcode = (opts, app) => {
+const findBarcode = (opts, scope) => {
   const video = document.getElementById(Utils.VIDEO_ELEMENT_ID);
   video.srcObject = stream;
   video.play();
@@ -84,8 +84,8 @@ const findBarcode = (opts, app) => {
     autoStop = true,
   } = opts;
   const localQrCodeScan = (filter.method === '2d' && filter.type === 'qr_code');
-  if (!localQrCodeScan && !app) {
-    throw new Error('Non-QR code scanning requires specifying an Application scope');
+  if (!localQrCodeScan && !scope) {
+    throw new Error('Non-QR code scanning requires specifying an Application or Operator scope');
   }
 
   const canvas = document.createElement('canvas');
@@ -108,7 +108,7 @@ const findBarcode = (opts, app) => {
           }
 
           resolve(scanValue);
-        }, app);
+        }, scope);
       } catch (e) {
         reject(e);
       }
@@ -141,10 +141,10 @@ const stop = () => {
  * Use webRTC to open the camera, scan for a code, and resolve the value.
  *
  * @param {Object} opts - The scanning options.
- * @param {Object} [app] - App scope, if decoding with the API is to be used.
+ * @param {Object} [scope] - Application or Operator scope, if decoding with the API is to be used.
  * @returns {Promise} Promise resolving the stream opened.
  */
-const scanCode = (opts, app) => {
+const scanCode = (opts, scope) => {
   if (!window.jsQR) {
     throw new Error('jsQR (https://github.com/cozmo/jsQR) not found. You must include it in a <script> tag.');
   }
@@ -170,7 +170,7 @@ const scanCode = (opts, app) => {
       stream = newStream;
       Utils.insertVideoElement(opts.containerId);
 
-      return findBarcode(opts, app);
+      return findBarcode(opts, scope);
     });
 };
 

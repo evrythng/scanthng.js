@@ -56,12 +56,12 @@ const getParamStr = params => Object.entries(params).map(p => `${p[0]}=${p[1]}`)
  * Effectively send the recognition request to the API, passing in the
  * Base64 image data and request options.
  *
- * @param {Object} app - The Application scope.
+ * @param {Object} scope - The Application or Operator scope.
  * @param {Object} options - Current options.
  * @param {Object} [data] - Optional request data as { image }.
  * @returns {Promise}
  */
-const decodeRequest = (app, options, data) => {
+const scanApiRequest = (scope, options, data) => {
   const params = {};
   ['debug', 'perPage', 'filter'].forEach((option) => {
     if (options[option]) {
@@ -77,7 +77,7 @@ const decodeRequest = (app, options, data) => {
   const requestOptions = {
     url: API_PATH,
     method: data ? 'post' : 'get',
-    apiKey: app.apiKey,
+    apiKey: scope.apiKey,
     params,
   };
 
@@ -85,47 +85,60 @@ const decodeRequest = (app, options, data) => {
     requestOptions.body = JSON.stringify(data);
   }
 
-  return evrythng.api(requestOptions);
+  return evrythng.api(requestOptions)
+    .then(res => processResponse(scope, res, options))
 };
 
 /**
  * If `createAnonymousUser` options is enabled, will try to restore anonymous
  * user saved in local storage (or cookie) and create a new anonymous user if
- * there's no saved one.
+ * there's no saved one. Only works with an Application scope.
  *
- * @param {Object} app - The Application scope.
+ * @param {Object} scope - The Application or Operator scope.
  * @param {Object} options - Current options.
  * @returns {Promise}
  */
-const getAnonymousUser = (app, options) => new Promise((resolve) => {
+const getAnonymousUser = (scope, options) => new Promise((resolve, reject) => {
   if (!(options && options.createAnonymousUser)) {
     resolve();
     return;
   }
 
-  const anonUser = Utils.restoreUser(app, evrythng.User);
-  if (typeof anonUser === 'object') {
-    resolve(anonUser);
-    return;
-  }
+  // Read one stored previously
+  try {
+    const anonUser = Utils.restoreUser(scope, evrythng.User);
+    if (typeof anonUser === 'object') {
+      resolve(anonUser);
+      return;
+    }
 
-  const payload = { anonymous: true };
-  return app.appUser().create(payload)
-    .then((createdUser) => {
-      Utils.storeUser(app, createdUser);
-      return createdUser;
-    });
+    // Create a new one
+    const payload = { anonymous: true };
+    return scope.appUser().create(payload)
+      .then((createdUser) => {
+        Utils.storeUser(scope, createdUser);
+        return createdUser;
+      })
+      .catch(e => {
+        console.log(e);
+        reject(new Error('createAnonymousUser only supported with Application scope'));
+      });
+  } catch (e) {
+    console.log(e);
+    throw new Error('getAnonymousUser failed!');
+  }
 });
 
 /**
  * Process response of the decode request, adding an anonymous user if requested.
+ * Note: Adding an anonymous App User is only supported when used with Application scope.
  *
- * @param {Object} app - The Application scope.
+ * @param {Object} scope - The Application or Operator scope.
  * @param {Object} response - The response.
  * @param {Object} options - Current options.
  * @returns {Promise}
  */
-const processResponse = (app, response, options) => getAnonymousUser(app, options)
+const processResponse = (scope, response, options) => getAnonymousUser(scope, options)
   .then(anonUser => response.map((item) => {
     // Attach user if avaialble.
     if (anonUser) {
@@ -136,25 +149,14 @@ const processResponse = (app, response, options) => getAnonymousUser(app, option
   }));
 
 /**
- * Decode image (send request to IR API and process the response)
- *
- * @param {Object} app - The Application scope.
- * @param {Object} options - Current options.
- * @param {Object} [data] - Optional request data.
- * @returns {Promise}
- */
-const decode = (app, options, data) =>
-  decodeRequest(app, options, data).then(res => processResponse(app, res, options));
-
-/**
  * Create a normalised API response object.
  *
- * @param {Object} thisApp - Current Application scope.
+ * @param {Object} thisScope - Current Application or Operator scope.
  * @param {Object} options - Current options.
  * @param {string} res - Scanned value, or API response object.
  * @returns {Promise<Object>} Promise that resolves an object resembling an API response.
  */
-const createResultObject = (thisApp, options, res) => {
+const createResultObject = (thisScope, options, res) => {
   const metaOnlyRes = [{
     results: [],
     meta: { value: res },
@@ -168,7 +170,7 @@ const createResultObject = (thisApp, options, res) => {
   // Identify a URL with ScanThng, or else return meta-only response
   if (typeof res === 'string') {
     options.filter = `type=${options.filter.type}&value=${res}`;
-    return thisApp.identify(options)
+    return thisScope.identify(options)
       .catch((e) => {
         console.log('Identification failed, falling back to meta-only response');
         console.log(e);
@@ -200,10 +202,10 @@ const scanStream = function (opts = {}) {
   }
 
   // Open the stream, identify barcode, then inform the caller.
-  const thisApp = this;
-  return Stream.scanCode(opts, thisApp)
-    .then(res => createResultObject(thisApp, opts, res))
-    .then(res => processResponse(thisApp, res));
+  const thisScope = this;
+  return Stream.scanCode(opts, thisScope)
+    .then(res => createResultObject(thisScope, opts, res))
+    .then(res => processResponse(thisScope, res));
 };
 
 /**
@@ -232,7 +234,7 @@ const identify = function (opts) {
     throw new Error('Missing filter option.');
   }
 
-  return decode(this, getMergedOptions(opts));
+  return scanApiRequest(this, getMergedOptions(opts));
 };
 
 /**
@@ -275,10 +277,10 @@ const scan = function (param1, param2) {
 
   // Send recognition request to the EVRYTHNG API once image is done processing
   const thisApp = this;
-  return preparePromise.then(data => decode(thisApp, getMergedOptions(options), data));
+  return preparePromise.then(data => scanApiRequest(thisApp, getMergedOptions(options), data));
 };
 
-// Plugin API
+// Use evrythng.js plugin API
 const ScanThng = {
   /**
    * Standard plugin interface to set things up.
@@ -291,6 +293,9 @@ const ScanThng = {
     api.scopes.Application.prototype.scanStream = scanStream;
     api.scopes.Application.prototype.stopStream = stopStream;
     api.scopes.Application.prototype.scan = scan;
+
+    api.scopes.Operator.prototype.redirect = redirect;
+    api.scopes.Operator.prototype.identify = identify;
     api.scopes.Operator.prototype.scanStream = scanStream;
     api.scopes.Operator.prototype.stopStream = stopStream;
     api.scopes.Operator.prototype.scan = scan;
