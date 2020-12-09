@@ -36,3 +36,10 @@ const it = async (summary, cb) => {
  * @returns {string} Parameter value.
  */
 const getUrlParam = key => new URLSearchParams(window.location.search).get(key);
+
+/**
+ * Wait for a while.
+ *
+ * @param {number} ms - Milliseconds to wait for.
+ */
+const waitAsync = ms => new Promise(resolve => setTimeout(resolve, ms));
