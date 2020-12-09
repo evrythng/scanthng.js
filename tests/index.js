@@ -116,31 +116,33 @@ const testUtils = async () => {
     return data.foo === 'bar';
   });
 
-  await it('Utils - should write to a cookie', async () => {
+  await it('Utils - should write to a cookie (localStorage fallback)', async () => {
     writeCookie('foo', { foo: 'bar' });
 
     return document.cookie.includes('foo');
   });
 
-  await it('Utils - should read from cookie', async () => {
+  await it('Utils - should read from cookie (localStorage fallback)', async () => {
     const data = readCookie('foo');
 
     return data.foo === 'bar';
   });
 
-  await it('Utils - should store a user', async () => {
-    const user = await scope.appUser().create({ anonymous: true });
-    storeUser(scope, user);
+  if (scopeType === 'app') {
+    await it('Utils - should store a user', async () => {
+      const user = await scope.appUser().create({ anonymous: true });
+      storeUser(scope, user);
 
-    const data = JSON.parse(localStorage.getItem(`scanthng-${scope.id}`));
-    return data.apiKey.length === 80;
-  });
+      const data = JSON.parse(localStorage.getItem(`scanthng-${scope.id}`));
+      return data.apiKey.length === 80;
+    });
 
-  await it('Utils - should restore a stored user', async () => {
-    const user = restoreUser(scope, evrythng.User);
+    await it('Utils - should restore a stored user', async () => {
+      const user = restoreUser(scope, evrythng.User);
 
-    return user.apiKey.length === 80;
-  });
+      return user.apiKey.length === 80;
+    });
+  }
 };
 
 /**
@@ -244,12 +246,9 @@ const testScanQrCode = async () => {
 
     ScanThng.scanQrCode(CONTAINER_ID);
 
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        ScanThng.stopScanQrCode();
-        resolve(true);
-      }, 5000);
-    });
+    await waitAsync(5000);
+    ScanThng.stopScanQrCode();
+    return true;
   });
 };
 

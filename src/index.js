@@ -104,29 +104,25 @@ const getAnonymousUser = (scope, options) => new Promise((resolve, reject) => {
     return;
   }
 
-  // Read one stored previously
-  try {
-    const anonUser = Utils.restoreUser(scope, evrythng.User);
-    if (typeof anonUser === 'object') {
-      resolve(anonUser);
-      return;
-    }
-
-    // Create a new one
-    const payload = { anonymous: true };
-    return scope.appUser().create(payload)
-      .then((createdUser) => {
-        Utils.storeUser(scope, createdUser);
-        return createdUser;
-      })
-      .catch(e => {
-        console.log(e);
-        reject(new Error('createAnonymousUser only supported with Application scope'));
-      });
-  } catch (e) {
-    console.log(e);
-    throw new Error('getAnonymousUser failed!');
+  // Not an Application scope
+  if (!scope.appUser) {
+    throw new Error('createAnonymousUser only available with Application Scope type');
   }
+
+  // Read one stored previously
+  const anonUser = Utils.restoreUser(scope, evrythng.User);
+  if (typeof anonUser === 'object') {
+    resolve(anonUser);
+    return;
+  }
+
+  // Create a new one
+  const payload = { anonymous: true };
+  return scope.appUser().create(payload)
+    .then((createdUser) => {
+      Utils.storeUser(scope, createdUser);
+      return createdUser;
+    });
 });
 
 /**
