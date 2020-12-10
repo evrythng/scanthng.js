@@ -34,3 +34,4 @@ dist
 
 # test-app
 test/playground/lib
+test/unit/lib
