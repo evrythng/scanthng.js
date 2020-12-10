@@ -60,7 +60,7 @@ Include using a script tag:
 Add the script tag to your HTML page, specifying the version you will use:
 
 ```html
-<script src="https://d10ka0m22z5ju5.cloudfront.net/js/scanthng/4.4.3/scanthng-4.4.3.js"></script>
+<script src="https://d10ka0m22z5ju5.cloudfront.net/js/scanthng/4.5.0/scanthng-4.5.0.js"></script>
 ```
 
 ### Supported Devices
@@ -192,7 +192,10 @@ imageConversion: {
 ## Application Setup
 
 After the HTML page containing the `<script>` tags is loaded, the first step is
-to create an `App` scope representing the EVRYTHNG application.
+to create an `Application` scope representing the EVRYTHNG application.
+
+> An Operator scope may also be used, but the `createAnonymousUser` option will
+> not be available.
 
 ```js
 // Use this plugin with evrythng.js via the ScanThng global value
@@ -599,7 +602,7 @@ SDK.
 
 ## Testing
 
-The `tests` and `test-app` directories contain simple pages that allow quick
+The `test` and `playground` directories contain simple pages that allow quick
 testing of SDK functionality. See their respective `README.md` files for more
 details.
 

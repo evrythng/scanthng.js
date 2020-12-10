@@ -1,7 +1,8 @@
 /** Stream container ID */
 const CONTAINER_ID = 'stream-container';
 
-let app;
+let scope;
+let scopeType;
 
 /**
  * Setup Application scope.
@@ -9,14 +10,16 @@ let app;
  * @returns {Promise}
  */
 const setup = async () => {
-  const apiKey = getUrlParam('app');
-  if (!apiKey) {
-    alert('Please provide \'app\' query param with Application API Key to use');
+  const appApiKey = getUrlParam('app');
+  const operatorApiKey = getUrlParam('operator');
+  if (!appApiKey && !operatorApiKey) {
+    alert('Please provide \'app\' or \'operator\' query param to select SDK scope');
     return;
   }
 
-  app = new evrythng.Application(apiKey);
-  return app.init().catch(e => alert('API key is invalid'));
+  scope = appApiKey ? new evrythng.Application(appApiKey) : new evrythng.Operator(operatorApiKey);
+  scopeType = appApiKey ? 'app' : 'operator';
+  return scope.init().catch(e => alert('API key is invalid'));
 };
 
 /**
@@ -28,21 +31,27 @@ const testScope = async () => {
     return true;
   });
 
-  await it('should add scan() to Application scope', async () => {
-    return typeof app.scan === 'function';
+  await it('should add scan() to scope', async () => {
+    return typeof scope.scan === 'function';
   });
 
-  await it('should add scanStream() to Application scope', async () => {
-    return typeof app.scanStream === 'function';
+  await it('should add scanStream() to scope', async () => {
+    return typeof scope.scanStream === 'function';
   });
 
-  await it('should add identify() to Application scope', async () => {
-    return typeof app.identify === 'function';
+  await it('should add stopStream() to scope', async () => {
+    return typeof scope.stopStream === 'function';
   });
 
-  await it('should add redirect() to Application scope', async () => {
-    return typeof app.redirect === 'function';
-  });
+  if (scopeType === 'app') {
+    await it('should add identify() to scope', async () => {
+      return typeof scope.identify === 'function';
+    });
+
+    await it('should add redirect() to scope', async () => {
+      return typeof scope.redirect === 'function';
+    });
+  }
 };
 
 /**
@@ -107,31 +116,33 @@ const testUtils = async () => {
     return data.foo === 'bar';
   });
 
-  await it('Utils - should write to a cookie', async () => {
+  await it('Utils - should write to a cookie (localStorage fallback)', async () => {
     writeCookie('foo', { foo: 'bar' });
 
     return document.cookie.includes('foo');
   });
 
-  await it('Utils - should read from cookie', async () => {
+  await it('Utils - should read from cookie (localStorage fallback)', async () => {
     const data = readCookie('foo');
 
     return data.foo === 'bar';
   });
 
-  await it('Utils - should store a user', async () => {
-    const user = await app.appUser().create({ anonymous: true });
-    storeUser(app, user);
+  if (scopeType === 'app') {
+    await it('Utils - should store a user', async () => {
+      const user = await scope.appUser().create({ anonymous: true });
+      storeUser(scope, user);
 
-    const data = JSON.parse(localStorage.getItem(`scanthng-${app.id}`));
-    return data.apiKey.length === 80;
-  });
+      const data = JSON.parse(localStorage.getItem(`scanthng-${scope.id}`));
+      return data.apiKey.length === 80;
+    });
 
-  await it('Utils - should restore a stored user', async () => {
-    const user = restoreUser(app, evrythng.User);
+    await it('Utils - should restore a stored user', async () => {
+      const user = restoreUser(scope, evrythng.User);
 
-    return user.apiKey.length === 80;
-  });
+      return user.apiKey.length === 80;
+    });
+  }
 };
 
 /**
@@ -153,6 +164,7 @@ const testMedia = async () => {
   });
 
   await it('Media - should trigger media capture', async () => {
+    await waitAsync(500);
     alert('Please choose any image file');
 
     const input = await insertMediaCapture({});
@@ -179,11 +191,20 @@ const testMedia = async () => {
  * Test scanStream functionality.
  */
 const testScanStream = async () => {
-  await it('scanStream - should open a camera stream to scan a QR code', async () => {
+  await it('scanStream - should open a camera stream to scan a QR code (local)', async () => {
     alert('Please scan any QR code');
 
     const filter = { method: '2d', type: 'qr_code' };
-    const res = await app.scanStream({ filter, containerId: CONTAINER_ID });
+    const res = await scope.scanStream({ filter, containerId: CONTAINER_ID });
+    console.log(res);
+    return Array.isArray(res) && res.length > 0 && res[0].meta.value.length > 1;
+  });
+
+  await it('scanStream - should open a camera stream to scan a datamatrix code (API)', async () => {
+    alert('Please scan any datamatrix code');
+
+    const filter = { method: '2d', type: 'dm' };
+    const res = await scope.scanStream({ filter, containerId: CONTAINER_ID });
     console.log(res);
     return Array.isArray(res) && res.length > 0 && res[0].meta.value.length > 1;
   });
@@ -193,14 +214,11 @@ const testScanStream = async () => {
     alert('Accept camera permission within 5 seconds, but do not scan anything');
 
     const filter = { method: '2d', type: 'qr_code' };
-    app.scanStream({ filter, containerId: CONTAINER_ID });
+    scope.scanStream({ filter, containerId: CONTAINER_ID });
 
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        app.stopStream();
-        resolve(true);
-      }, 5000);
-    });
+    await waitAsync(5000);
+    scope.stopStream();
+    return true;
   });
 };
 
@@ -234,12 +252,9 @@ const testScanQrCode = async () => {
 
     ScanThng.scanQrCode(CONTAINER_ID);
 
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        ScanThng.stopScanQrCode();
-        resolve(true);
-      }, 5000);
-    });
+    await waitAsync(5000);
+    ScanThng.stopScanQrCode();
+    return true;
   });
 };
 
@@ -247,13 +262,17 @@ const testScanQrCode = async () => {
  * The tests. Each is asynchronous.
  */
 const main = async () => {
-  await setup();
+  if(!await setup()) return;
+
   await testScope();
   await testUtils();
   await testMedia();
   await testScanStream();
   await testGlobal();
   await testScanQrCode();
+
+  await waitAsync(500);
+  alert('Suite is complete');
 };
 
 main();

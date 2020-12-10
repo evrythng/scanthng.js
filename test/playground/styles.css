@@ -14,6 +14,7 @@ h3 {
 input[type="text"] {
   font-family: monospace;
   font-size: 1.1rem;
+  padding: 5px;
 }
 
 input[type="button"] {
@@ -22,6 +23,8 @@ input[type="button"] {
   background-color: black;
   color: white;
   margin-top: 5px;
+  border-radius: 5px;
+  padding: 4px 12px;
 }
 
 select {

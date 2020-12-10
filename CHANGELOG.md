@@ -1,6 +1,18 @@
+# v4.5.0 (10-12-2020)
+
+## Features
+
+- **Operator**: `Operator` SDK scopes can be used as well as Application scopes.
+
+> When using with `Operator`, the `createAnonymousUser` option is not available.
+
+```js
+const res = await operator.scanStream(opts);
+```
+
 # v4.4.0 (31-07-2020)
 
-## Feature
+## Features
 
 - **scanStream**: `app.scanStream()` now accepts `imageConversion`.
 
