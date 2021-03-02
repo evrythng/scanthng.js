@@ -1,6 +1,38 @@
+# v4.6.0 (02-03-2021)
+
+## Features
+
+- **ScanThng.convertToDataUrl**: Provides functionality to read a user file into a data URL.
+
+- **ScanThng.convertImageFormat**: Pre-processs an image for QR decoding.
+
+```
+<input
+  id="file"
+  name="file"
+  type="file"
+  onChange={async event => {
+    const file = event.currentTarget.files[0];
+    const dataUrl = await ScanThng.convertToDataUrl(file);
+    const processedDataUrl = await ScanThng.convertImageFormat(
+      dataUrl,
+      {
+        imageConversion: {
+          exportFormat: 'image/jpeg',
+          exportQuality: 0.9,
+          greyscale: false,
+          resizeTo: 480,
+        },
+      },
+    );
+    console.log(processedDataUrl);
+  }}
+/>
+```
+
 # v4.5.0 (10-12-2020)
 
-## Features
+## Features
 
 - **Operator**: `Operator` SDK scopes can be used as well as Application scopes.
 
