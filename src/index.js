@@ -301,16 +301,16 @@ const ScanThng = {
    *
    * @param {*} imageData - Image data.
    * @param {object} userOptions - User options, if any.
-   * @returns {Promise}
+   * @returns {Promise<object>} Promise resolving an object { image } containing the image as a data URL.
    */
-  processImage: Media.processImage,
+  convertImageFormat: Media.processImage,
   /**
    * Read file selected by user.
    *
    * @param {object} file - The file chosen by the user.
-   * @returns {Promise}
+   * @returns {Promise<string>} Promise resolving a string containing the image as a data URL.
    */
-  readUserFile: Media.readUserFile,
+  convertToDataUrl: Media.readUserFile,
   /**
    * Convenience function to scan a QR code with a local stream, but not use the API.
    *

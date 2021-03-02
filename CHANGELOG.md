@@ -2,9 +2,9 @@
 
 ## Features
 
-- **ScanThng.readUserFile**: Provides functionality to read a user file into a data URL.
+- **ScanThng.convertToDataUrl**: Provides functionality to read a user file into a data URL.
 
-- **ScanThng.processImage**: Pre-processs an image for QR decoding.
+- **ScanThng.convertImageFormat**: Pre-processs an image for QR decoding.
 
 ```
 <input
@@ -13,8 +13,8 @@
   type="file"
   onChange={async event => {
     const file = event.currentTarget.files[0];
-    const dataUrl = await ScanThng.readUserFile(file);
-    const processedDataUrl = await ScanThng.processImage(dataUrl);
+    const dataUrl = await ScanThng.convertToDataUrl(file);
+    const processedDataUrl = await ScanThng.convertImageFormat(dataUrl);
     console.log(processedDataUrl);
   }}
 />
