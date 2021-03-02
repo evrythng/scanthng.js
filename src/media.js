@@ -171,5 +171,6 @@ if (typeof module !== 'undefined') {
   module.exports = {
     getFile,
     processImage,
+    readUserFile,
   };
 }

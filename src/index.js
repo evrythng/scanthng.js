@@ -297,6 +297,21 @@ const ScanThng = {
     api.scopes.Operator.prototype.scan = scan;
   },
   /**
+   * Put image on canvas, convert it and export as data URL.
+   *
+   * @param {*} imageData - Image data.
+   * @param {object} userOptions - User options, if any.
+   * @returns {Promise}
+   */
+  processImage: Media.processImage,
+  /**
+   * Read file selected by user.
+   *
+   * @param {object} file - The file chosen by the user.
+   * @returns {Promise}
+   */
+  readUserFile: Media.readUserFile,
+  /**
    * Convenience function to scan a QR code with a local stream, but not use the API.
    *
    * @param {string} containerId - HTML container element ID to place the stream.
