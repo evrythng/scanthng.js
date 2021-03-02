@@ -14,7 +14,17 @@
   onChange={async event => {
     const file = event.currentTarget.files[0];
     const dataUrl = await ScanThng.convertToDataUrl(file);
-    const processedDataUrl = await ScanThng.convertImageFormat(dataUrl);
+    const processedDataUrl = await ScanThng.convertImageFormat(
+      dataUrl,
+      {
+        imageConversion: {
+          exportFormat: 'image/jpeg',
+          exportQuality: 0.9,
+          greyscale: false,
+          resizeTo: 480,
+        },
+      },
+    );
     console.log(processedDataUrl);
   }}
 />
