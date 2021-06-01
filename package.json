@@ -5,7 +5,7 @@
   "main": "dist/scanthng.js",
   "scripts": {
     "build": "webpack --config webpack.config.js --mode production",
-    "build-dev": "webpack --config webpack.config.js --mode development",
+    "build:dev": "webpack --config webpack.config.js --mode development",
     "prepublishOnly": "npm run build"
   },
   "repository": {

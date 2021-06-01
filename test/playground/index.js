@@ -1,5 +1,7 @@
 evrythng.use(ScanThng);
 
+evrythng.setup({ apiVersion: 1 });
+
 /**
  * Get an element by ID.
  * 
@@ -64,6 +66,8 @@ const loadScope = () => {
 const loadFilter = () => {
   UI.inputScanMethod.value = getQueryParam('method') || '2d';
   UI.inputScanType.value = getQueryParam('type') || 'qr_code';
+  UI.inputScanstreamMethod.value = getQueryParam('method') || '2d';
+  UI.inputScanstreamType.value = getQueryParam('type') || 'qr_code';
 };
 
 /**
@@ -85,7 +89,7 @@ const handleResults = (res) => {
     numFound = res[0].results.length;
   }
 
-  alert(`Results: ${numResults}, Found: ${numFound}`);
+  setTimeout(() => alert(`Results: ${numResults}, Found: ${numFound}`), 100);
 };
 
 /**
@@ -147,6 +151,11 @@ const onLoad = () => {
       containerId: SCANSTREAM_CONTAINER_ID,
       offline,
       autoStop,
+      imageConversion: {
+        exportFormat: 'image/jpeg',
+        greyscale: false,
+        resizeTo: 1080,
+      },
     };
     testFunction(() => window.scope.scanStream(opts));
   });

@@ -11,31 +11,64 @@ let frameIntervalHandle;
 let stream;
 
 /**
+ * Get the image data from the canvas.
+ *
+ * @param {HTMLCanvasElement} canvas - Canvas to use.
+ * @param {CanvasRenderingContext2D} context - Canvas context.
+ * @param {float} cropPercent - Amount to crop by to simulate zoom.
+ * @returns {ImageData} Image data.
+ */
+const getImageData = (canvas, context, cropPercent) => {
+  let x = 0;
+  let y = 0;
+  let width = canvas.width;
+  let height = canvas.height;
+
+  // Zoom?
+  if (cropPercent) {
+    if (typeof cropPercent !== 'number' || cropPercent < 0.1 || cropPercent > 0.9) {
+      throw new Error('cropPercent option must be between 0.1 and 0.9');
+    }
+
+    // For zoom=0.1, crop 10% from the outside of the image
+    x = cropPercent * width;
+    y = cropPercent * height;
+    width -= 2 * x;
+    height -= 2 * y;
+  }
+
+  try {
+    return context.getImageData(x, y, width, height);
+  } catch (e) {
+    console.log('Failed to getImageData - device may not be ready.');
+    return;
+  }
+}
+
+/**
  * Process a sample frame from the stream, and find any code present.
  * A callback is required since any promise per-frame won't necessarily resolve or reject.
  *
  * @param {Object} canvas - The canvas element.
+ * @param {Object} cropCanvas - The canvas element used for copying and cropping.
  * @param {Object} video - The SDK-inserted <video> element.
  * @param {Object} opts - The scanning options.
  * @param {function} foundCb - Callback for if a code is found.
  * @param {Object} [scope] - Application or Operator scope, if decoding with the API is to be used.
  */
-const scanSample = (canvas, video, opts, foundCb, scope) => {
+const scanSample = (canvas, cropCanvas, video, opts, foundCb, scope) => {
   // Match canvas internal dimensions to that of the video and draw for the user
   const context = canvas.getContext('2d');
   canvas.width = video.videoWidth;
   canvas.height = video.videoHeight;
   context.drawImage(video, 0, 0);
 
-  const { filter } = opts;
+  const { filter, useDiscover, cropPercent } = opts;
+
+  // Client-side QR code scan
   if (filter.method === '2d' && filter.type === 'qr_code') {
-    let imgData;
-    try {
-      imgData = context.getImageData(0, 0, video.videoWidth, video.videoHeight);
-    } catch (e) {
-      console.log('Failed to getImageData - device may not be ready.');
-      return;
-    }
+    const imgData = getImageData(canvas, context);
+    if (!imgData) return;
 
     // Scan image data with jsQR
     const result = window.jsQR(imgData.data, imgData.width, imgData.height);
@@ -45,14 +78,42 @@ const scanSample = (canvas, video, opts, foundCb, scope) => {
     return;
   }
 
+  // Client-side digimarc pre-scan watermark location
+  // If nothing was found in this frame, don't send to the API
+  if (filter.method === 'digimarc' && useDiscover) {
+    const imgData = getImageData(canvas, context, cropPercent);
+    if (!imgData) return;
+
+    const { result } = Discover.detectWatermark(canvas.width, canvas.height, imgData.data);
+    console.log({
+      ready_for_read: result.ready_for_read,
+      width: canvas.width,
+      height: canvas.height,
+    });
+
+    // Nothing was found
+    if (!result.ready_for_read) return;
+  }
+
   // If Application scope not specified, don't try and identify the code.
   // findBarcode checks that this can only be the case if local scanning is done.
-  if (!scope) {
-    return;
+  if (!scope) return;
+
+  // Also crop here (HACK HACK HACK)
+  if (cropPercent) {
+    cropCanvas.width = canvas.width - (2 * (cropPercent * canvas.width));
+    cropCanvas.height = canvas.height - (2 * (cropPercent * canvas.height));
+
+    const cropX = cropPercent * canvas.width;
+    const cropY = cropPercent * canvas.height;
+
+    const cropCtx = cropCanvas.getContext('2d');
+    cropCtx.drawImage(canvas, cropX, cropY, cropCanvas.width, cropCanvas.height, 0, 0, cropCanvas.width, cropCanvas.height);
   }
 
   // Else, send image data to ScanThng - whatever filter is requested is passed through.
-  scope.scan(canvas.toDataURL(), opts).then((res) => {
+  scope.scan(cropPercent ? cropCanvas.toDataURL() : canvas.toDataURL(), opts).then((res) => {
+    // Only stop scanning if a resource is found
     if (res.length) {
       foundCb(res);
     }
@@ -79,17 +140,24 @@ const findBarcode = (opts, scope) => {
   video.play();
 
   const {
-    filter,
-    interval = localQrCodeScan ? DEFAULT_LOCAL_INTERVAL : DEFAULT_REMOTE_INTERVAL,
+    filter: {
+      method,
+      type,
+    },
     autoStop = true,
+    useDiscover = false,
   } = opts;
-  const localQrCodeScan = (filter.method === '2d' && filter.type === 'qr_code');
-  if (!localQrCodeScan && !scope) {
-    throw new Error('Non-QR code scanning requires specifying an Application or Operator scope');
+  const usingDigimarc = method === 'digimarc' && useDiscover;
+  const localScan = (method === '2d' && type === 'qr_code') || usingDigimarc;
+  const interval = opts.interval || localScan ? DEFAULT_LOCAL_INTERVAL : DEFAULT_REMOTE_INTERVAL
+
+  // If not a local scan, or using discover.js and no Scope is available
+  if ((!localScan && !scope) || (!scope && useDiscover)) {
+    throw new Error('Non-local code scanning requires specifying an Application or Operator scope for API access');
   }
 
   const canvas = document.createElement('canvas');
-
+  const cropCanvas = document.createElement('canvas');
   return new Promise((resolve, reject) => {
     /**
      * Check a single frame, resolving if something is scanned.
@@ -97,7 +165,7 @@ const findBarcode = (opts, scope) => {
     const checkFrame = () => {
       try {
         // Scan each sample for a barcode
-        scanSample(canvas, video, opts, (scanValue) => {
+        scanSample(canvas, cropCanvas, video, opts, (scanValue) => {
           // Unless specified otherwise, by default close the stream and remove the video
           if (autoStop) {
             clearInterval(frameIntervalHandle);
@@ -116,7 +184,7 @@ const findBarcode = (opts, scope) => {
 
     frameIntervalHandle = setInterval(
       checkFrame,
-      localQrCodeScan ? interval : Math.max(MIN_REMOTE_INTERVAL, interval),
+      localScan ? interval : Math.max(MIN_REMOTE_INTERVAL, interval),
     );
   });
 };
@@ -158,7 +226,9 @@ const scanCode = (opts, scope) => {
       const constraints = {
         video: {
           facingMode: 'environment',
-          devicesId: devices.length > 0 ? devices[devices.length - 1].deviceId : undefined,
+          // devicesId: devices.length > 0 ? devices[devices.length - 1].deviceId : undefined,
+          width: { ideal: 1920 },
+          height: { ideal: 1080 } ,
         },
       };
 

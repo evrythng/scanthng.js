@@ -34,4 +34,5 @@ dist
 
 # test-app
 test/playground/lib
+test/playground/scanthng.js
 test/unit/lib
