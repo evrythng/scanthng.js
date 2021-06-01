@@ -2,7 +2,7 @@
   "name": "scanthng",
   "version": "4.6.0",
   "description": "evrythng.js plugin for recognising products in a web app.",
-  "main": "dist/scanthng.js",
+  "main": "dist/scanthng.node.js",
   "scripts": {
     "build": "webpack --config webpack.config.js --mode production",
     "build-dev": "webpack --config webpack.config.js --mode development",

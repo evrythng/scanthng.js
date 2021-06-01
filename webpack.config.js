@@ -28,6 +28,28 @@ const browserConfig = {
   },
 };
 
+const nodeConfig = {
+  entry,
+  target: 'node',
+  output: {
+    path,
+    library,
+    filename: 'scanthng.node.js',
+    libraryTarget: 'umd',
+    umdNamedDefine: true,
+    globalObject: "typeof self !== 'undefined' ? self : this"
+  },
+  module: {
+    rules: [
+      {
+        test: /\.js$/,
+        exclude: /node_modules/
+      }
+    ]
+  }
+}
+
 module.exports = [
   browserConfig,
+  nodeConfig,
 ];
