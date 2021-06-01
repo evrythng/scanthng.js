@@ -6,6 +6,13 @@ const DEFAULT_LOCAL_INTERVAL = 300;
 const DEFAULT_REMOTE_INTERVAL = 2000;
 /** The minimum interval between image requests. */
 const MIN_REMOTE_INTERVAL = 500;
+/** Optimal settings for digimarc and discover.js */
+const OPTIMAL_DIGIMARC_IMAGE_CONVERSION = {
+  exportFormat: 'image/jpeg',
+  greyscale: false,
+  resizeTo: 1920,
+  exportQuality: 1.0,
+};
 
 let frameIntervalHandle;
 let stream;
@@ -30,7 +37,7 @@ const getImageData = (canvas, context, cropPercent) => {
       throw new Error('cropPercent option must be between 0.1 and 0.9');
     }
 
-    // For zoom=0.1, crop 10% from the outside of the image
+    // For cropPercent=0.1, crop 10% from the outside of the image
     x = cropPercent * width;
     y = cropPercent * height;
     width -= 2 * x;
@@ -63,68 +70,82 @@ const scanSample = (canvas, cropCanvas, video, opts, foundCb, scope) => {
   canvas.height = video.videoHeight;
   context.drawImage(video, 0, 0);
 
-  const { filter, useDiscover, cropPercent } = opts;
+  const { width, height } = canvas;
+  const {
+    filter: {
+      method,
+      type,
+    },
+    useDiscover = false,
+    cropPercent = undefined,
+  } = opts;
 
   // Client-side QR code scan
-  if (filter.method === '2d' && filter.type === 'qr_code') {
+  if (method === '2d' && type === 'qr_code') {
     const imgData = getImageData(canvas, context);
     if (!imgData) return;
 
     // Scan image data with jsQR
     const result = window.jsQR(imgData.data, imgData.width, imgData.height);
-    if (result) {
-      foundCb(result.data);
-    }
+    if (result) foundCb(result.data);
     return;
   }
 
-  // Client-side digimarc pre-scan watermark location
-  // If nothing was found in this frame, don't send to the API
-  if (filter.method === 'digimarc' && useDiscover) {
+  // Client-side digimarc pre-scan watermark detection
+  if (method === 'digimarc' && useDiscover) {
     const imgData = getImageData(canvas, context, cropPercent);
     if (!imgData) return;
 
-    const { result } = Discover.detectWatermark(canvas.width, canvas.height, imgData.data);
+    const { result } = Discover.detectWatermark(width, height, imgData.data);
     console.log({
       ready_for_read: result.ready_for_read,
-      width: canvas.width,
-      height: canvas.height,
+      width,
+      height,
     });
 
-    // Nothing was found
+    // If nothing was found in this frame, don't send to the API (save data)
     if (!result.ready_for_read) return;
   }
 
   // If Application scope not specified, don't try and identify the code.
-  // findBarcode checks that this can only be the case if local scanning is done.
   if (!scope) return;
 
-  // Also crop here (HACK HACK HACK)
+  // Also crop here for dataURL data
   if (cropPercent) {
-    cropCanvas.width = canvas.width - (2 * (cropPercent * canvas.width));
-    cropCanvas.height = canvas.height - (2 * (cropPercent * canvas.height));
+    // Adjust the width
+    cropCanvas.width = width - (2 * (cropPercent * width));
+    cropCanvas.height = height - (2 * (cropPercent * height));
 
-    const cropX = cropPercent * canvas.width;
-    const cropY = cropPercent * canvas.height;
+    // Adjust source X,Y
+    const cropX = cropPercent * width;
+    const cropY = cropPercent * height;
 
-    const cropCtx = cropCanvas.getContext('2d');
-    cropCtx.drawImage(canvas, cropX, cropY, cropCanvas.width, cropCanvas.height, 0, 0, cropCanvas.width, cropCanvas.height);
+    // Draw crop area onto cropCanvas for laser toDataURL() usage
+    cropCanvas
+      .getContext('2d')
+      .drawImage(
+        canvas,
+        cropX, cropY,
+        cropCanvas.width, cropCanvas.height,
+        0, 0,
+        cropCanvas.width, cropCanvas.height
+      );
   }
 
-  // Else, send image data to ScanThng - whatever filter is requested is passed through.
-  scope.scan(cropPercent ? cropCanvas.toDataURL() : canvas.toDataURL(), opts).then((res) => {
-    // Only stop scanning if a resource is found
-    if (res.length) {
-      foundCb(res);
-    }
-  }).catch((err) => {
-    if (err.errors && err.errors[0].includes('lacking sufficient detail')) {
+  // Else, send image data to ID Rec API - whatever filter is requested is passed through.
+  const dataUrl = cropPercent ? cropCanvas.toDataURL() : canvas.toDataURL();
+  scope
+    .scan(dataUrl, opts)
+    .then((res) => {
+      // Only stop scanning if a resource is found
+      if (res.length) foundCb(res);
+    })
+    .catch((err) => {
       // Handle 'not found' for empty images based on API response
-      return;
-    }
+      if (err.errors && err.errors[0].includes('lacking sufficient detail')) return;
 
-    throw err;
-  });
+      throw err;
+    });
 };
 
 /**
@@ -145,14 +166,20 @@ const findBarcode = (opts, scope) => {
       type,
     },
     autoStop = true,
-    useDiscover = false,
+    useDiscover,
+    imageConversion,
   } = opts;
-  const usingDigimarc = method === 'digimarc' && useDiscover;
-  const localScan = (method === '2d' && type === 'qr_code') || usingDigimarc;
+  const usingLocalDiscover = method === 'digimarc' && useDiscover;
+  const localScan = (method === '2d' && type === 'qr_code') || usingLocalDiscover;
   const interval = opts.interval || localScan ? DEFAULT_LOCAL_INTERVAL : DEFAULT_REMOTE_INTERVAL
 
-  // If not a local scan, or using discover.js and no Scope is available
-  if ((!localScan && !scope) || (!scope && useDiscover)) {
+  // Autopilot best digimarc imageConversion settings
+  if (!imageConversion && usingLocalDiscover) {
+    opts.imageConversion = OPTIMAL_DIGIMARC_IMAGE_CONVERSION;
+  }
+
+  // If not a local QR scan, or using discover.js and no Scope is available
+  if ((!localScan && !scope) || (useDiscover && !scope)) {
     throw new Error('Non-local code scanning requires specifying an Application or Operator scope for API access');
   }
 

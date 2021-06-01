@@ -179,14 +179,19 @@ The full range of `method` and `type` parameters are listed below:
 - discover - Watermarks containing a 'discover-type' payload match to `digimarc:discover` Thng identifiers.
 
 When scanning with `method: digimarc`, the following `imageConversion`
-configuration is required:
+configuration is recommended, and will be used if not specified manually:
 
 ```js
 imageConversion: {
   greyscale: false,
-  exportFormat: 'image/jpeg'
+  exportFormat: 'image/jpeg',
+  resizeTo: 1920,
+  exportQuality: 1.0,
 }
 ```
+
+Additionally, make use of pre-imported discover.js with the `useDiscover`
+option.
 
 
 ## Application Setup
