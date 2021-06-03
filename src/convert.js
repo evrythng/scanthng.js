@@ -1,5 +1,3 @@
-const MegaPixImage = require('@koba04/ios-imagefile-megapixel');
-
 /** minimum image size accepted by API */
 const MIN_SIZE = 144;
 
@@ -35,20 +33,29 @@ const convertToGreyscale = (canvas) => {
  */
 const convertImage = (image, { imageConversion }) => new Promise((resolve) => {
   const canvas = document.createElement('canvas');
+  let width = image.width;
+  let height = image.height;
+  
+  const original = { width, height };
 
-  // resize the image so it's smaller dimension equals the option value
-  // but not smaller than minimum dimensions allowed
-  const smaller = Math.max(imageConversion.resizeTo, MIN_SIZE);
-  const ratio = image.width / image.height;
-  const zoom = smaller / Math.min(image.width, image.height);
-  const width = ratio > 1 ? image.width * zoom : smaller;
-  const height = ratio > 1 ? smaller : image.height * zoom;
+  const { resizeTo, greyscale } = imageConversion;
 
-  // render image on canvas using Megapixel library (Fixes problems for
-  // iOS Safari) https://github.com/stomita/ios-imagefile-megapixel
-  new MegaPixImage(image).render(canvas, { width, height });
+  // If resizing not disabled
+  if (resizeTo !== false) {
+    // resize the image so it's smaller dimension equals the option value
+    // but not smaller than minimum dimensions allowed
+    const smaller = Math.max(resizeTo, MIN_SIZE);
+    const ratio = image.width / image.height;
+    const zoom = smaller / Math.min(image.width, image.height);
+    width = ratio > 1 ? image.width * zoom : smaller;
+    height = ratio > 1 ? smaller : image.height * zoom;
+  }
 
-  if (imageConversion.greyscale) {
+  canvas.width = width;
+  canvas.height = height;
+  canvas.getContext('2d').drawImage(image, 0, 0, original.width, original.height, 0, 0, canvas.width, canvas.height);
+
+  if (greyscale) {
     convertToGreyscale(canvas);
   }
 
