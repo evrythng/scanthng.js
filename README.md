@@ -173,25 +173,35 @@ The full range of `method` and `type` parameters are listed below:
 **`method: digimarc`**
 
 `type`s available:
-- gs1:01 - Watermarks containing GTIN match to `gs1:01` product identifiers.
-- gs1:21 - Watermarks containing Serial or Extra data match to `gs1:21` Thng identifiers.
-- serialized - Watermarks containing GTIN and Serial/Extra Data. Same as `gs1:21`, except Thng and product are both verified as linked. 
-- discover - Watermarks containing a 'discover-type' payload match to `digimarc:discover` Thng identifiers.
+- `gs1:01` - Watermarks containing GTIN match to `gs1:01` product identifiers.
+- `gs1:21` - Watermarks containing Serial or Extra data match to `gs1:21` Thng identifiers.
+- `serialized` - Watermarks containing GTIN and Serial/Extra Data. Same as `gs1:21`, except Thng and product are both verified as linked. 
+- `discover` - Watermarks containing a 'discover-type' payload match to `digimarc:discover` Thng identifiers.
 
 When scanning with `method: digimarc`, the following `imageConversion`
-configuration is recommended, and will be used if not specified manually:
+configuration in `option` is recommended, and will be used if not specified
+explicitly:
 
 ```js
 imageConversion: {
   greyscale: false,
   exportFormat: 'image/jpeg',
-  resizeTo: 1920,
-  exportQuality: 1.0,
+  resizeTo: 1080,
+  exportQuality: 0.9,
 }
 ```
 
 Additionally, make use of pre-imported discover.js with the `useDiscover`
-option.
+option to only send frames to the API when there is a high chance of decoding
+a Digimarc watermark. You can also get notified when detection results are
+available:
+
+```js
+useDiscover: true,
+onDiscoverResult: console.log,
+```
+
+> If `useDiscover` is enabled, make sure you also include discover.js itself.
 
 
 ## Application Setup

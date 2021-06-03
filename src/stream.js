@@ -84,6 +84,7 @@ const scanSample = (canvas, cropCanvas, video, opts, foundCb, scope) => {
       type,
     },
     useDiscover = false,
+    onDiscoverResult,
     imageConversion = {},
   } = opts;
   const { cropPercent } = imageConversion;
@@ -109,6 +110,11 @@ const scanSample = (canvas, cropCanvas, video, opts, foundCb, scope) => {
 
     // If nothing was found in this frame, don't send to the API (save data)
     if (!result.ready_for_read) return;
+
+    // Notify application if it wants
+    if (onDiscoverResult) {
+      onDiscoverResult(result);
+    }
   }
 
   // If Application scope not specified, don't try and identify the code.
