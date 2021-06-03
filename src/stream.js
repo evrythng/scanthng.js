@@ -3,19 +3,20 @@ const Utils = require('./utils');
 /** The interval between QR code local stream samples. */
 const DEFAULT_LOCAL_INTERVAL = 300;
 /** The interval between other image requests. */
-const DEFAULT_REMOTE_INTERVAL = 2000;
+const DEFAULT_REMOTE_INTERVAL = 1500;
 /** The minimum interval between image requests. */
 const MIN_REMOTE_INTERVAL = 500;
 /** Optimal settings for digimarc and discover.js */
 const OPTIMAL_DIGIMARC_IMAGE_CONVERSION = {
   exportFormat: 'image/jpeg',
   greyscale: false,
-  resizeTo: 1920,
-  exportQuality: 1.0,
+  resizeTo: 1080,
+  exportQuality: 0.9,
 };
 
 let frameIntervalHandle;
 let stream;
+let requestPending = false;
 
 /**
  * Get the image data from the canvas.
@@ -25,13 +26,13 @@ let stream;
  * @param {float} cropPercent - Amount to crop by to simulate zoom.
  * @returns {ImageData} Image data.
  */
-const getImageData = (canvas, context, cropPercent) => {
+const getCanvasImageData = (canvas, context, cropPercent) => {
   let x = 0;
   let y = 0;
   let width = canvas.width;
   let height = canvas.height;
 
-  // Zoom?
+  // Crop?
   if (cropPercent) {
     if (typeof cropPercent !== 'number' || cropPercent < 0.1 || cropPercent > 0.9) {
       throw new Error('cropPercent option must be between 0.1 and 0.9');
@@ -64,6 +65,11 @@ const getImageData = (canvas, context, cropPercent) => {
  * @param {Object} [scope] - Application or Operator scope, if decoding with the API is to be used.
  */
 const scanSample = (canvas, cropCanvas, video, opts, foundCb, scope) => {
+  if (requestPending) {
+    console.log('API request pending, skipping this frame');
+    return;
+  }
+
   // Match canvas internal dimensions to that of the video and draw for the user
   const context = canvas.getContext('2d');
   canvas.width = video.videoWidth;
@@ -71,18 +77,20 @@ const scanSample = (canvas, cropCanvas, video, opts, foundCb, scope) => {
   context.drawImage(video, 0, 0);
 
   const { width, height } = canvas;
+  console.log(`Frame ${width}x${height}`);
   const {
     filter: {
       method,
       type,
     },
     useDiscover = false,
-    cropPercent = undefined,
+    imageConversion = {},
   } = opts;
+  const { cropPercent } = imageConversion;
 
   // Client-side QR code scan
   if (method === '2d' && type === 'qr_code') {
-    const imgData = getImageData(canvas, context);
+    const imgData = getCanvasImageData(canvas, context);
     if (!imgData) return;
 
     // Scan image data with jsQR
@@ -93,15 +101,11 @@ const scanSample = (canvas, cropCanvas, video, opts, foundCb, scope) => {
 
   // Client-side digimarc pre-scan watermark detection
   if (method === 'digimarc' && useDiscover) {
-    const imgData = getImageData(canvas, context, cropPercent);
+    const imgData = getCanvasImageData(canvas, context, cropPercent);
     if (!imgData) return;
 
     const { result } = Discover.detectWatermark(width, height, imgData.data);
-    console.log({
-      ready_for_read: result.ready_for_read,
-      width,
-      height,
-    });
+    console.log(`discover.js detected: ${result.ready_for_read}`);
 
     // If nothing was found in this frame, don't send to the API (save data)
     if (!result.ready_for_read) return;
@@ -110,7 +114,7 @@ const scanSample = (canvas, cropCanvas, video, opts, foundCb, scope) => {
   // If Application scope not specified, don't try and identify the code.
   if (!scope) return;
 
-  // Also crop here for dataURL data
+  // Also crop here for dataURL data, same as in getCanvasImageData above.
   if (cropPercent) {
     // Adjust the width
     cropCanvas.width = width - (2 * (cropPercent * width));
@@ -120,7 +124,7 @@ const scanSample = (canvas, cropCanvas, video, opts, foundCb, scope) => {
     const cropX = cropPercent * width;
     const cropY = cropPercent * height;
 
-    // Draw crop area onto cropCanvas for laser toDataURL() usage
+    // Draw crop area onto cropCanvas for later toDataURL() usage
     cropCanvas
       .getContext('2d')
       .drawImage(
@@ -134,13 +138,18 @@ const scanSample = (canvas, cropCanvas, video, opts, foundCb, scope) => {
 
   // Else, send image data to ID Rec API - whatever filter is requested is passed through.
   const dataUrl = cropPercent ? cropCanvas.toDataURL() : canvas.toDataURL();
+  requestPending = true;
   scope
     .scan(dataUrl, opts)
     .then((res) => {
+      requestPending = false;
+
       // Only stop scanning if a resource is found
       if (res.length) foundCb(res);
     })
     .catch((err) => {
+      requestPending = false;
+
       // Handle 'not found' for empty images based on API response
       if (err.errors && err.errors[0].includes('lacking sufficient detail')) return;
 
@@ -170,11 +179,14 @@ const findBarcode = (opts, scope) => {
     imageConversion,
   } = opts;
   const usingLocalDiscover = method === 'digimarc' && useDiscover;
-  const localScan = (method === '2d' && type === 'qr_code') || usingLocalDiscover;
+  const localScan = method === '2d' && type === 'qr_code';
+
+  // Local QR codes scans are fast, so can be frequent. With discover.js, it's high-res and slow.
   const interval = opts.interval || localScan ? DEFAULT_LOCAL_INTERVAL : DEFAULT_REMOTE_INTERVAL
 
   // Autopilot best digimarc imageConversion settings
   if (!imageConversion && usingLocalDiscover) {
+    console.log(`Selecting optimal digimarc conversion: ${JSON.stringify(OPTIMAL_DIGIMARC_IMAGE_CONVERSION)}`);
     opts.imageConversion = OPTIMAL_DIGIMARC_IMAGE_CONVERSION;
   }
 
