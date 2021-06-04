@@ -13,7 +13,7 @@ const browserConfig = {
   output: {
     path,
     library,
-    filename: 'scanthng.js',
+    filename: 'scanthng.browser.js',
     libraryTarget: 'var',
   },
   module: {
@@ -35,7 +35,7 @@ const nodeConfig = {
     path,
     library,
     filename: 'scanthng.node.js',
-    libraryTarget: 'umd',
+    libraryTarget: 'commonjs2',
     umdNamedDefine: true,
     globalObject: "typeof self !== 'undefined' ? self : this"
   },
@@ -43,7 +43,7 @@ const nodeConfig = {
     rules: [
       {
         test: /\.js$/,
-        exclude: /node_modules/
+        exclude: /node_modules|dist/
       }
     ]
   }
