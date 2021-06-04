@@ -1,5 +1,7 @@
 /* globals jsQR */
 
+const evrythng = require('evrythng');
+
 const Utils = require('./utils');
 const Media = require('./media');
 const Stream = require('./stream');
@@ -168,8 +170,8 @@ const createResultObject = (thisScope, options, res) => {
     options.filter = `type=${options.filter.type}&value=${res}`;
     return thisScope.identify(options)
       .catch((e) => {
-        console.log('Identification failed, falling back to meta-only response');
         console.log(e);
+        console.log('Identification failed, falling back to meta-only response');
 
         return metaOnlyRes;
       });
@@ -328,4 +330,4 @@ const ScanThng = {
   stopScanQrCode: Stream.stop,
 };
 
-module.exports = ScanThng;
+export default ScanThng;

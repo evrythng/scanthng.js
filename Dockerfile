@@ -12,4 +12,4 @@ RUN npm i
 RUN npm run build
 
 # Deploy
-CMD ["sh", "-c", "~/.local/bin/aws s3 cp /srv/dist/scanthng.js s3://$BUCKET/js/scanthng/$VERSION/scanthng-$VERSION.js --acl public-read"]
+CMD ["sh", "-c", "~/.local/bin/aws s3 cp /srv/dist/scanthng.browser.js s3://$BUCKET/js/scanthng/$VERSION/scanthng-$VERSION.js --acl public-read"]
