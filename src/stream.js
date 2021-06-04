@@ -108,13 +108,14 @@ const scanSample = (canvas, cropCanvas, video, opts, foundCb, scope) => {
     const { result } = Discover.detectWatermark(width, height, imgData.data);
     console.log(`discover.js detected: ${result.ready_for_read}`);
 
-    // If nothing was found in this frame, don't send to the API (save data)
-    if (!result.ready_for_read) return;
-
     // Notify application if it wants
     if (onDiscoverResult) {
-      onDiscoverResult(result);
+      // Pass true if this frame detected a watermark, and whatever discover.js provides
+      onDiscoverResult(result.ready_for_read, result);
     }
+
+    // If nothing was found in this frame, don't send to the API (save data)
+    if (!result.ready_for_read) return;
   }
 
   // If Application scope not specified, don't try and identify the code.
@@ -271,7 +272,7 @@ const scanCode = (opts, scope) => {
       const constraints = {
         video: {
           facingMode: 'environment',
-          // devicesId: devices.length > 0 ? devices[devices.length - 1].deviceId : undefined,
+          deviceId: devices.length > 0 ? devices[devices.length - 1].deviceId : undefined,
           width: { ideal: 1920 },
           height: { ideal: 1080 } ,
         },
