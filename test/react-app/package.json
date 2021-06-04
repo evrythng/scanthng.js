@@ -1,0 +1,22 @@
+{
+  "name": "react-app",
+  "version": "1.0.0",
+  "description": "React app testing import mode",
+  "main": "index.js",
+  "scripts": {
+    "build": "parcel index.html",
+    "start": "parcel serve index.html"
+  },
+  "keywords": [],
+  "author": "EVRYTHNG",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "jsqr": "^1.4.0",
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2",
+    "scanthng": "file:../.."
+  },
+  "devDependencies": {
+    "parcel": "1.12.3"
+  }
+}
