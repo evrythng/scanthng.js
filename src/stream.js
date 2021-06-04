@@ -1,3 +1,5 @@
+const jsQR = require('jsqr');
+
 const Utils = require('./utils');
 
 /** The interval between QR code local stream samples. */
@@ -38,7 +40,7 @@ const scanSample = (canvas, video, opts, foundCb, scope) => {
     }
 
     // Scan image data with jsQR
-    const result = window.jsQR(imgData.data, imgData.width, imgData.height);
+    const result = jsQR(imgData.data, imgData.width, imgData.height);
     if (result) {
       foundCb(result.data);
     }
@@ -78,12 +80,12 @@ const findBarcode = (opts, scope) => {
   video.srcObject = stream;
   video.play();
 
+  const { filter } = opts;
+  const localQrCodeScan = (filter.method === '2d' && filter.type === 'qr_code');
   const {
-    filter,
     interval = localQrCodeScan ? DEFAULT_LOCAL_INTERVAL : DEFAULT_REMOTE_INTERVAL,
     autoStop = true,
   } = opts;
-  const localQrCodeScan = (filter.method === '2d' && filter.type === 'qr_code');
   if (!localQrCodeScan && !scope) {
     throw new Error('Non-QR code scanning requires specifying an Application or Operator scope');
   }
@@ -145,9 +147,6 @@ const stop = () => {
  * @returns {Promise} Promise resolving the stream opened.
  */
 const scanCode = (opts, scope) => {
-  if (!window.jsQR) {
-    throw new Error('jsQR (https://github.com/cozmo/jsQR) not found. You must include it in a <script> tag.');
-  }
   if (!document.getElementById(opts.containerId)) {
     throw new Error('Please specify \'containerId\' where the video element can be added as a child');
   }

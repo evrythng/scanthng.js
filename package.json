@@ -23,6 +23,8 @@
     "@babel/preset-env": "^7.4.5",
     "@koba04/ios-imagefile-megapixel": "^1.0.0",
     "babel-loader": "^8.0.6",
+    "evrythng": "^6.0.3",
+    "jsqr": "^1.4.0",
     "webpack": "^4.43.0",
     "webpack-cli": "^3.3.12"
   }
