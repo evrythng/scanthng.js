@@ -187,7 +187,7 @@ imageConversion: {
   greyscale: false,
   exportFormat: 'image/jpeg',
   resizeTo: 1080,
-  exportQuality: 0.9,
+  exportQuality: 0.85,
 }
 ```
 
@@ -198,7 +198,7 @@ available:
 
 ```js
 useDiscover: true,
-onDiscoverResult: console.log,
+onDiscoverResult: (detected, rawResult) => console.log(detected),
 ```
 
 > If `useDiscover` is enabled, make sure you also include discover.js itself.

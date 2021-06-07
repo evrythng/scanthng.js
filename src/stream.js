@@ -11,7 +11,7 @@ const OPTIMAL_DIGIMARC_IMAGE_CONVERSION = {
   exportFormat: 'image/jpeg',
   greyscale: false,
   resizeTo: 1080,
-  exportQuality: 0.9,
+  exportQuality: 0.85,
 };
 
 let frameIntervalHandle;
@@ -182,7 +182,7 @@ const findBarcode = (opts, scope) => {
       type,
     },
     autoStop = true,
-    useDiscover,
+    useDiscover = false,
     imageConversion,
   } = opts;
   const usingLocalDiscover = method === 'digimarc' && useDiscover;
