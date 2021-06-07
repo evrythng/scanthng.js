@@ -169,6 +169,7 @@ if (typeof module !== 'undefined') {
   Utils = require('./utils');
 
   module.exports = {
+    DEFAULT_OPTIONS,
     getFile,
     processImage,
     readUserFile,

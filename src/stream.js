@@ -1,4 +1,5 @@
 const Utils = require('./utils');
+const Media = require('./media');
 
 /** The interval between QR code local stream samples. */
 const DEFAULT_LOCAL_INTERVAL = 300;
@@ -83,6 +84,7 @@ const scanSample = (canvas, cropCanvas, video, opts, foundCb, scope) => {
       method,
       type,
     },
+    downloadFrames = false,
     useDiscover = false,
     onDiscoverResult,
     imageConversion = {},
@@ -143,8 +145,21 @@ const scanSample = (canvas, cropCanvas, video, opts, foundCb, scope) => {
       );
   }
 
+  // Create the correct format in case downloadFrames is enabled
+  const { exportFormat, exportQuality } = imageConversion;
+  const dataUrl = cropPercent
+    ? cropCanvas.toDataURL(exportFormat, exportQuality)
+    : canvas.toDataURL(exportFormat, exportQuality);
+
+  // If required, prompt and wait for downloading the frame file
+  if (downloadFrames) {
+    const anchor = document.createElement('a');
+    anchor.download = 'frame.jpeg';
+    anchor.href = dataUrl;
+    anchor.click();
+  }
+
   // Else, send image data to ID Rec API - whatever filter is requested is passed through.
-  const dataUrl = cropPercent ? cropCanvas.toDataURL() : canvas.toDataURL();
   requestPending = true;
   scope
     .scan(dataUrl, opts)
@@ -192,9 +207,12 @@ const findBarcode = (opts, scope) => {
   const interval = opts.interval || localScan ? DEFAULT_LOCAL_INTERVAL : DEFAULT_REMOTE_INTERVAL
 
   // Autopilot best digimarc imageConversion settings
-  if (!imageConversion && usingLocalDiscover) {
+  if (usingLocalDiscover && !imageConversion) {
     console.log(`Selecting optimal digimarc conversion: ${JSON.stringify(OPTIMAL_DIGIMARC_IMAGE_CONVERSION)}`);
     opts.imageConversion = OPTIMAL_DIGIMARC_IMAGE_CONVERSION;
+  } else {
+    // Use provided conversion options, or prep the default in case needed in scanSample()
+    opts.imageConversion = imageConversion || Media.DEFAULT_OPTIONS.imageConversion;
   }
 
   // If not a local QR scan, or using discover.js and no Scope is available
