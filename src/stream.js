@@ -13,6 +13,7 @@ const OPTIMAL_DIGIMARC_IMAGE_CONVERSION = {
   greyscale: false,
   resizeTo: 1080,
   exportQuality: 0.85,
+  cropPercent: 0.1,
 };
 
 let frameIntervalHandle;
@@ -20,39 +21,83 @@ let stream;
 let requestPending = false;
 
 /**
- * Get the image data from the canvas.
+ * Get dimensions for a cropped canvas based on percentage reduced from the edge.
+ * E.g: cropPercent = 0.1 means 10% cropped inwards.
  *
- * @param {HTMLCanvasElement} canvas - Canvas to use.
- * @param {CanvasRenderingContext2D} context - Canvas context.
- * @param {float} cropPercent - Amount to crop by to simulate zoom.
- * @returns {ImageData} Image data.
+ * @param {HTMLCanvasElement} canvas - Source canvas.
+ * @param {number} cropPercent - Amount to crop, from 0.1 to 1.0.
+ * @returns {object} { x, y, width, height } of the cropped canvas.
  */
-const getCanvasImageData = (canvas, context, cropPercent) => {
+const getCropDimensions = (canvas, cropPercent = 0) => {
+  if (typeof cropPercent !== 'number' || cropPercent < 0 || cropPercent > 0.9) {
+    throw new Error('cropPercent option must be between 0 and 0.9');
+  }
+  
   let x = 0;
   let y = 0;
   let width = canvas.width;
   let height = canvas.height;
 
-  // Crop?
-  if (cropPercent) {
-    if (typeof cropPercent !== 'number' || cropPercent < 0.1 || cropPercent > 0.9) {
-      throw new Error('cropPercent option must be between 0.1 and 0.9');
-    }
+  // No change requested
+  if (cropPercent === 0) return { x, y, width, height };
 
-    // For cropPercent=0.1, crop 10% from the outside of the image
-    x = cropPercent * width;
-    y = cropPercent * height;
-    width -= 2 * x;
-    height -= 2 * y;
+  // Crop to a central square
+  const isPortrait = height > width;
+  if (isPortrait) {
+    y = (height - width) / 2;
+    height = width;
+  } else {
+    x = (width - height) / 2;
+    width = height;
   }
 
+  const margin = isPortrait ? cropPercent * width : cropPercent * height;
+  x += margin;
+  y += margin;
+  width -= margin;
+  height -= margin;
+
+  return {
+    x: Math.round(x),
+    y: Math.round(y),
+    width: Math.round(width),
+    height: Math.round(height),
+  };
+};
+
+/**
+ * Get the image data from the canvas, square cropping if required.
+ *
+ * @param {HTMLCanvasElement} canvas - Canvas to use.
+ * @param {float} cropPercent - Amount to crop by to simulate zoom.
+ * @returns {ImageData} Image data.
+ */
+const getCanvasImageData = (canvas, cropPercent) => {
+  const { x, y, width, height } = getCropDimensions(canvas, cropPercent);
+
   try {
-    return context.getImageData(x, y, width, height);
+    return canvas.getContext('2d').getImageData(x, y, width, height);
   } catch (e) {
     console.log('Failed to getImageData - device may not be ready.');
     return;
   }
-}
+};
+
+/**
+ * Draw a square cropped canvas image to the cropCanvas.
+ *
+ * @param {HTMLCanvasElement} canvas - Canvas with original image.
+ * @param {HTMLCanvasElement} cropCanvas - Canvas to be resized and drawn on.
+ * @param {number} cropPercent - Percentage as a float to crop from all edges.
+ */
+const drawCropCanvasImage = (canvas, cropCanvas, cropPercent) => {
+  const { x, y, width, height } = getCropDimensions(canvas, cropPercent);
+
+  // Draw crop area onto cropCanvas for later toDataURL() usage
+  cropCanvas.width = width;
+  cropCanvas.height = height;
+  cropCanvas.getContext('2d').drawImage(canvas, x, y, width, height, 0, 0, width, height);
+};
 
 /**
  * Process a sample frame from the stream, and find any code present.
@@ -77,37 +122,36 @@ const scanSample = (canvas, cropCanvas, video, opts, foundCb, scope) => {
   canvas.height = video.videoHeight;
   context.drawImage(video, 0, 0);
 
-  const { width, height } = canvas;
-  console.log(`Frame ${width}x${height}`);
   const {
-    filter: {
-      method,
-      type,
-    },
+    filter: { method, type },
     downloadFrames = false,
     useDiscover = false,
     onDiscoverResult,
     imageConversion = {},
   } = opts;
   const { cropPercent } = imageConversion;
+  const { width, height } = canvas;
 
   // Client-side QR code scan
   if (method === '2d' && type === 'qr_code') {
-    const imgData = getCanvasImageData(canvas, context);
+    const imgData = getCanvasImageData(canvas);
     if (!imgData) return;
 
     // Scan image data with jsQR
-    const result = window.jsQR(imgData.data, imgData.width, imgData.height);
+    const result = window.jsQR(imgData.data, width, height);
     if (result) foundCb(result.data);
     return;
   }
 
+  // If Application scope not specified, can't identify the code via the API.
+  if (!scope) return;
+
   // Client-side digimarc pre-scan watermark detection
   if (method === 'digimarc' && useDiscover) {
-    const imgData = getCanvasImageData(canvas, context, cropPercent);
+    const imgData = getCanvasImageData(canvas, cropPercent);
     if (!imgData) return;
 
-    const { result } = Discover.detectWatermark(width, height, imgData.data);
+    const { result } = Discover.detectWatermark(imgData.width, imgData.height, imgData.data);
     console.log(`discover.js detected: ${result.ready_for_read}`);
 
     // Notify application if it wants
@@ -120,30 +164,8 @@ const scanSample = (canvas, cropCanvas, video, opts, foundCb, scope) => {
     if (!result.ready_for_read) return;
   }
 
-  // If Application scope not specified, don't try and identify the code.
-  if (!scope) return;
-
   // Also crop here for dataURL data, same as in getCanvasImageData above.
-  if (cropPercent) {
-    // Adjust the width
-    cropCanvas.width = width - (2 * (cropPercent * width));
-    cropCanvas.height = height - (2 * (cropPercent * height));
-
-    // Adjust source X,Y
-    const cropX = cropPercent * width;
-    const cropY = cropPercent * height;
-
-    // Draw crop area onto cropCanvas for later toDataURL() usage
-    cropCanvas
-      .getContext('2d')
-      .drawImage(
-        canvas,
-        cropX, cropY,
-        cropCanvas.width, cropCanvas.height,
-        0, 0,
-        cropCanvas.width, cropCanvas.height
-      );
-  }
+  if (cropPercent) drawCropCanvasImage(canvas, cropCanvas, cropPercent);
 
   // Create the correct format in case downloadFrames is enabled
   const { exportFormat, exportQuality } = imageConversion;
