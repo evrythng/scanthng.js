@@ -131,7 +131,7 @@ body {
 #results-container {
   transition: 0.3s;
   padding: 15px;
-  background-color: #eee;;
+  background-color: #eaeaea;
   margin-top: 15px;
   margin-left: 8px;
   border-left: solid 5px limegreen;
