@@ -137,7 +137,7 @@ const handleResults = (res) => {
     output += `GTIN: ${meta.gtin}\n`;
   }
   if (meta.serial) {
-    output += `GTIN: ${meta.serial}\n`;
+    output += `Serial: ${meta.serial}\n`;
   }
   if (meta.payloadVersion) {
     output += `Payload version: ${meta.payloadVersion}\n`;

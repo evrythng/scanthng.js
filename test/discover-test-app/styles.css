@@ -18,6 +18,7 @@ input[type="button"] {
   background-color: white;
   border-radius: 5px;
   padding: 4px 12px;
+  -webkit-appearance: none;
 }
 
 .stream-button {
