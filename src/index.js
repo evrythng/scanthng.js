@@ -290,6 +290,14 @@ const ScanThng = {
     api.scopes.Application.prototype.stopStream = stopStream;
     api.scopes.Application.prototype.scan = scan;
 
+    if (api.scopes.AccessToken) {
+      api.scopes.AccessToken.prototype.redirect = redirect;
+      api.scopes.AccessToken.prototype.identify = identify;
+      api.scopes.AccessToken.prototype.scanStream = scanStream;
+      api.scopes.AccessToken.prototype.stopStream = stopStream;
+      api.scopes.AccessToken.prototype.scan = scan;
+    }
+
     api.scopes.Operator.prototype.redirect = redirect;
     api.scopes.Operator.prototype.identify = identify;
     api.scopes.Operator.prototype.scanStream = scanStream;
