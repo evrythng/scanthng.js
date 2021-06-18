@@ -1,6 +1,7 @@
 evrythng.use(ScanThng);
 
-evrythng.setup({ apiVersion: 1 });
+// Only Operators and AccessTokens for v2, else switch to v1 for Application
+evrythng.setup({ apiVersion: 2 });
 
 /**
  * Get an element by ID.
@@ -46,17 +47,26 @@ const SCANCODE_CONTAINER_ID = 'scancode-container';
 const getQueryParam = key => new URLSearchParams(window.location.search).get(key);
 
 /**
- * Load Application scope.
+ * Load scope. One of Operator, Application, or AccessToken if V2.
  */
 const loadScope = () => {
   const appApiKey = getQueryParam('app');
   const operatorApiKey = getQueryParam('operator');
-  if (!appApiKey && !operatorApiKey) return;
+  const accessToken = getQueryParam('accessToken');
+  if (!appApiKey && !operatorApiKey && !accessToken) return;
 
-  UI.inputApiKey.value = appApiKey || operatorApiKey || '';
-  window.scope = appApiKey
-    ? new evrythng.Application(appApiKey)
-    : new evrythng.Operator(operatorApiKey);
+  UI.inputApiKey.value = appApiKey || operatorApiKey || accessToken || '';
+  if (appApiKey) {
+    window.scope = new evrythng.Application(appApiKey);
+  }
+  if (operatorApiKey) {
+    window.scope = new evrythng.Operator(operatorApiKey);
+  }
+  if (accessToken) {
+    window.scope = new evrythng.AccessToken(accessToken);
+  }
+
+  // Test it
   window.scope.init().catch(() => alert('API key is invalid'));
 };
 

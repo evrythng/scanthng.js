@@ -1,0 +1,5 @@
+jenkins
+test/discover-test-app/lib
+test/playground/lib
+node_modules
+
