@@ -205,13 +205,6 @@ const scanStream = function (opts = {}) {
 };
 
 /**
- * Stop the stream and hide the video.
- */
-const stopStream = function () {
-  Stream.stop();
-};
-
-/**
  * Redirect the browser to a given URL.
  *
  * @param {string} url - The URL to redirect to.
@@ -287,22 +280,25 @@ const ScanThng = {
     api.scopes.Application.prototype.redirect = redirect;
     api.scopes.Application.prototype.identify = identify;
     api.scopes.Application.prototype.scanStream = scanStream;
-    api.scopes.Application.prototype.stopStream = stopStream;
+    api.scopes.Application.prototype.stopStream = Stream.stop;
     api.scopes.Application.prototype.scan = scan;
+    api.scopes.Application.prototype.setTorchEnabled = Stream.setTorchEnabled;
 
     if (api.scopes.AccessToken) {
       api.scopes.AccessToken.prototype.redirect = redirect;
       api.scopes.AccessToken.prototype.identify = identify;
       api.scopes.AccessToken.prototype.scanStream = scanStream;
-      api.scopes.AccessToken.prototype.stopStream = stopStream;
+      api.scopes.AccessToken.prototype.stopStream = Stream.stop;
       api.scopes.AccessToken.prototype.scan = scan;
+      api.scopes.AccessToken.prototype.setTorchEnabled = Stream.setTorchEnabled;
     }
 
     api.scopes.Operator.prototype.redirect = redirect;
     api.scopes.Operator.prototype.identify = identify;
     api.scopes.Operator.prototype.scanStream = scanStream;
-    api.scopes.Operator.prototype.stopStream = stopStream;
+    api.scopes.Operator.prototype.stopStream = Stream.stop;
     api.scopes.Operator.prototype.scan = scan;
+    api.scopes.Operator.prototype.setTorchEnabled = Stream.setTorchEnabled;
   },
   /**
    * Put image on canvas, convert it and export as data URL.

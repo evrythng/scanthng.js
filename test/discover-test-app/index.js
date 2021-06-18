@@ -35,11 +35,12 @@ const UI = {
   optsContainer: get('opts-container'),
   resultsContainer: get('results-container'),
   scanInstructions: get('scan-instructions'),
-
   optsHint: get('opts-hint'),
+  torchButton: get('torch-button'),
 };
 
 let showOptions = false;
+let torchOn = false;
 let statistics = {
   attempts: 0,
   startTime: 0,
@@ -256,6 +257,13 @@ const setupClickHandlers = () => {
     }
 
     showOptions = !showOptions;
+  });
+
+  // Torch button
+  UI.torchButton.addEventListener('click', () => {
+    torchOn = !torchOn;
+
+    window.scope.setTorchEnabled(torchOn);
   });
 };
 

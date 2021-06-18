@@ -150,7 +150,19 @@ body {
   justify-content: center;
   padding: 10px;
   margin: 0px 15px;
-  position: fixed;
+  position: absolute;
   top: 70px;
   width: 88vw;
+}
+
+#torch-button {
+  width: 32px;
+  height: 32px;
+  position: absolute;
+  top: 8px;
+  right: 10px;
+
+  border: solid 1px #ddd;
+  border-radius: 5px;
+  padding: 2px;
 }

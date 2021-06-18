@@ -258,6 +258,7 @@ const findBarcode = (opts, scope) => {
             frameIntervalHandle = null;
 
             stream.getVideoTracks()[0].stop();
+            stream = null;
             video.parentElement.removeChild(video);
           }
 
@@ -279,17 +280,16 @@ const findBarcode = (opts, scope) => {
  * Stop the video stream
  */
 const stop = () => {
-  if (!frameIntervalHandle) {
-    return;
-  }
+  if (!frameIntervalHandle) return;
 
   clearInterval(frameIntervalHandle);
   frameIntervalHandle = null;
 
   stream.getVideoTracks()[0].stop();
+  stream = null;
   const video = document.getElementById(Utils.VIDEO_ELEMENT_ID);
   video.parentElement.removeChild(video);
-}
+};
 
 /**
  * Use webRTC to open the camera, scan for a code, and resolve the value.
@@ -330,9 +330,30 @@ const scanCode = (opts, scope) => {
     });
 };
 
+/**
+ * Enable/disable the torch, if supported by the browser/device.
+ * The video stream must be started before using this method.
+ *
+ * @param {boolean} enabled - true if the torch should be switched on.
+ */
+const setTorchEnabled = (enabled) => {
+  if (!stream) throw new Error('Stream not ready, torch cannot be enabled');
+
+  const track = stream.getVideoTracks()[0];
+  const capabilities = track.getCapabilities();
+  if (!capabilities.torch) throw new Error('Device does not support the torch capability');
+
+  track
+    .applyConstraints({
+      advanced: [{ torch: enabled }],
+    })
+    .catch(e => console.log(e));
+};
+
 if (typeof module !== 'undefined') {
   module.exports = {
     scanCode,
     stop,
+    setTorchEnabled,
   };
 }
