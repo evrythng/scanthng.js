@@ -9,11 +9,14 @@
   </head>
   <body>
     <div class="banner">
-      <img class="logo" src="/assets/evrythng.png"/>
+      <img class="logo" src="./assets/evrythng.png"/>
       <div style="font-size: 1.0rem;">scanthng.js + discover.js Test App</div>
     </div>
 
     <div id="scanstream-container"></div>
+    <div id="scan-instructions">
+      Once in focus, hold still around 4-6 inches away
+    </div>
     <div id="results-container">
       <!-- Results here -->
     </div>
@@ -32,6 +35,7 @@
           <option value="discover">discover (v5)</option>
         </select>
       </div>
+      <div class="row">The display will dim when a watermark is found.</div>
 
       <br/>
       <a id="opts-hint">Show advanced options</a>
@@ -78,7 +82,7 @@
 
     <script src="https://d10ka0m22z5ju5.cloudfront.net/js/evrythng/5.10.1/evrythng-5.10.1.js"></script>
     <script type="text/javascript" src="./lib/jsQR.js"></script>
-    <script type="text/javascript" src="./lib/scanthng.js"></script>
+    <script type="text/javascript" src="../../dist/scanthng.js"></script>
     
     <script type="text/javascript" src='./lib/webdetect_bind.js'></script>
     <script type="text/javascript" src="./lib/discover.js"></script>

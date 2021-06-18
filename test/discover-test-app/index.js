@@ -34,6 +34,7 @@ const UI = {
   scanstreamContainer: get(SCANSTREAM_CONTAINER_ID),
   optsContainer: get('opts-container'),
   resultsContainer: get('results-container'),
+  scanInstructions: get('scan-instructions'),
 
   optsHint: get('opts-hint'),
 };
@@ -94,6 +95,16 @@ const loadParams = () => {
 };
 
 /**
+ * Show instructions over the video.
+ * 
+ * @param {boolean} visible - true if instructions should be shown.
+ */
+const showInstructions = (visible) => {
+  UI.scanInstructions.style.opacity = visible ? 1 : 0;
+  UI.scanInstructions.style.display = visible ? 'flex' : 'none';
+};
+
+/**
  * Show results and set visibility of results container.
  *
  * @param {boolean} visible - true if visible.
@@ -102,7 +113,6 @@ const loadParams = () => {
 const showResults = (visible, text) => {
   UI.resultsContainer.style.opacity = visible ? 1 : 0;
   UI.resultsContainer.style.display = visible ? 'flex' : 'none';
-
   UI.resultsContainer.innerText = text;
 };
 
@@ -160,6 +170,7 @@ const handleResults = (res) => {
     }
   }
 
+  showInstructions(false);
   showResults(true, output);
   // alert(output);
 };
@@ -202,6 +213,7 @@ const setupClickHandlers = () => {
     // Clear results and logs
     UI.logsContainer.innerHTML = '';
     showResults(false);
+    showInstructions(true);
     statistics.attempts = 0;
 
     const opts = {
@@ -228,6 +240,7 @@ const setupClickHandlers = () => {
   // Stop stream button
   UI.buttonStopStream.addEventListener('click', () => {
     window.scope.stopStream();
+    showInstructions(false);
   });
 
   // Show/hide options link
