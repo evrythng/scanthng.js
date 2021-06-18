@@ -147,9 +147,10 @@ body {
   border-radius: 50px;
   background-color: #0008;
   color: white;
-  text-align: center;
+  justify-content: center;
   padding: 10px;
   margin: 0px 15px;
   position: fixed;
   top: 70px;
+  width: 88vw;
 }
