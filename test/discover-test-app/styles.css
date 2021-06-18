@@ -156,6 +156,8 @@ body {
 }
 
 #torch-button {
+  display: none;
+
   width: 32px;
   height: 32px;
   position: absolute;

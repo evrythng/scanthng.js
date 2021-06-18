@@ -103,6 +103,9 @@ const loadParams = () => {
 const showInstructions = (visible) => {
   UI.scanInstructions.style.opacity = visible ? 1 : 0;
   UI.scanInstructions.style.display = visible ? 'flex' : 'none';
+
+  // Also torch
+  UI.torchButton.style.display = visible ? 'flex' : 'none';
 };
 
 /**
