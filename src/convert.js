@@ -8,8 +8,9 @@ const MIN_SIZE = 144;
  * @returns {object} The updated canvas.
  */
 const convertToGreyscale = (canvas) => {
-  const context = canvas.getContext('2d');
-  const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+  const ctx = canvas.getContext('2d');
+  ctx.imageSmoothingEnabled = false;
+  const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
 
   const { data: pixels } = imageData;
   for (let i = 0; i < pixels.length; i += 4) {
@@ -20,7 +21,7 @@ const convertToGreyscale = (canvas) => {
     // alpha - n/a
   }
 
-  context.putImageData(imageData, 0, 0);
+  ctx.putImageData(imageData, 0, 0);
   return canvas;
 };
 
@@ -33,9 +34,8 @@ const convertToGreyscale = (canvas) => {
  */
 const convertImage = (image, { imageConversion }) => new Promise((resolve) => {
   const canvas = document.createElement('canvas');
-  let width = image.width;
-  let height = image.height;
-  
+
+  let { width, height } = image;
   const original = { width, height };
 
   const { resizeTo, greyscale } = imageConversion;
@@ -53,7 +53,9 @@ const convertImage = (image, { imageConversion }) => new Promise((resolve) => {
 
   canvas.width = width;
   canvas.height = height;
-  canvas.getContext('2d').drawImage(image, 0, 0, original.width, original.height, 0, 0, canvas.width, canvas.height);
+  const ctx = canvas.getContext('2d');
+  ctx.imageSmoothingEnabled = false;
+  ctx.drawImage(image, 0, 0, original.width, original.height, 0, 0, canvas.width, canvas.height);
 
   if (greyscale) {
     convertToGreyscale(canvas);

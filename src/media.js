@@ -1,15 +1,17 @@
+/* eslint-disable global-require */
+
 let Convert;
 let Utils;
 
 /** The default prepare options. */
 const DEFAULT_OPTIONS = {
   invisible: true,
-  imageConversion:{
+  imageConversion: {
     greyscale: true,
     resizeTo: 480,
     exportFormat: 'image/png',
     exportQuality: 0.9,
-  }
+  },
 };
 
 /** Class shared by all media capture forms. */
@@ -20,7 +22,7 @@ const FORM_CLASS = 'scanthng_form';
  */
 const removeExistingForms = () => {
   const existing = document.getElementsByClassName(FORM_CLASS);
-  for (let i = 0; i < existing.length; i++) {
+  for (let i = 0; i < existing.length; i += 1) {
     if (existing[i].parentElement) {
       existing[i].parentElement.removeChild(existing[i]);
     }
@@ -33,7 +35,7 @@ const removeExistingForms = () => {
  * @param {object} options - The prepare options.
  * @returns {object} The created input for media capture.
  */
-const insertMediaCapture = options => new Promise((resolve) => {
+const insertMediaCapture = (options) => new Promise((resolve) => {
   removeExistingForms();
 
   const captureForm = document.createElement('form');
@@ -59,7 +61,7 @@ const insertMediaCapture = options => new Promise((resolve) => {
  * @param {object} input - The <input> to trigger.
  * @returns {Promise} Promise that resolves the chosen file.
  */
-const triggerMediaCapture = input => new Promise((resolve, reject) => {
+const triggerMediaCapture = (input) => new Promise((resolve, reject) => {
   // Add listener for changes in our Media Capture element
   input.addEventListener('change', (e) => {
     const [file] = e.target.files;
@@ -80,9 +82,9 @@ const triggerMediaCapture = input => new Promise((resolve, reject) => {
  * @param {object} file - The file chosen by the user.
  * @returns {Promise}
  */
-const readUserFile = file => new Promise((resolve, reject) => {
+const readUserFile = (file) => new Promise((resolve, reject) => {
   const reader = new FileReader();
-  reader.onload = e => resolve(e.target.result);
+  reader.onload = (e) => resolve(e.target.result);
   reader.onerror = reject;
   reader.readAsDataURL(file);
 });
@@ -93,9 +95,9 @@ const readUserFile = file => new Promise((resolve, reject) => {
  * @param {string} dataUrl - The data URL.
  * @returns {Promise}
  */
-const loadImage = dataUrl => new Promise((resolve, reject) => {
+const loadImage = (dataUrl) => new Promise((resolve, reject) => {
   const image = document.createElement('img');
-  image.onload = function () {
+  image.onload = function onload() {
     if ('naturalHeight' in this) {
       if (this.naturalHeight + this.naturalWidth === 0) {
         this.onerror();
@@ -121,8 +123,9 @@ const loadImage = dataUrl => new Promise((resolve, reject) => {
  * @param {object} options - The prepare options.
  * @returns {string} The data URL.
  */
-const exportDataUrl = (canvas, { imageConversion }) =>
-  canvas.toDataURL(imageConversion.exportFormat, imageConversion.exportQuality);
+const exportDataUrl = (canvas, { imageConversion }) => canvas.toDataURL(
+  imageConversion.exportFormat, imageConversion.exportQuality,
+);
 
 /**
  * Merge user options with the default.
@@ -132,7 +135,7 @@ const exportDataUrl = (canvas, { imageConversion }) =>
  */
 const mergeOptions = (userOptions = {}) => ({
   invisible: userOptions.invisible ? userOptions.invisible : DEFAULT_OPTIONS.invisible,
-  imageConversion: Utils.extend(DEFAULT_OPTIONS.imageConversion, userOptions.imageConversion)
+  imageConversion: { ...DEFAULT_OPTIONS.imageConversion, ...userOptions.imageConversion },
 });
 
 /**
@@ -141,7 +144,7 @@ const mergeOptions = (userOptions = {}) => ({
  * @param {object} userOptions - User options, if any.
  * @returns {Promise}
  */
-const getFile = userOptions => insertMediaCapture(mergeOptions(userOptions))
+const getFile = (userOptions) => insertMediaCapture(mergeOptions(userOptions))
   .then(triggerMediaCapture)
   .then(readUserFile);
 
@@ -159,9 +162,9 @@ const processImage = (imageData, userOptions) => {
 
   const options = mergeOptions(userOptions);
   return loadImage(imageData)
-    .then(image => Convert.convertImage(image, options))
-    .then(canvas => exportDataUrl(canvas, options))
-    .then(dataUrl => ({ image: dataUrl }));
+    .then((image) => Convert.convertImage(image, options))
+    .then((canvas) => exportDataUrl(canvas, options))
+    .then((dataUrl) => ({ image: dataUrl }));
 };
 
 if (typeof module !== 'undefined') {

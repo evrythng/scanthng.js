@@ -4,7 +4,8 @@
   "description": "evrythng.js plugin for recognising products in a web app.",
   "main": "dist/scanthng.js",
   "scripts": {
-    "build": "webpack --config webpack.config.js --mode production",
+    "lint": "eslint --max-warnings 0 --ext .js ./src",
+    "build": "npm run lint && webpack --config webpack.config.js --mode production",
     "build:dev": "webpack --config webpack.config.js --mode development",
     "prepublishOnly": "npm run build"
   },
@@ -22,7 +23,35 @@
     "@babel/core": "^7.4.5",
     "@babel/preset-env": "^7.4.5",
     "babel-loader": "^8.0.6",
+    "eslint": "^7.29.0",
+    "eslint-config-airbnb": "^18.2.1",
     "webpack": "^4.43.0",
     "webpack-cli": "^3.3.12"
-  }
+  },
+  "eslintConfig": {
+    "env": {
+      "browser": true,
+      "commonjs": true,
+      "mocha": true
+    },
+    "extends": [
+      "airbnb"
+    ],
+    "parserOptions": {
+      "ecmaVersion": 12
+    },
+    "rules": {
+      "no-console": 0,
+      "no-alert": 0,
+      "no-param-reassign": ["error", { "props": false }]
+    },
+    "globals": {
+      "evrythng": "readonly",
+      "Discover": "readonly"
+    }
+  },
+  "eslintIgnore": [
+    "node_modules",
+    "dist"
+  ]
 }

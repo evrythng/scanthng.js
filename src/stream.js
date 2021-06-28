@@ -40,7 +40,11 @@ const getCropDimensions = (cropPercent = 0) => {
   let { width, height } = canvas;
 
   // No change requested
-  if (cropPercent === 0) return { x, y, width, height };
+  if (cropPercent === 0) {
+    return {
+      x, y, width, height,
+    };
+  }
 
   // Crop to a central square
   const isPortrait = height > width;
@@ -73,13 +77,19 @@ const getCropDimensions = (cropPercent = 0) => {
  * @returns {ImageData} Image data.
  */
 const getCanvasImageData = (cropPercent) => {
-  const { x, y, width, height } = getCropDimensions(cropPercent);
+  const {
+    x, y, width, height,
+  } = getCropDimensions(cropPercent);
 
   try {
-    return canvas.getContext('2d').getImageData(x, y, width, height);
+    const ctx = canvas.getContext('2d');
+    ctx.imageSmoothingEnabled = false;
+    return ctx.getImageData(x, y, width, height);
   } catch (e) {
     console.log('Failed to getImageData - device may not be ready.');
   }
+
+  return undefined;
 };
 
 /**
@@ -88,12 +98,16 @@ const getCanvasImageData = (cropPercent) => {
  * @param {number} cropPercent - Percentage as a float to crop from all edges.
  */
 const drawCropCanvasImage = (cropPercent) => {
-  const { x, y, width, height } = getCropDimensions(cropPercent);
+  const {
+    x, y, width, height,
+  } = getCropDimensions(cropPercent);
 
   // Draw crop area onto cropCanvas for later toDataURL() usage
   cropCanvas.width = width;
   cropCanvas.height = height;
-  cropCanvas.getContext('2d').drawImage(canvas, x, y, width, height, 0, 0, width, height);
+  const ctx = cropCanvas.getContext('2d');
+  ctx.imageSmoothingEnabled = false;
+  ctx.drawImage(canvas, x, y, width, height, 0, 0, width, height);
 };
 
 /**
@@ -110,11 +124,14 @@ const scanSample = (opts, foundCb, scope) => {
     return;
   }
 
-  // Match canvas internal dimensions to that of the video and draw for the user
-  const context = canvas.getContext('2d');
+  // Match canvas internal dimensions to that of the video
   canvas.width = video.videoWidth;
   canvas.height = video.videoHeight;
-  context.drawImage(video, 0, 0);
+
+  // Draw visible image for the user experience
+  const ctx = canvas.getContext('2d');
+  ctx.imageSmoothingEnabled = false;
+  ctx.drawImage(video, 0, 0);
 
   const {
     filter: { method, type },
@@ -293,8 +310,8 @@ const scanCode = (opts, scope) => {
   }
 
   return navigator.mediaDevices.enumerateDevices()
-    .then(devices => devices.filter(device => device.kind === 'videoinput'))
-    .then(devices => {
+    .then((devices) => devices.filter((device) => device.kind === 'videoinput'))
+    .then((devices) => {
       const constraints = {
         video: {
           facingMode: 'environment',
@@ -333,7 +350,7 @@ const setTorchEnabled = (enabled) => {
     .applyConstraints({
       advanced: [{ torch: enabled }],
     })
-    .catch(e => console.log(e));
+    .catch((e) => console.log(e));
 };
 
 if (typeof module !== 'undefined') {

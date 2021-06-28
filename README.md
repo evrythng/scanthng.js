@@ -518,9 +518,9 @@ the normal URL resolution process.
 Type: `Boolean` Default: `false`
 
 If enabled, `scanthng.js` will try to create an Anonymous User and save it in
-local storage (falling back to cookies) for subsequent requests. For
-convenience, this User will be added to the output of the `scan()` method. In
-these scenarios, the item recognized is also converted into a resource.
+local storage for subsequent requests. For convenience, this User will be added
+to the output of the `scan()` method. In these scenarios, the item recognized is
+also converted into a resource.
 
 
 ```js
