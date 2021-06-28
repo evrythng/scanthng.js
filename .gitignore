@@ -37,3 +37,4 @@ test/playground/lib
 test/playground/scanthng.js
 test/unit/lib
 test/discover-test-app/lib
+test/*.zip

@@ -16,27 +16,28 @@ const OPTIMAL_DIGIMARC_IMAGE_CONVERSION = {
   cropPercent: 0.1,
 };
 
-let frameIntervalHandle;
+let video;
 let stream;
+let frameIntervalHandle;
+let canvas;
+let cropCanvas;
 let requestPending = false;
 
 /**
  * Get dimensions for a cropped canvas based on percentage reduced from the edge.
  * E.g: cropPercent = 0.1 means 10% cropped inwards.
  *
- * @param {HTMLCanvasElement} canvas - Source canvas.
  * @param {number} cropPercent - Amount to crop, from 0.1 to 1.0.
  * @returns {object} { x, y, width, height } of the cropped canvas.
  */
-const getCropDimensions = (canvas, cropPercent = 0) => {
+const getCropDimensions = (cropPercent = 0) => {
   if (typeof cropPercent !== 'number' || cropPercent < 0 || cropPercent > 0.9) {
     throw new Error('cropPercent option must be between 0 and 0.9');
   }
-  
+
   let x = 0;
   let y = 0;
-  let width = canvas.width;
-  let height = canvas.height;
+  let { width, height } = canvas;
 
   // No change requested
   if (cropPercent === 0) return { x, y, width, height };
@@ -68,30 +69,26 @@ const getCropDimensions = (canvas, cropPercent = 0) => {
 /**
  * Get the image data from the canvas, square cropping if required.
  *
- * @param {HTMLCanvasElement} canvas - Canvas to use.
  * @param {float} cropPercent - Amount to crop by to simulate zoom.
  * @returns {ImageData} Image data.
  */
-const getCanvasImageData = (canvas, cropPercent) => {
-  const { x, y, width, height } = getCropDimensions(canvas, cropPercent);
+const getCanvasImageData = (cropPercent) => {
+  const { x, y, width, height } = getCropDimensions(cropPercent);
 
   try {
     return canvas.getContext('2d').getImageData(x, y, width, height);
   } catch (e) {
     console.log('Failed to getImageData - device may not be ready.');
-    return;
   }
 };
 
 /**
  * Draw a square cropped canvas image to the cropCanvas.
  *
- * @param {HTMLCanvasElement} canvas - Canvas with original image.
- * @param {HTMLCanvasElement} cropCanvas - Canvas to be resized and drawn on.
  * @param {number} cropPercent - Percentage as a float to crop from all edges.
  */
-const drawCropCanvasImage = (canvas, cropCanvas, cropPercent) => {
-  const { x, y, width, height } = getCropDimensions(canvas, cropPercent);
+const drawCropCanvasImage = (cropPercent) => {
+  const { x, y, width, height } = getCropDimensions(cropPercent);
 
   // Draw crop area onto cropCanvas for later toDataURL() usage
   cropCanvas.width = width;
@@ -103,14 +100,11 @@ const drawCropCanvasImage = (canvas, cropCanvas, cropPercent) => {
  * Process a sample frame from the stream, and find any code present.
  * A callback is required since any promise per-frame won't necessarily resolve or reject.
  *
- * @param {Object} canvas - The canvas element.
- * @param {Object} cropCanvas - The canvas element used for copying and cropping.
- * @param {Object} video - The SDK-inserted <video> element.
- * @param {Object} opts - The scanning options.
+ * @param {object} opts - The scanning options.
  * @param {function} foundCb - Callback for if a code is found.
- * @param {Object} [scope] - Application or Operator scope, if decoding with the API is to be used.
+ * @param {object} [scope] - Application or Operator scope, if decoding with the API is to be used.
  */
-const scanSample = (canvas, cropCanvas, video, opts, foundCb, scope) => {
+const scanSample = (opts, foundCb, scope) => {
   if (requestPending) {
     console.log('API request pending, skipping this frame');
     return;
@@ -134,7 +128,7 @@ const scanSample = (canvas, cropCanvas, video, opts, foundCb, scope) => {
 
   // Client-side QR code scan
   if (method === '2d' && type === 'qr_code') {
-    const imgData = getCanvasImageData(canvas);
+    const imgData = getCanvasImageData();
     if (!imgData) return;
 
     // Scan image data with jsQR
@@ -148,7 +142,7 @@ const scanSample = (canvas, cropCanvas, video, opts, foundCb, scope) => {
 
   // Client-side digimarc pre-scan watermark detection
   if (method === 'digimarc' && useDiscover) {
-    const imgData = getCanvasImageData(canvas, cropPercent);
+    const imgData = getCanvasImageData(cropPercent);
     if (!imgData) return;
 
     const { result } = Discover.detectWatermark(imgData.width, imgData.height, imgData.data);
@@ -165,7 +159,7 @@ const scanSample = (canvas, cropCanvas, video, opts, foundCb, scope) => {
   }
 
   // Also crop here for dataURL data, same as in getCanvasImageData above.
-  if (cropPercent) drawCropCanvasImage(canvas, cropCanvas, cropPercent);
+  if (cropPercent) drawCropCanvasImage(cropPercent);
 
   // Create the correct format in case downloadFrames is enabled
   const { exportFormat, exportQuality } = imageConversion;
@@ -202,14 +196,28 @@ const scanSample = (canvas, cropCanvas, video, opts, foundCb, scope) => {
 };
 
 /**
+ * Stop the video stream
+ */
+const stop = () => {
+  if (!frameIntervalHandle) return;
+
+  clearInterval(frameIntervalHandle);
+  frameIntervalHandle = null;
+
+  stream.getVideoTracks()[0].stop();
+  stream = null;
+  video.parentElement.removeChild(video);
+};
+
+/**
  * Consume a getUserMedia() video stream and resolves once recognition is completed.
  *
  * @param {Object} opts - The scanning options.
  * @param {Object} [scope] - Application or Operator scope, if decoding with the API is to be used.
  * @returns {Promise} A Promise that resolves once recognition is completed.
  */
-const findBarcode = (opts, scope) => {
-  const video = document.getElementById(Utils.VIDEO_ELEMENT_ID);
+const findBarcodeInStream = (opts, scope) => {
+  video = document.getElementById(Utils.VIDEO_ELEMENT_ID);
   video.srcObject = stream;
   video.play();
 
@@ -226,7 +234,7 @@ const findBarcode = (opts, scope) => {
   const localScan = method === '2d' && type === 'qr_code';
 
   // Local QR codes scans are fast, so can be frequent. With discover.js, it's high-res and slow.
-  const interval = opts.interval || localScan ? DEFAULT_LOCAL_INTERVAL : DEFAULT_REMOTE_INTERVAL
+  const interval = opts.interval || localScan ? DEFAULT_LOCAL_INTERVAL : DEFAULT_REMOTE_INTERVAL;
 
   // Autopilot best digimarc imageConversion settings
   if (usingLocalDiscover && !imageConversion) {
@@ -242,8 +250,8 @@ const findBarcode = (opts, scope) => {
     throw new Error('Non-local code scanning requires specifying an Application or Operator scope for API access');
   }
 
-  const canvas = document.createElement('canvas');
-  const cropCanvas = document.createElement('canvas');
+  canvas = document.createElement('canvas');
+  cropCanvas = document.createElement('canvas');
   return new Promise((resolve, reject) => {
     /**
      * Check a single frame, resolving if something is scanned.
@@ -251,16 +259,9 @@ const findBarcode = (opts, scope) => {
     const checkFrame = () => {
       try {
         // Scan each sample for a barcode
-        scanSample(canvas, cropCanvas, video, opts, (scanValue) => {
+        scanSample(opts, (scanValue) => {
           // Unless specified otherwise, by default close the stream and remove the video
-          if (autoStop) {
-            clearInterval(frameIntervalHandle);
-            frameIntervalHandle = null;
-
-            stream.getVideoTracks()[0].stop();
-            stream = null;
-            video.parentElement.removeChild(video);
-          }
+          if (autoStop) stop();
 
           resolve(scanValue);
         }, scope);
@@ -274,21 +275,6 @@ const findBarcode = (opts, scope) => {
       localScan ? interval : Math.max(MIN_REMOTE_INTERVAL, interval),
     );
   });
-};
-
-/**
- * Stop the video stream
- */
-const stop = () => {
-  if (!frameIntervalHandle) return;
-
-  clearInterval(frameIntervalHandle);
-  frameIntervalHandle = null;
-
-  stream.getVideoTracks()[0].stop();
-  stream = null;
-  const video = document.getElementById(Utils.VIDEO_ELEMENT_ID);
-  video.parentElement.removeChild(video);
 };
 
 /**
@@ -314,19 +300,19 @@ const scanCode = (opts, scope) => {
           facingMode: 'environment',
           deviceId: devices.length > 0 ? devices[devices.length - 1].deviceId : undefined,
           width: { ideal: 1920 },
-          height: { ideal: 1080 } ,
+          height: { ideal: 1080 },
         },
       };
 
       return navigator
         .mediaDevices
-        .getUserMedia(constraints)
+        .getUserMedia(constraints);
     })
-    .then(function (newStream) {
+    .then((newStream) => {
       stream = newStream;
       Utils.insertVideoElement(opts.containerId);
 
-      return findBarcode(opts, scope);
+      return findBarcodeInStream(opts, scope);
     });
 };
 
