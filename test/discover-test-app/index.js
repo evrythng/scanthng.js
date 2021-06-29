@@ -6,11 +6,11 @@ evrythng.setup({
 
 /**
  * Get an element by ID.
- * 
+ *
  * @param {string} id - ID to find.
  * @returns {HTMLElement}
  */
-const get = id => document.getElementById(id);
+const get = (id) => document.getElementById(id);
 
 /** Container ID for scanStream */
 const SCANSTREAM_CONTAINER_ID = 'scanstream-container';
@@ -29,7 +29,7 @@ const UI = {
   inputScanstreamResize: get('input-scanstream-resize'),
   inputScanstreamCrop: get('input-scanstream-crop'),
   inputDownloadFrames: get('input-download-frames'),
-  
+
   logsContainer: get('logs-container'),
   scanstreamContainer: get(SCANSTREAM_CONTAINER_ID),
   optsContainer: get('opts-container'),
@@ -39,17 +39,17 @@ const UI = {
   torchButton: get('torch-button'),
 };
 
-let showOptions = false;
-let torchOn = false;
-let statistics = {
-  attempts: 0,
-  startTime: 0,
+const statistics = {
+  consecRequests: 0,
+  requestStartTime: 0,
   duration: 0,
 };
+let showOptions = false;
+let torchOn = false;
 
 // Log to the page as well as the console
-let originalConsoleLog = console.log;
-console.log = msg => {
+const originalConsoleLog = console.log;
+console.log = (msg) => {
   const s = document.createElement('span');
   s.innerHTML = typeof msg === 'object' ? JSON.stringify(msg) : msg;
   s.classList = 'log-entry';
@@ -63,7 +63,7 @@ console.log = msg => {
  * @param {string} key - Key to use.
  * @returns {string} Value, if found.
  */
-const getQueryParam = key => new URLSearchParams(window.location.search).get(key);
+const getQueryParam = (key) => new URLSearchParams(window.location.search).get(key);
 
 /**
  * Load Application scope.
@@ -97,7 +97,7 @@ const loadParams = () => {
 
 /**
  * Show instructions over the video.
- * 
+ *
  * @param {boolean} visible - true if instructions should be shown.
  */
 const showInstructions = (visible) => {
@@ -123,7 +123,7 @@ const showResults = (visible, text) => {
 /**
  * Handle results.
  *
- * @param {*} res 
+ * @param {*} res
  */
 const handleResults = (res) => {
   console.log(JSON.stringify(res, null, 2));
@@ -142,8 +142,6 @@ const handleResults = (res) => {
   // Nice output otherwise
   if (!res.length) return;
 
-  statistics.duration = Date.now() -  statistics.startTime;
-
   // Meta details
   const { meta, results } = res[0];
   let output = `Type: ${meta.type}\nValue: ${meta.value}\n`;
@@ -161,7 +159,8 @@ const handleResults = (res) => {
   }
 
   // Statistics
-  output += `\nAttempts: ${statistics.attempts}\nRequest duration: ${statistics.duration}ms\n`;
+  statistics.duration = Date.now() - statistics.requestStartTime;
+  output += `\nConsecutive requests: ${statistics.consecRequests}\nRequest duration: ${statistics.duration}ms\n`;
 
   // Thng/product?
   if (results.length) {
@@ -184,21 +183,23 @@ const handleResults = (res) => {
  *
  * @param {Function} f - Function to test.
  */
-const test = f => f().catch(console.log).then(handleResults);
+const test = (f) => f().catch(console.log).then(handleResults);
 
 /**
  * When discover.js detects a watermark in a frame.
- * 
+ *
  * @param {boolean} detected - true if the last frame was likely to contain a watermark.
- * @param {object} results - Results object from discover.js 
+ * @param {object} results - Results object from discover.js
  */
-const onDiscoverResult = (detected, results) => {
+const onDiscoverResult = (detected) => {
   // If detected, go dark
   document.getElementsByTagName('video')[0].style.opacity = detected ? 0.3 : 1;
 
   if (detected) {
-    statistics.attempts++;
-    statistics.startTime = Date.now();
+    statistics.consecRequests += 1;
+    statistics.requestStartTime = Date.now();
+  } else {
+    statistics.consecRequests = 0;
   }
 };
 
@@ -218,7 +219,7 @@ const setupClickHandlers = () => {
     UI.logsContainer.innerHTML = '';
     showResults(false);
     showInstructions(true);
-    statistics.attempts = 0;
+    statistics.consecRequests = 0;
 
     const opts = {
       filter: {
@@ -232,7 +233,7 @@ const setupClickHandlers = () => {
       imageConversion: {
         exportFormat: 'image/jpeg',
         greyscale: UI.inputScanstreamGreyscale.checked,
-        resizeTo: parseInt(UI.inputScanstreamResize.value),
+        resizeTo: parseInt(UI.inputScanstreamResize.value, 10),
         exportQuality: parseFloat(UI.inputScanstreamQuality.value),
         cropPercent: parseFloat(UI.inputScanstreamCrop.value),
       },

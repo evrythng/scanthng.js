@@ -47,6 +47,7 @@
     },
     "globals": {
       "evrythng": "readonly",
+      "ScanThng": "readonly",
       "Discover": "readonly"
     }
   },
