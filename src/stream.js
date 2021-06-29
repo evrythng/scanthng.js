@@ -23,18 +23,6 @@ let canvas;
 let requestPending = false;
 
 /**
- * Use an anchor to prompt frame file download.
- *
- * @param {string} dataUrl - Image data URL.
- */
-const promptFrameDownload = (dataUrl) => {
-  const anchor = document.createElement('a');
-  anchor.download = 'frame.jpeg';
-  anchor.href = dataUrl;
-  anchor.click();
-};
-
-/**
  * Get dimensions for a cropped canvas based on percentage reduced from the edge.
  * E.g: cropPercent = 0.1 means 10% cropped inwards.
  *
@@ -104,7 +92,7 @@ const getCanvasImageData = () => {
  *
  * @param {number} cropPercent - Percentage as a float to crop from edges (0.1 means 10% cropped).
  */
-const cropCanvasToSquare = (cropPercent = 0) => {
+const cropCanvasToSquare = (cropPercent) => {
   const {
     x, y, width, height,
   } = getCropDimensions(cropPercent);
@@ -142,7 +130,21 @@ const updateCanvasImageData = (imgData) => new Promise((resolve) => {
   img.src = imgData;
 });
 
+/**
+ * Scan a data URL using the API.
+ *
+ * @param {string} dataUrl - Image data URL to scan.
+ * @param {object} opts - User's options object.
+ * @param {object} scope - SDK scope.
+ * @param {Function} foundCb - Callback when a result contains a found resource.
+ * @returns {Promise}
+ */
 const scanDataUrl = (dataUrl, opts, scope, foundCb) => {
+  const { downloadFrames } = opts;
+
+  // If required, prompt and wait for downloading the frame file
+  if (downloadFrames) Utils.promptImageDownload(dataUrl);
+
   requestPending = true;
   return scope
     .scan(dataUrl, opts)
@@ -181,12 +183,11 @@ const scanSample = (opts, foundCb, scope) => {
   // Extract required options
   const {
     filter: { method, type },
-    downloadFrames = false,
     useDiscover = false,
     onDiscoverResult,
     imageConversion = {},
   } = opts;
-  const { cropPercent } = imageConversion;
+  const { cropPercent = 0 } = imageConversion;
   const { width, height } = canvas;
 
   // Client-side QR code scan
@@ -203,15 +204,12 @@ const scanSample = (opts, foundCb, scope) => {
   // If Application scope not specified, can't identify the code via the API.
   if (!scope) return undefined;
 
-  // Crop canvas to square
+  // Crop canvas to square, if required
   cropCanvasToSquare(cropPercent);
 
   // Use the correct format here in case downloadFrames is enabled
   const { exportFormat, exportQuality } = imageConversion;
   const dataUrl = canvas.toDataURL(exportFormat, exportQuality);
-
-  // If required, prompt and wait for downloading the frame file
-  if (downloadFrames) promptFrameDownload(dataUrl);
 
   // Client-side digimarc pre-scan watermark detection
   //   For this mode, use the exact same post-compression data for discover.js and the API request.
@@ -266,6 +264,8 @@ const findBarcodeInStream = (opts, scope) => {
   video.srcObject = stream;
   video.play();
 
+  canvas = document.createElement('canvas');
+
   const {
     filter: { method, type },
     autoStop = true,
@@ -275,10 +275,10 @@ const findBarcodeInStream = (opts, scope) => {
   const usingDiscover = method === 'digimarc' && useDiscover;
   const usingJsQR = method === '2d' && type === 'qr_code';
 
-  // Local QR codes scans are fast, so can be frequent. With discover.js, it's high-res and slow.
+  // Local QR codes scans are fast, so can be more frequent
   const interval = opts.interval || usingJsQR ? DEFAULT_LOCAL_INTERVAL : DEFAULT_REMOTE_INTERVAL;
 
-  // Autopilot best digimarc imageConversion settings
+  // Autopilot recommended digimarc imageConversion settings
   if (usingDiscover && !imageConversion) {
     console.log(`Selecting optimal digimarc imageConversion: ${JSON.stringify(OPTIMAL_DIGIMARC_IMAGE_CONVERSION)}`);
     opts.imageConversion = OPTIMAL_DIGIMARC_IMAGE_CONVERSION;
@@ -292,7 +292,6 @@ const findBarcodeInStream = (opts, scope) => {
     throw new Error('Non-local code scanning requires specifying an Application or Operator scope for API access');
   }
 
-  canvas = document.createElement('canvas');
   return new Promise((resolve, reject) => {
     /**
      * Check a single frame, resolving if something is scanned.

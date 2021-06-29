@@ -80,14 +80,28 @@ const insertVideoElement = (containerId) => {
   document.getElementById(containerId).appendChild(video);
 };
 
+/**
+ * Use an anchor to prompt frame file download.
+ *
+ * @param {string} dataUrl - Image data URL.
+ */
+const promptImageDownload = (dataUrl) => {
+  const ext = dataUrl.split('/')[1].split(';')[0];
+  const anchor = document.createElement('a');
+  anchor.download = `frame.${ext}`;
+  anchor.href = dataUrl;
+  anchor.click();
+};
+
 if (typeof module !== 'undefined') {
   module.exports = {
+    VIDEO_ELEMENT_ID,
     isDataUrl,
     writeStorage,
     readStorage,
     restoreUser,
     storeUser,
     insertVideoElement,
-    VIDEO_ELEMENT_ID,
+    promptImageDownload,
   };
 }

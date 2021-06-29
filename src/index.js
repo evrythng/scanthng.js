@@ -66,7 +66,7 @@ const getParamStr = (params) => Object.entries(params).map((p) => `${p[0]}=${p[1
  * @returns {Promise}
  */
 const getAnonymousUser = (scope, options) => {
-  if (!(options && options.createAnonymousUser)) Promise.resolve();
+  if (!(options && options.createAnonymousUser)) return Promise.resolve();
 
   // Not an Application scope
   if (!scope.appUser) {
