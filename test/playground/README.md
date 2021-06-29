@@ -12,11 +12,15 @@ npm ci && npm run build
 ```
 
 2. Change to the `test/playground` directory.
-3. Download a copy of `jsQR.js` to `lib/jsQR.js`:
+3. Create a `lib` directory and place the `dist/scanthng.js` build there.
+
+  ```shell
+  mkdir -p lib
+  ```
+
+4. Download a copy of `jsQR.js` to `lib/jsQR.js`:
 
 ```
-mkdir -p lib
-
 curl https://raw.githubusercontent.com/cozmo/jsQR/master/dist/jsQR.js > lib/jsQR.js
 ```
 
@@ -25,7 +29,12 @@ All libraries should now be in place.
 
 ## Usage
 
-Open `index.html` and enter an Application API Key to get started.
+Run a web server and open `index.html`, then enter an Application API Key to get
+started.
+
+```shell
+python3 -m http.server
+```
 
 Query parameters can be used to simplify testing flow:
 

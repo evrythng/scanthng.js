@@ -34,3 +34,7 @@ select {
 .input-app-api-key {
   width: 200px;
 }
+
+video, #scanstream-container, #scancode-container {
+  max-width: 640px;
+}

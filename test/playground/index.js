@@ -1,15 +1,15 @@
 evrythng.use(ScanThng);
 
 // Only Operators and AccessTokens for v2, else switch to v1 for Application
-evrythng.setup({ apiVersion: 2 });
+evrythng.setup({ apiVersion: 1 });
 
 /**
  * Get an element by ID.
- * 
+ *
  * @param {string} id - ID to find.
  * @returns {HTMLElement}
  */
-const get = id => document.getElementById(id);
+const get = (id) => document.getElementById(id);
 
 /** UI component handles */
 const UI = {
@@ -44,7 +44,7 @@ const SCANCODE_CONTAINER_ID = 'scancode-container';
  * @param {string} key - Key to use.
  * @returns {string} Value, if found.
  */
-const getQueryParam = key => new URLSearchParams(window.location.search).get(key);
+const getQueryParam = (key) => new URLSearchParams(window.location.search).get(key);
 
 /**
  * Load scope. One of Operator, Application, or AccessToken if V2.
@@ -67,7 +67,8 @@ const loadScope = () => {
   }
 
   // Test it
-  window.scope.init().catch(() => alert('API key is invalid'));
+  window.scope.init()
+    .catch(() => alert('API key is invalid. Check the type and apiVersion are compatible'));
 };
 
 /**
@@ -83,9 +84,10 @@ const loadFilter = () => {
 /**
  * Handle results.
  *
- * @param {*} res 
+ * @param {object} res - API response object.
  */
 const handleResults = (res) => {
+  // Log to console
   console.log(JSON.stringify(res, null, 2));
 
   if (typeof res === 'string') {
@@ -107,7 +109,7 @@ const handleResults = (res) => {
  *
  * @param {Function} f - Function to test.
  */
-const testFunction = f => f().catch(console.log).then(handleResults);
+const testFunction = (f) => f().catch(console.log).then(handleResults);
 
 /**
  * When the page loads.
