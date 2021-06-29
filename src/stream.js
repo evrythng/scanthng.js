@@ -219,7 +219,8 @@ const scanSample = (opts, foundCb, scope) => {
       .then(() => {
         // Perform Digimarc detection with discover.js
         const imgData = getCanvasImageData();
-        const { result } = Discover.detectWatermark(imgData.width, imgData.height, imgData.data);
+        const { width: imgDataWidth, height: imgDataHeight, data } = imgData;
+        const { result } = window.Discover.detectWatermark(imgDataWidth, imgDataHeight, data);
 
         // Notify application if it wants
         if (onDiscoverResult) {
@@ -332,6 +333,9 @@ const scanCode = (opts, scope) => {
   }
   if (!document.getElementById(opts.containerId)) {
     throw new Error('Please specify \'containerId\' where the video element can be added as a child');
+  }
+  if (opts.useDiscover && !window.Discover) {
+    throw new Error('Discover library not found. Disable \'useDiscover\' to use the API only, or provide the library.');
   }
 
   return navigator.mediaDevices.enumerateDevices()
