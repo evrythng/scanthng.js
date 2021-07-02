@@ -184,7 +184,7 @@ const scanSample = (opts, foundCb, scope) => {
   const {
     filter: { method, type },
     useDiscover = false,
-    onDiscoverResult,
+    onWatermarkDetected,
     imageConversion = {},
   } = opts;
   const { cropPercent = 0 } = imageConversion;
@@ -223,9 +223,9 @@ const scanSample = (opts, foundCb, scope) => {
         const { result } = window.Discover.detectWatermark(imgDataWidth, imgDataHeight, data);
 
         // Notify application if it wants
-        if (onDiscoverResult) {
+        if (onWatermarkDetected) {
           // Pass true if this frame detected a watermark, and whatever discover.js provides
-          onDiscoverResult(result.ready_for_read, result);
+          onWatermarkDetected(result.ready_for_read, result);
         }
 
         // If nothing was found in this frame, don't send to the API (save data usage)

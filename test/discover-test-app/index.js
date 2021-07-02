@@ -191,7 +191,7 @@ const test = (f) => f().catch(console.log).then(handleResults);
  * @param {boolean} detected - true if the last frame was likely to contain a watermark.
  * @param {object} results - Results object from discover.js
  */
-const onDiscoverResult = (detected) => {
+const onWatermarkDetected = (detected) => {
   // If detected, go dark
   document.getElementsByTagName('video')[0].style.opacity = detected ? 0.3 : 1;
 
@@ -228,7 +228,7 @@ const setupClickHandlers = () => {
       },
       containerId: SCANSTREAM_CONTAINER_ID,
       useDiscover: UI.inputScanstreamDiscover.checked,
-      onDiscoverResult,
+      onWatermarkDetected,
       downloadFrames: UI.inputDownloadFrames.checked,
       imageConversion: {
         exportFormat: 'image/jpeg',

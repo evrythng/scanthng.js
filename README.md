@@ -198,7 +198,7 @@ available:
 
 ```js
 useDiscover: true,
-onDiscoverResult: (detected, rawResult) => console.log(detected),
+onWatermarkDetected: (detected, rawResult) => console.log(detected),
 ```
 
 > If `useDiscover` is enabled, make sure you also include discover.js itself.
