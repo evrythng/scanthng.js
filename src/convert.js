@@ -1,5 +1,3 @@
-const MegaPixImage = require('@koba04/ios-imagefile-megapixel');
-
 /** minimum image size accepted by API */
 const MIN_SIZE = 144;
 
@@ -10,8 +8,9 @@ const MIN_SIZE = 144;
  * @returns {object} The updated canvas.
  */
 const convertToGreyscale = (canvas) => {
-  const context = canvas.getContext('2d');
-  const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+  const ctx = canvas.getContext('2d');
+  ctx.imageSmoothingEnabled = false;
+  const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
 
   const { data: pixels } = imageData;
   for (let i = 0; i < pixels.length; i += 4) {
@@ -22,7 +21,7 @@ const convertToGreyscale = (canvas) => {
     // alpha - n/a
   }
 
-  context.putImageData(imageData, 0, 0);
+  ctx.putImageData(imageData, 0, 0);
   return canvas;
 };
 
@@ -36,19 +35,29 @@ const convertToGreyscale = (canvas) => {
 const convertImage = (image, { imageConversion }) => new Promise((resolve) => {
   const canvas = document.createElement('canvas');
 
-  // resize the image so it's smaller dimension equals the option value
-  // but not smaller than minimum dimensions allowed
-  const smaller = Math.max(imageConversion.resizeTo, MIN_SIZE);
-  const ratio = image.width / image.height;
-  const zoom = smaller / Math.min(image.width, image.height);
-  const width = ratio > 1 ? image.width * zoom : smaller;
-  const height = ratio > 1 ? smaller : image.height * zoom;
+  let { width, height } = image;
+  const original = { width, height };
 
-  // render image on canvas using Megapixel library (Fixes problems for
-  // iOS Safari) https://github.com/stomita/ios-imagefile-megapixel
-  new MegaPixImage(image).render(canvas, { width, height });
+  const { resizeTo, greyscale } = imageConversion;
 
-  if (imageConversion.greyscale) {
+  // If resizing not disabled
+  if (resizeTo !== false) {
+    // resize the image so it's smaller dimension equals the option value
+    // but not smaller than minimum dimensions allowed
+    const smaller = Math.max(resizeTo, MIN_SIZE);
+    const ratio = image.width / image.height;
+    const zoom = smaller / Math.min(image.width, image.height);
+    width = ratio > 1 ? image.width * zoom : smaller;
+    height = ratio > 1 ? smaller : image.height * zoom;
+  }
+
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext('2d');
+  ctx.imageSmoothingEnabled = false;
+  ctx.drawImage(image, 0, 0, original.width, original.height, 0, 0, canvas.width, canvas.height);
+
+  if (greyscale) {
     convertToGreyscale(canvas);
   }
 

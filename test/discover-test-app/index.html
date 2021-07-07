@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>scanthng & discover test</title>
+
+    <link rel="stylesheet" type="text/css" href="./styles.css">
+  </head>
+  <body>
+    <div class="banner">
+      <img class="logo" src="./assets/evrythng.png"/>
+      <div style="font-size: 1.0rem;">scanthng & discover Test</div>
+      <img id="torch-button" src="./assets/torch.png"></img>
+    </div>
+
+    <div id="scanstream-container"></div>
+    <div id="scan-instructions">
+      Once in focus hold steady, about 6 inches away
+    </div>
+    <div id="results-container">
+      <!-- Results here -->
+    </div>
+
+    <div id="container">
+      <div class="row">
+        <input type="button" class="stream-button" id="input-scanstream" value="Start">
+        <input type="button" class="stream-button" id="input-stopstream" value="Stop">
+      </div>
+      <div class="row">
+        <span style="padding-right: 10px;">Scan type:</span>
+        <select id="select-scanstream-type">
+          <option value="gs1:01">gs1:01 (GTIN)</option>
+          <option value="gs1:21">gs1:21 (Serial)</option>
+          <option value="serialized">serialized (Thng with product link)</option>
+          <option value="discover">discover (v5)</option>
+        </select>
+      </div>
+      <div class="row">The video will dim when a watermark is detected.</div>
+
+      <br/>
+      <a id="opts-hint">Show advanced options</a>
+    </div>
+    <div id="opts-container">
+      <h3>API Key</h3>
+      <div class="row">
+        <input type="text" id="input-app-api-key" placeholder="Application API Key" class="input-app-api-key">
+        <input type="button" id="input-use-api-key" value="Use">
+      </div>
+      <h3>Scan Options</h3>
+      <table>
+        <tr>
+          <td colspan="2"><span>JPEG Quality:</span></td>
+          <td><input type="text" id="input-scanstream-quality" value="0.85"></td>
+        </tr>
+        <tr>
+          <td colspan="2"><span>Resize (shortest side):</span></td>
+          <td><input type="text" id="input-scanstream-resize" value="1080"> px</td>
+        </tr>
+        <tr>
+          <td colspan="2"><span>Crop by (w/discover):</span></td>
+          <td><input type="text" id="input-scanstream-crop" value="0.1"> *100%</td>
+        </tr>
+        <tr>
+          <td colspan="2"><span>Greyscale:</span></td>
+          <td colspan="2"><input type="checkbox" id="input-scanstream-greyscale"></td>
+        </tr>
+        <tr>
+          <td colspan="2"><span>Use discover.js:</span></td>
+          <td colspan="2"><input type="checkbox" id="input-scanstream-discover" checked></td>
+        </tr>
+        <tr>
+          <td colspan="2"><span>Download sent frames:</span></td>
+          <td colspan="2"><input type="checkbox" id="input-download-frames"></td>
+        </tr>
+      </table>
+
+      <h3>Logs</h3>
+      <div id="logs-container">
+        <!-- logs here -->
+      </div>
+    </div>
+
+    <script src="https://d10ka0m22z5ju5.cloudfront.net/js/evrythng/5.10.1/evrythng-5.10.1.js"></script>
+    <script type="text/javascript" src="./lib/jsQR.js"></script>
+    <script type="text/javascript" src="./lib/scanthng.js"></script>
+    
+    <script type="text/javascript" src='./lib/webdetect_bind.js'></script>
+    <script type="text/javascript" src="./lib/discover.js"></script>
+
+    <script type="text/javascript" src="./index.js"></script>
+  </body>
+</html>

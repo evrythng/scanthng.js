@@ -60,7 +60,7 @@ Include using a script tag:
 Add the script tag to your HTML page, specifying the version you will use:
 
 ```html
-<script src="https://d10ka0m22z5ju5.cloudfront.net/js/scanthng/4.7.1/scanthng-4.7.1.js"></script>
+<script src="https://d10ka0m22z5ju5.cloudfront.net/js/scanthng/4.8.0/scanthng-4.8.0.js"></script>
 ```
 
 ### Supported Devices
@@ -173,20 +173,35 @@ The full range of `method` and `type` parameters are listed below:
 **`method: digimarc`**
 
 `type`s available:
-- gs1:01 - Watermarks containing GTIN match to `gs1:01` product identifiers.
-- gs1:21 - Watermarks containing Serial or Extra data match to `gs1:21` Thng identifiers.
-- serialized - Watermarks containing GTIN and Serial/Extra Data. Same as `gs1:21`, except Thng and product are both verified as linked. 
-- discover - Watermarks containing a 'discover-type' payload match to `digimarc:discover` Thng identifiers.
+- `gs1:01` - Watermarks containing GTIN match to `gs1:01` product identifiers.
+- `gs1:21` - Watermarks containing Serial or Extra data match to `gs1:21` Thng identifiers.
+- `serialized` - Watermarks containing GTIN and Serial/Extra Data. Same as `gs1:21`, except Thng and product are both verified as linked. 
+- `discover` - Watermarks containing a 'discover-type' payload match to `digimarc:discover` Thng identifiers.
 
 When scanning with `method: digimarc`, the following `imageConversion`
-configuration is required:
+configuration in `option` is recommended, and will be used if not specified
+explicitly:
 
 ```js
 imageConversion: {
   greyscale: false,
-  exportFormat: 'image/jpeg'
+  exportFormat: 'image/jpeg',
+  resizeTo: 1080,
+  exportQuality: 0.85,
 }
 ```
+
+Additionally, make use of pre-imported discover.js with the `useDiscover`
+option to only send frames to the API when there is a high chance of decoding
+a Digimarc watermark. You can also get notified when detection results are
+available:
+
+```js
+useDiscover: true,
+onWatermarkDetected: (detected, rawResult) => console.log(detected),
+```
+
+> If `useDiscover` is enabled, make sure you also include discover.js itself.
 
 
 ## Application Setup
@@ -503,9 +518,9 @@ the normal URL resolution process.
 Type: `Boolean` Default: `false`
 
 If enabled, `scanthng.js` will try to create an Anonymous User and save it in
-local storage (falling back to cookies) for subsequent requests. For
-convenience, this User will be added to the output of the `scan()` method. In
-these scenarios, the item recognized is also converted into a resource.
+local storage for subsequent requests. For convenience, this User will be added
+to the output of the `scan()` method. In these scenarios, the item recognized is
+also converted into a resource.
 
 
 ```js

@@ -1,5 +1,3 @@
-/* globals jsQR */
-
 const Utils = require('./utils');
 const Media = require('./media');
 const Stream = require('./stream');
@@ -19,9 +17,9 @@ const DEFAULT_OPTIONS = {
   imageConversion: {
     greyscale: true,
     resizeTo: 1000,
-    exportQuality: 0.9
+    exportQuality: 0.9,
   },
-  createAnonymousUser: false
+  createAnonymousUser: false,
 };
 
 /**
@@ -31,26 +29,76 @@ const DEFAULT_OPTIONS = {
  * @returns {Object} The full options object.
  */
 const getMergedOptions = (userOptions) => {
-  const fullOptions = Utils.extend(DEFAULT_OPTIONS, userOptions);
+  const fullOptions = { ...DEFAULT_OPTIONS, ...userOptions };
 
   // Setup all nested object as copies of the default
-  fullOptions.imageConversion = Utils.extend(
-    DEFAULT_OPTIONS.imageConversion,
-    userOptions ? userOptions.imageConversion : {}
-  );
+  fullOptions.imageConversion = {
+    ...DEFAULT_OPTIONS.imageConversion,
+    ...(userOptions ? userOptions.imageConversion : {}),
+  };
 
   // Use biggest size from default and what user defines.
   if (userOptions && userOptions.imageConversion && userOptions.imageConversion.resizeTo) {
     fullOptions.imageConversion.resizeTo = Math.max(
       fullOptions.imageConversion.resizeTo,
-      userOptions.imageConversion.resizeTo
+      userOptions.imageConversion.resizeTo,
     );
   }
 
   return fullOptions;
 };
 
-const getParamStr = params => Object.entries(params).map(p => `${p[0]}=${p[1]}`).join('&');
+/**
+ * Get parameter string.
+ *
+ * @param {object} params - Query parameters to convert.
+ * @returns {string}
+ */
+const getParamStr = (params) => Object.entries(params).map((p) => `${p[0]}=${p[1]}`).join('&');
+
+/**
+ * If `createAnonymousUser` options is enabled, will try to restore anonymous
+ * user saved in local storage and create a new anonymous user if
+ * there's no saved one. Only works with an Application scope.
+ *
+ * @param {Object} scope - The Application or Operator scope.
+ * @param {Object} options - Current options.
+ * @returns {Promise}
+ */
+const getAnonymousUser = (scope, options) => {
+  if (!(options && options.createAnonymousUser)) return Promise.resolve();
+
+  // Not an Application scope
+  if (!scope.appUser) {
+    throw new Error('createAnonymousUser only available with Application Scope type');
+  }
+
+  // Read one stored previously
+  const anonUser = Utils.restoreUser(scope, evrythng.User);
+  if (typeof anonUser === 'object') return Promise.resolve(anonUser);
+
+  // Create a new one
+  const payload = { anonymous: true };
+  return scope
+    .appUser()
+    .create(payload)
+    .then((createdUser) => {
+      Utils.storeUser(scope, createdUser);
+      return createdUser;
+    });
+};
+
+/**
+ * Process response of the decode request, adding an anonymous user if requested.
+ * Note: Adding an anonymous App User is only supported when used with Application scope.
+ *
+ * @param {Object} scope - The Application or Operator scope.
+ * @param {Object} response - The response.
+ * @param {Object} options - Current options.
+ * @returns {Promise}
+ */
+const processResponse = (scope, response, options) => getAnonymousUser(scope, options)
+  .then((anonUser) => response.map((item) => ({ ...item, user: anonUser })));
 
 /**
  * Effectively send the recognition request to the API, passing in the
@@ -86,63 +134,8 @@ const scanApiRequest = (scope, options, data) => {
   }
 
   return evrythng.api(requestOptions)
-    .then(res => processResponse(scope, res, options))
+    .then((res) => processResponse(scope, res, options));
 };
-
-/**
- * If `createAnonymousUser` options is enabled, will try to restore anonymous
- * user saved in local storage (or cookie) and create a new anonymous user if
- * there's no saved one. Only works with an Application scope.
- *
- * @param {Object} scope - The Application or Operator scope.
- * @param {Object} options - Current options.
- * @returns {Promise}
- */
-const getAnonymousUser = (scope, options) => new Promise((resolve, reject) => {
-  if (!(options && options.createAnonymousUser)) {
-    resolve();
-    return;
-  }
-
-  // Not an Application scope
-  if (!scope.appUser) {
-    throw new Error('createAnonymousUser only available with Application Scope type');
-  }
-
-  // Read one stored previously
-  const anonUser = Utils.restoreUser(scope, evrythng.User);
-  if (typeof anonUser === 'object') {
-    resolve(anonUser);
-    return;
-  }
-
-  // Create a new one
-  const payload = { anonymous: true };
-  return scope.appUser().create(payload)
-    .then((createdUser) => {
-      Utils.storeUser(scope, createdUser);
-      return createdUser;
-    });
-});
-
-/**
- * Process response of the decode request, adding an anonymous user if requested.
- * Note: Adding an anonymous App User is only supported when used with Application scope.
- *
- * @param {Object} scope - The Application or Operator scope.
- * @param {Object} response - The response.
- * @param {Object} options - Current options.
- * @returns {Promise}
- */
-const processResponse = (scope, response, options) => getAnonymousUser(scope, options)
-  .then(anonUser => response.map((item) => {
-    // Attach user if avaialble.
-    if (anonUser) {
-      item.user = anonUser;
-    }
-
-    return item;
-  }));
 
 /**
  * Create a normalised API response object.
@@ -165,8 +158,11 @@ const createResultObject = (thisScope, options, res) => {
 
   // Identify a URL with ScanThng, or else return meta-only response
   if (typeof res === 'string') {
-    options.filter = `type=${options.filter.type}&value=${res}`;
-    return thisScope.identify(options)
+    const finalOptions = {
+      ...options,
+      filter: `type=${options.filter.type}&value=${res}`,
+    };
+    return thisScope.identify(finalOptions)
       .catch((e) => {
         console.log('Identification failed, falling back to meta-only response');
         console.log(e);
@@ -182,10 +178,10 @@ const createResultObject = (thisScope, options, res) => {
 /**
  * Use getUserMedia() and jsQR.js to scan QR codes locally, using /identifications for lookup.
  *
- * @param {Object} opts - Scanning options including standard 'filter', 'containerId' and `interval`.
+ * @param {object} opts - Scanning options including 'filter', 'containerId' and `interval`.
  * @returns {Promise} A Promise that resolves with any scan results.
  */
-const scanStream = function (opts = {}) {
+function scanStream(opts = {}) {
   const { filter } = opts;
 
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
@@ -200,16 +196,9 @@ const scanStream = function (opts = {}) {
   // Open the stream, identify barcode, then inform the caller.
   const thisScope = this;
   return Stream.scanCode(opts, thisScope)
-    .then(res => createResultObject(thisScope, opts, res))
-    .then(res => processResponse(thisScope, res));
-};
-
-/**
- * Stop the stream and hide the video.
- */
-const stopStream = function () {
-  Stream.stop();
-};
+    .then((res) => createResultObject(thisScope, opts, res))
+    .then((res) => processResponse(thisScope, res));
+}
 
 /**
  * Redirect the browser to a given URL.
@@ -225,13 +214,13 @@ const redirect = (url) => {
  *
  * @param {Object} opts - Additional options.
  */
-const identify = function (opts) {
+function identify(opts) {
   if (!(typeof opts === 'object' && opts.filter)) {
     throw new Error('Missing filter option.');
   }
 
   return scanApiRequest(this, getMergedOptions(opts));
-};
+}
 
 /**
  * Begin an image scan.
@@ -240,7 +229,7 @@ const identify = function (opts) {
  * @param {Object} [param2] - Optional options.
  * @returns {Promise}
  */
-const scan = function (param1, param2) {
+function scan(param1, param2) {
   let imageData;
   let options = {};
 
@@ -262,19 +251,19 @@ const scan = function (param1, param2) {
 
   const prepareOptions = {
     invisible: options.invisible,
-    imageConversion: options.imageConversion
+    imageConversion: options.imageConversion,
   };
 
   const preparePromise = (typeof imageData === 'string')
     // We already have the image string data, so we only need to process it.
     ? Media.processImage(imageData, prepareOptions)
     // Fetch the image data from the file input, before processing.
-    : Media.getFile(prepareOptions).then(data => Media.processImage(data, prepareOptions));
+    : Media.getFile(prepareOptions).then((data) => Media.processImage(data, prepareOptions));
 
   // Send recognition request to the EVRYTHNG API once image is done processing
   const thisApp = this;
-  return preparePromise.then(data => scanApiRequest(thisApp, getMergedOptions(options), data));
-};
+  return preparePromise.then((data) => scanApiRequest(thisApp, getMergedOptions(options), data));
+}
 
 // Use evrythng.js plugin API
 const ScanThng = {
@@ -287,29 +276,32 @@ const ScanThng = {
     api.scopes.Application.prototype.redirect = redirect;
     api.scopes.Application.prototype.identify = identify;
     api.scopes.Application.prototype.scanStream = scanStream;
-    api.scopes.Application.prototype.stopStream = stopStream;
+    api.scopes.Application.prototype.stopStream = Stream.stop;
     api.scopes.Application.prototype.scan = scan;
+    api.scopes.Application.prototype.setTorchEnabled = Stream.setTorchEnabled;
 
     if (api.scopes.AccessToken) {
       api.scopes.AccessToken.prototype.redirect = redirect;
       api.scopes.AccessToken.prototype.identify = identify;
       api.scopes.AccessToken.prototype.scanStream = scanStream;
-      api.scopes.AccessToken.prototype.stopStream = stopStream;
+      api.scopes.AccessToken.prototype.stopStream = Stream.stop;
       api.scopes.AccessToken.prototype.scan = scan;
+      api.scopes.AccessToken.prototype.setTorchEnabled = Stream.setTorchEnabled;
     }
 
     api.scopes.Operator.prototype.redirect = redirect;
     api.scopes.Operator.prototype.identify = identify;
     api.scopes.Operator.prototype.scanStream = scanStream;
-    api.scopes.Operator.prototype.stopStream = stopStream;
+    api.scopes.Operator.prototype.stopStream = Stream.stop;
     api.scopes.Operator.prototype.scan = scan;
+    api.scopes.Operator.prototype.setTorchEnabled = Stream.setTorchEnabled;
   },
   /**
    * Put image on canvas, convert it and export as data URL.
    *
    * @param {*} imageData - Image data.
    * @param {object} userOptions - User options, if any.
-   * @returns {Promise<object>} Promise resolving an object { image } containing the image as a data URL.
+   * @returns {Promise<object>} Promise resolving an object containing the image as a data URL.
    */
   convertImageFormat: Media.processImage,
   /**

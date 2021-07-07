@@ -1,5 +1,5 @@
 /** The ID of the <video> element inserted by the SDK. */
-const VIDEO_ELEMENT_ID = 'scanthng-video-' + Date.now();
+const VIDEO_ELEMENT_ID = `scanthng-video-${Date.now()}`;
 
 /**
  * Check if a variable is an Image Data URL.
@@ -7,37 +7,8 @@ const VIDEO_ELEMENT_ID = 'scanthng-video-' + Date.now();
  * @param {string} str - The string to check.
  * @returns {boolean} true if the str is a valid data URL.
  */
-const isDataUrl = str => Object.prototype.toString.call(str) == '[object String]' &&
-  str.match(/^\s*data:image\/(\w+)(;charset=[\w-]+)?(;base64)?,/);
-
-/**
- * Simple and shallow extend method, used to extend an object's properties
- * with another object's. The `override` parameter defines if the
- * source object should be overriden or if this method should return a new
- * object (it is *false by default*).
- */
-const extend = (source, obj, override) => {
-  let out = {};
-
-  // Create extensible object.
-  if (override) {
-    out = source;
-  } else {
-    // Create shallow copy of source.
-    for (let i in source) {
-      out[i] = source[i];
-    }
-  }
-
-  // Copy properties
-  for (let j in obj) {
-    if (obj.hasOwnProperty(j)) {
-      out[j] = obj[j];
-    }
-  }
-
-  return out;
-};
+const isDataUrl = (str) => typeof str === 'string'
+  && str.match(/^\s*data:image\/(\w+)(;charset=[\w-]+)?(;base64)?,/);
 
 /**
  * Write a key-value pair to localStorage.
@@ -55,28 +26,7 @@ const writeStorage = (key, value) => {
  * @param {string} key - The key.
  * @returns {*} The value as a JSON object.
  */
-const readStorage = key => JSON.parse(localStorage.getItem(key));
-
-/**
- * Write a key-value pair as a cookie.
- *
- * @param {string} key - The key.
- * @param {*} value - The value.
- */
-const writeCookie = (key, value) => {
-  document.cookie = encodeURI(key) + '=' + encodeURI(JSON.stringify(value)) + '; expires=Tue, 19 Jan 2038 03:14:07 GMT; path=/';
-};
-
-/**
- * Read a key-value pair from cookie.
- *
- * @param {string} key - The key.
- * @returns {*} The value as a JSON object.
- */
-const readCookie = (key) => {
-  var value = decodeURI(document.cookie.replace(new RegExp('(?:^|.*;\\s*)' + decodeURI(key).replace(/[\-\.\+\*]/g, '\\$&') + '\\s*\\=\\s*((?:[^;](?!;))*[^;]?).*'), "$1"));
-  return JSON.parse(value);
-};
+const readStorage = (key) => JSON.parse(localStorage.getItem(key));
 
 /**
  * Store the user credentials for a later launch.
@@ -92,8 +42,7 @@ const storeUser = (app, user) => {
     return;
   }
 
-  // Fallback to cookie
-  writeCookie(key, userData);
+  throw new Error('Failed to write user to LocalStorage');
 };
 
 /**
@@ -103,13 +52,14 @@ const storeUser = (app, user) => {
  * @param {object} User - The User scope class.
  */
 const restoreUser = (app, User) => {
-  const userData = localStorage
-   ? readStorage('scanthng-' + app.id)
-   : readCookie('scanthng-' + app.id);
+  if (!localStorage) throw new Error('Cannot restore user, localStorage is not available');
 
-  if (typeof userData === 'object') {
+  const userData = readStorage(`scanthng-${app.id}`);
+  if (userData && userData.apiKey) {
     return new User(userData.apiKey);
   }
+
+  return undefined;
 };
 
 /**
@@ -130,17 +80,28 @@ const insertVideoElement = (containerId) => {
   document.getElementById(containerId).appendChild(video);
 };
 
+/**
+ * Use an anchor to prompt frame file download.
+ *
+ * @param {string} dataUrl - Image data URL.
+ */
+const promptImageDownload = (dataUrl) => {
+  const ext = dataUrl.split('/')[1].split(';')[0];
+  const anchor = document.createElement('a');
+  anchor.download = `frame.${ext}`;
+  anchor.href = dataUrl;
+  anchor.click();
+};
+
 if (typeof module !== 'undefined') {
   module.exports = {
+    VIDEO_ELEMENT_ID,
     isDataUrl,
-    extend,
     writeStorage,
     readStorage,
-    writeCookie,
-    readCookie,
     restoreUser,
     storeUser,
     insertVideoElement,
-    VIDEO_ELEMENT_ID,
+    promptImageDownload,
   };
 }
