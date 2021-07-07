@@ -7,7 +7,7 @@ RUN pip3 install awscli --upgrade --user
 WORKDIR /srv
 
 # npm dependencies
-COPY package* /srv
+COPY package* /srv/
 RUN npm ci
 
 COPY . /srv
