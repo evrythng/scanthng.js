@@ -20,6 +20,7 @@ let video;
 let stream;
 let frameIntervalHandle;
 let canvas;
+let digimarcDetector;
 let requestPending = false;
 
 /**
@@ -212,24 +213,25 @@ const scanSample = (opts, foundCb, scope) => {
   const dataUrl = canvas.toDataURL(exportFormat, exportQuality);
 
   // Client-side digimarc pre-scan watermark detection
-  //   For this mode, use the exact same post-compression data for discover.js and the API request.
   if (method === 'digimarc' && useDiscover) {
-    // Update canvas image data with the compressed version
+    // For this mode, use the exact same post-compression data for discover.js and the API request.
     return updateCanvasImageData(dataUrl)
       .then(() => {
         // Perform Digimarc detection with discover.js
         const imgData = getCanvasImageData();
         const { width: imgDataWidth, height: imgDataHeight, data } = imgData;
-        const { result } = window.Discover.detectWatermark(imgDataWidth, imgDataHeight, data);
+
+        // Use discover.js if available
+        const detectResult = digimarcDetector.detect(data, imgDataWidth, imgDataHeight);
 
         // Notify application if it wants
         if (onWatermarkDetected) {
-          // Pass true if this frame detected a watermark, and whatever discover.js provides
-          onWatermarkDetected(result.ready_for_read, result);
+          // Check .watermark for a boolean result. x, y, width, height, rotation also available
+          onWatermarkDetected(detectResult);
         }
 
         // If nothing was found in this frame, don't send to the API (save data usage)
-        if (!result.ready_for_read) return undefined;
+        if (!detectResult.watermark) return undefined;
 
         return scanDataUrl(dataUrl, opts, scope, foundCb);
       });
@@ -288,6 +290,11 @@ const findBarcodeInStream = (opts, scope) => {
     opts.imageConversion = imageConversion || Media.DEFAULT_OPTIONS.imageConversion;
   }
 
+  // Pre-load discover.js + related libraries
+  if (usingDiscover) {
+    digimarcDetector = new window.DigimarcDetector();
+  }
+
   // If not a local QR scan, or using discover.js and no Scope is available
   if (!scope && (!usingJsQR || useDiscover)) {
     throw new Error('Non-local code scanning requires specifying an Application or Operator scope for API access');
@@ -328,35 +335,33 @@ const findBarcodeInStream = (opts, scope) => {
  * @returns {Promise} Promise resolving the stream opened.
  */
 const scanCode = (opts, scope) => {
+  const { containerId, useDiscover } = opts;
+
+  // Check required data and libraries are present
   if (!window.jsQR) {
     throw new Error('jsQR (https://github.com/cozmo/jsQR) not found. You must include it in a <script> tag.');
   }
-  if (!document.getElementById(opts.containerId)) {
+  if (!document.getElementById(containerId)) {
     throw new Error('Please specify \'containerId\' where the video element can be added as a child');
   }
-  if (opts.useDiscover && !window.Discover) {
-    throw new Error('Discover library not found. Disable \'useDiscover\' to use the API only, or provide the library.');
+  if (useDiscover && !window.DigimarcDetector) {
+    throw new Error('discover.js library not found. Set \'useDiscover: false\' to use the API only, or provide the library files.');
   }
 
+  // Begin the stream by selecting a read facing camera
   return navigator.mediaDevices.enumerateDevices()
     .then((devices) => devices.filter((device) => device.kind === 'videoinput'))
-    .then((devices) => {
-      const constraints = {
-        video: {
-          facingMode: 'environment',
-          deviceId: devices.length > 0 ? devices[devices.length - 1].deviceId : undefined,
-          width: { ideal: 1920 },
-          height: { ideal: 1080 },
-        },
-      };
-
-      return navigator
-        .mediaDevices
-        .getUserMedia(constraints);
-    })
+    .then((devices) => navigator.mediaDevices.getUserMedia({
+      video: {
+        facingMode: 'environment',
+        deviceId: devices.length > 0 ? devices[devices.length - 1].deviceId : undefined,
+        width: { ideal: 1920 },
+        height: { ideal: 1080 },
+      },
+    }))
     .then((newStream) => {
       stream = newStream;
-      Utils.insertVideoElement(opts.containerId);
+      Utils.insertVideoElement(containerId);
 
       return findBarcodeInStream(opts, scope);
     });
