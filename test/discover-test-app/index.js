@@ -188,10 +188,11 @@ const test = (f) => f().catch(console.log).then(handleResults);
 /**
  * When discover.js detects a watermark in a frame.
  *
- * @param {boolean} detected - true if the last frame was likely to contain a watermark.
- * @param {object} results - Results object from discover.js
+ * @param {object} discoverResult - Results object from discover.js
  */
-const onWatermarkDetected = (detected) => {
+const onWatermarkDetected = (discoverResult) => {
+  const detected = !!discoverResult.watermark;
+
   // If detected, go dark
   document.getElementsByTagName('video')[0].style.opacity = detected ? 0.3 : 1;
 

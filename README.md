@@ -60,7 +60,7 @@ Include using a script tag:
 Add the script tag to your HTML page, specifying the version you will use:
 
 ```html
-<script src="https://d10ka0m22z5ju5.cloudfront.net/js/scanthng/4.8.2/scanthng-4.8.2.js"></script>
+<script src="https://d10ka0m22z5ju5.cloudfront.net/js/scanthng/4.9.0/scanthng-4.9.0.js"></script>
 ```
 
 ### Supported Devices
@@ -198,10 +198,11 @@ available:
 
 ```js
 useDiscover: true,
-onWatermarkDetected: (detected, rawResult) => console.log(detected),
+onWatermarkDetected: (discoverResult) => console.log(discoverResult),
 ```
 
-> If `useDiscover` is enabled, make sure you also include discover.js itself.
+If `useDiscover` is enabled, make sure you also include discover.js and
+associated libraries as well.
 
 
 ## Application Setup
