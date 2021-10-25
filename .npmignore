@@ -1,5 +1,6 @@
 jenkins
 test/discover-test-app/lib
+test/zxing-test-app/lib
 test/playground/lib
 node_modules
 test/*.zip

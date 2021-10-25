@@ -93,6 +93,60 @@ const promptImageDownload = (dataUrl) => {
   anchor.click();
 };
 
+/**
+ * Get the type name from the enum value for zxing/browser 1D code types.
+ *
+ * Based on https://github.com/zxing-js/library/blob/master/src/core/BarcodeFormat.ts
+ *
+ * @param {number} format - From the above enum.
+ * @returns {string} thng-scan compatible type for API query ot fetch Thng/product.
+ */
+const getZxingBarcodeFormatType = (format) => {
+  const map = {
+    /** Aztec 2D barcode format. */
+    0: null,
+    /** CODABAR 1D format. */
+    1: 'codabar',
+    /** Code 39 1D format. */
+    2: 'code_39',
+    /** Code 93 1D format. */
+    3: 'code_93',
+    /** Code 128 1D format. */
+    4: 'code_128',
+    /** Data Matrix 2D barcode format. */
+    5: 'dm',
+    /** EAN-8 1D format. */
+    6: 'ean_8',
+    /** EAN-13 1D format. */
+    7: 'ean_13',
+    /** ITF (Interleaved Two of Five) 1D format. */
+    8: 'itf',
+    /** MaxiCode 2D barcode format. */
+    9: null,
+    /** PDF417 format. */
+    10: null,
+    /** QR Code 2D barcode format. */
+    11: null,
+    /** RSS 14 */
+    12: 'rss_14',
+    /** RSS EXPANDED */
+    13: 'rss_expanded',
+    /** UPC-A 1D format. */
+    14: 'upc_a',
+    /** UPC-E 1D format. */
+    15: 'upc_e',
+    /** UPC/EAN extension format. Not a stand-alone format. */
+    16: null,
+  };
+
+  // If it's not in this map, we can't lookup with thng-scan
+  if (!map[format]) {
+    throw new Error(`Type returned by zxing/browser not supported by ID API: ${format}`);
+  }
+
+  return map[format];
+};
+
 if (typeof module !== 'undefined') {
   module.exports = {
     VIDEO_ELEMENT_ID,
@@ -103,5 +157,6 @@ if (typeof module !== 'undefined') {
     storeUser,
     insertVideoElement,
     promptImageDownload,
+    getZxingBarcodeFormatType,
   };
 }
