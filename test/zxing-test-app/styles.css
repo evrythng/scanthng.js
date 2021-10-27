@@ -43,11 +43,6 @@ select {
   width: 240px !important;
 }
 
-input[type="checkbox"] {
-  width: 18px;
-  height: 18px;
-}
-
 h2, h3, p {
   margin-top: 14px;
   margin-bottom: 8px;
@@ -138,33 +133,4 @@ body {
   border-left: solid 5px limegreen;
   opacity: 0;
   display: none;
-}
-
-#scan-instructions {
-  display: none;
-  transition: 0.3s;
-
-  border-radius: 50px;
-  background-color: #0008;
-  color: white;
-  justify-content: center;
-  padding: 10px;
-  margin: 0px 15px;
-  position: absolute;
-  top: 70px;
-  width: 88vw;
-}
-
-#torch-button {
-  display: none;
-
-  width: 32px;
-  height: 32px;
-  position: absolute;
-  top: 8px;
-  right: 10px;
-
-  border: solid 1px #ddd;
-  border-radius: 5px;
-  padding: 2px;
 }

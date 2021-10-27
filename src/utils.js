@@ -94,12 +94,60 @@ const promptImageDownload = (dataUrl) => {
 };
 
 /**
+ * Get dimensions for a cropped canvas based on percentage reduced from the edge.
+ * E.g: cropPercent = 0.1 means 10% cropped inwards.
+ *
+ * @param {object} canvas - Canvas to measure.
+ * @param {number} cropPercent - Amount to crop, from 0.1 to 1.0.
+ * @returns {object} { x, y, width, height } of the cropped canvas.
+ */
+const getCropDimensions = (canvas, cropPercent = 0) => {
+  if (typeof cropPercent !== 'number' || cropPercent < 0 || cropPercent > 0.9) {
+    throw new Error('cropPercent option must be between 0 and 0.9');
+  }
+
+  let x = 0;
+  let y = 0;
+  let { width, height } = canvas;
+
+  // No change requested
+  if (cropPercent === 0) {
+    return {
+      x, y, width, height,
+    };
+  }
+
+  // Crop to a central square
+  const isPortrait = height > width;
+  if (isPortrait) {
+    y = (height - width) / 2;
+    height = width;
+  } else {
+    x = (width - height) / 2;
+    width = height;
+  }
+
+  const margin = isPortrait ? cropPercent * width : cropPercent * height;
+  x += margin;
+  y += margin;
+  width -= margin;
+  height -= margin;
+
+  return {
+    x: Math.round(x),
+    y: Math.round(y),
+    width: Math.round(width),
+    height: Math.round(height),
+  };
+};
+
+/**
  * Get the type name from the enum value for zxing/browser 1D code types.
  *
  * Based on https://github.com/zxing-js/library/blob/master/src/core/BarcodeFormat.ts
  *
  * @param {number} format - From the above enum.
- * @returns {string} thng-scan compatible type for API query ot fetch Thng/product.
+ * @returns {string} Compatible 'type' value for API query to fetch Thng/product.
  */
 const getZxingBarcodeFormatType = (format) => {
   const map = {
@@ -139,7 +187,7 @@ const getZxingBarcodeFormatType = (format) => {
     16: null,
   };
 
-  // If it's not in this map, we can't lookup with thng-scan
+  // If it's not in this map, we can't lookup with ID Rec API
   if (!map[format]) {
     throw new Error(`Type returned by zxing/browser not supported by ID API: ${format}`);
   }
@@ -157,6 +205,7 @@ if (typeof module !== 'undefined') {
     storeUser,
     insertVideoElement,
     promptImageDownload,
+    getCropDimensions,
     getZxingBarcodeFormatType,
   };
 }
