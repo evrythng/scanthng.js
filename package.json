@@ -20,13 +20,13 @@
   },
   "homepage": "https://github.com/evrythng/scanthng.js#readme",
   "devDependencies": {
-    "@babel/core": "^7.4.5",
-    "@babel/preset-env": "^7.4.5",
-    "babel-loader": "^8.0.6",
-    "eslint": "^7.29.0",
+    "@babel/core": "^7.15.8",
+    "@babel/preset-env": "^7.15.8",
+    "babel-loader": "^8.2.3",
+    "eslint": "^7.32.0",
     "eslint-config-airbnb-base": "^14.2.1",
-    "webpack": "^4.43.0",
-    "webpack-cli": "^3.3.12"
+    "webpack": "^5.60.0",
+    "webpack-cli": "^4.9.1"
   },
   "eslintConfig": {
     "env": {
