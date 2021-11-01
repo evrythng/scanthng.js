@@ -43,6 +43,10 @@ const testScope = async () => {
     return typeof scope.stopStream === 'function';
   });
 
+  await it('should add setTorchEnabled() to scope', async () => {
+    return typeof scope.setTorchEnabled === 'function';
+  });
+
   if (scopeType === 'app') {
     await it('should add identify() to scope', async () => {
       return typeof scope.identify === 'function';
@@ -61,13 +65,14 @@ const testUtils = async () => {
   await it('Utils - should export expected functions', async () => {
     return (
       typeof isDataUrl === 'function' &&
-      typeof extend === 'function' &&
       typeof writeStorage === 'function' &&
       typeof readStorage === 'function' &&
-      typeof writeCookie === 'function' &&
-      typeof readCookie === 'function' &&
       typeof restoreUser === 'function' &&
-      typeof storeUser === 'function'
+      typeof storeUser === 'function' &&
+      typeof insertVideoElement === 'function' &&
+      typeof promptImageDownload === 'function' &&
+      typeof getCropDimensions === 'function' &&
+      typeof getZxingBarcodeFormatType === 'function'
     );
   });
 
@@ -81,30 +86,6 @@ const testUtils = async () => {
     return isDataUrl(dataUrl) === null;
   });
 
-  await it('Utils - should extend an object and create a copy', async () => {
-    const source = { foo: 'bar' };
-    const extension = { foo2: 'bar2' };
-
-    const result = extend(source, extension);
-    return (
-      result.foo === 'bar' &&
-      result.foo2 === 'bar2' &&
-      source.foo2 === undefined
-    );
-  });
-
-  await it('Utils - should extend an object and override the source', async () => {
-    const source = { foo: 'bar' };
-    const extension = { foo2: 'bar2' };
-
-    const result = extend(source, extension, true);
-    return (
-      result.foo === 'bar' &&
-      result.foo2 === 'bar2' &&
-      source.foo2 === 'bar2'
-    );
-  });
-
   await it('Utils - should write to localStorage', async () => {
     writeStorage('foo', { foo: 'bar' });
 
@@ -113,18 +94,6 @@ const testUtils = async () => {
 
   await it('Utils - should read from localStorage', async () => {
     const data = readStorage('foo');
-    return data.foo === 'bar';
-  });
-
-  await it('Utils - should write to a cookie (localStorage fallback)', async () => {
-    writeCookie('foo', { foo: 'bar' });
-
-    return document.cookie.includes('foo');
-  });
-
-  await it('Utils - should read from cookie (localStorage fallback)', async () => {
-    const data = readCookie('foo');
-
     return data.foo === 'bar';
   });
 
@@ -259,6 +228,20 @@ const testScanQrCode = async () => {
 };
 
 /**
+ * Test local 1D barcode scanning with zxing/browser.
+ */
+const testScanWithZxing = async () => {
+  await it('with zxing/browser - should scan a 1D barcode locally with zxing/browser', async () => {
+    alert('Please scan a 1D barcode, such as EAN-13 or Code 128');
+
+    const filter = { method: '1d', type: 'auto' };
+    const res = await scope.scanStream({ filter, containerId: CONTAINER_ID });
+    console.log(res);
+    return Array.isArray(res) && res.length > 0 && res[0].meta.value.length > 1;
+  });
+};
+
+/**
  * The tests. Each is asynchronous.
  */
 const main = async () => {
@@ -270,6 +253,7 @@ const main = async () => {
   await testScanStream();
   await testGlobal();
   await testScanQrCode();
+  await testScanWithZxing();
 
   await waitAsync(500);
   alert('Suite is complete');

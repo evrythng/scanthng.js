@@ -243,8 +243,6 @@ const scanSample = (opts, foundCb, scope) => {
  * Stop the video stream.
  */
 const stop = () => {
-  if (!frameIntervalHandle) return;
-
   clearInterval(frameIntervalHandle);
   frameIntervalHandle = null;
 
@@ -300,7 +298,7 @@ const findBarcodeInStream = (opts, scope) => {
   }
 
   // If not a local QR scan, or using discover.js and no Scope is available
-  if (!scope && (!usingJsQR || useDiscover || !useZxing)) {
+  if (!scope && !isLocalScan) {
     throw new Error('Non-local code scanning requires specifying an Application or Operator scope for API access');
   }
 

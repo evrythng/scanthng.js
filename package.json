@@ -58,6 +58,7 @@
   },
   "eslintIgnore": [
     "node_modules",
-    "dist"
+    "dist",
+    "test/feature"
   ]
 }
