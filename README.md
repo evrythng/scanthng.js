@@ -194,8 +194,8 @@ The full range of `method` and `type` parameters are listed below:
 - upc_e
 
 > Note: You can use `method: 1d` and `type: auto` after including
-> [`zxing/browser`](https://github.com/zxing-js/browser) to peform decoding of
-> 1D barcodes locally, instead of via the API.
+> [`zxing-js/browser`](https://github.com/zxing-js/browser) to perform decoding
+> of 1D barcodes locally, instead of via the API.
 
 **`method: digimarc`**
 
@@ -560,7 +560,7 @@ detected and a result is expected soon after.
 #### `useZxing`
 Type: `Boolean` Default: `false`
 
-When using `method: 1d` and `type: auto`, include zxing/browser` to perform
+When using `method: 1d` and `type: auto`, include zxing-js/browser` to perform
 1D barcode decoding locally instead of via the API. Check which code types are
 supported (i.e: are compatible with finding the corresponding Thng/product) in
 the `getZxingBarcodeFormatType` map in `src/utils.js`.
@@ -704,4 +704,4 @@ We use these great software projects help us build this one:
 
 * [`jsQR.js`](https://github.com/cozmo/jsQR) (under Apache 2.0)
 
-* [`zxing/browser`](https://github.com/zxing-js/browser) (under MIT)
+* [`zxing-js/browser`](https://github.com/zxing-js/browser) (under MIT)

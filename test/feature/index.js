@@ -228,10 +228,12 @@ const testScanQrCode = async () => {
 };
 
 /**
- * Test local 1D barcode scanning with zxing/browser.
+ * Test local 1D barcode scanning with zxing-js/browser.
+ *
+ * Note: Works best with physical 1D barcodes as opposed to reading from a screen.
  */
 const testScanWithZxing = async () => {
-  await it('with zxing/browser - should scan a 1D barcode locally with zxing/browser', async () => {
+  await it('with zxing-js/browser - should scan a 1D barcode locally with zxing-js/browser', async () => {
     alert('Please scan a 1D barcode, such as EAN-13 or Code 128');
 
     const filter = { method: '1d', type: 'auto' };

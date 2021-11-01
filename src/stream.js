@@ -145,7 +145,7 @@ const scanWithJsQr = () => {
 };
 
 /**
- * Scan canvas with zxing/browser.
+ * Scan canvas with zxing-js/browser.
  *
  * @returns {object} - Scanned text and type name, if found.
  */
@@ -192,7 +192,7 @@ const scanSample = (opts, foundCb, scope) => {
     return undefined;
   }
 
-  // Client-side 1D barcode scan with zxing/browser, else fallback to API if not imported
+  // Client-side 1D barcode scan with zxing-js/browser, else fallback to API if not imported
   if (method === '1d' && window.ZXingBrowser) {
     const result = scanWithZxing();
     if (!result) return undefined;
@@ -292,7 +292,7 @@ const findBarcodeInStream = (opts, scope) => {
     digimarcDetector = new window.DigimarcDetector();
   }
   if (usingZxing) {
-    if (!window.ZXingBrowser) throw new Error('zxing/browser not found. You must include it in a <script> tag');
+    if (!window.ZXingBrowser) throw new Error('zxing-js/browser not found. You must include it in a <script> tag');
 
     zxingReader = new window.ZXingBrowser.BrowserMultiFormatOneDReader();
   }

@@ -142,7 +142,7 @@ const getCropDimensions = (canvas, cropPercent = 0) => {
 };
 
 /**
- * Get the type name from the enum value for zxing/browser 1D code types.
+ * Get the type name from the enum value for zxing-js/browser 1D code types.
  *
  * Based on https://github.com/zxing-js/library/blob/master/src/core/BarcodeFormat.ts
  *
@@ -189,7 +189,7 @@ const getZxingBarcodeFormatType = (format) => {
 
   // If it's not in this map, we can't lookup with ID Rec API
   if (!map[format]) {
-    throw new Error(`Type returned by zxing/browser not supported by ID API: ${format}`);
+    throw new Error(`Type returned by zxing-js/browser not supported by ID API: ${format}`);
   }
 
   return map[format];

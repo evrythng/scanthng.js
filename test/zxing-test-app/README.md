@@ -1,6 +1,6 @@
 # zxing-test-app
 
-Simple app that allows testing of scanthng.js functionality with zxing/browser.
+Simple app that allows testing of scanthng.js functionality with zxing-js/browser.
 
 
 ## Setup
