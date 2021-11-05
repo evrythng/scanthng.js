@@ -60,7 +60,7 @@ Include using a script tag:
 Add the script tag to your HTML page, specifying the version you will use:
 
 ```html
-<script src="https://d10ka0m22z5ju5.cloudfront.net/js/scanthng/4.9.0/scanthng-4.9.0.js"></script>
+<script src="https://d10ka0m22z5ju5.cloudfront.net/js/scanthng/4.10.0/scanthng-4.10.0.js"></script>
 ```
 
 ### Supported Devices
@@ -97,10 +97,8 @@ Before using this can be done you will need:
 
 - An [EVRYTHNG Dashboard](https://dashboard.evrythng.com) account.
 - A project and application within that account.
-- One or more products or Thngs that have redirections and `identifiers` set.
-  See
-  [_Enabling Recognition_](https://developers.evrythng.com/v3.0/reference#section-enabling-recognition)
-  to learn how to set up your products.
+- One or more products or Thngs that have redirections and `identifiers` set
+  corresponding to the `type` chosen (see below).
 
 
 ## Product Setup
@@ -108,6 +106,31 @@ Before using this can be done you will need:
 In order to be recognised when scanned, an EVRYTHNG product or Thng must have a
 redirection setup and optionally some `identifiers` to associate it with
 barcodes such as DataMatrix or UPC/EAN 13 etc.
+
+For example, to associate a Thng with a datamatrix code:
+
+```json
+{
+  "name": "Test Pallet",
+  "tags": ["demo"],
+  "identifiers": {
+    "dm": "84289433"
+  }
+}
+```
+
+or associating a product with an EAN-13 barcode:
+
+```json
+{
+  "name": "Iain M. Banks - Excession",
+  "tags": ["books"],
+  "brands": ["Orbit"],
+  "identifiers": {
+    "ean_13": "9781857234572"
+  }
+}
+```
 
 
 ### QR Codes
@@ -169,6 +192,10 @@ The full range of `method` and `type` parameters are listed below:
 - rss_limited
 - upc_a
 - upc_e
+
+> Note: You can use `method: 1d` and `type: auto` after including
+> [`zxing-js/browser`](https://github.com/zxing-js/browser) to perform decoding
+> of 1D barcodes locally, instead of via the API.
 
 **`method: digimarc`**
 
@@ -497,6 +524,48 @@ Sets the format of exported image, possible values are `image/png` and
 `image/jpeg`.
 
 
+#### `imageConversion.cropPercent`
+Type: `Integer` Default: `0` Range `0.1..1`
+
+When using `method: digimarc` and discover.js, allows cropping to a square by
+removing the percentage specified. For example, `0.3` to remove 30% from each
+side of the frame.
+
+
+#### `downloadFrames`
+Type: `Boolean` Default: `false`
+
+When using a method that uses the Identifier Recognition API, setting to `true`
+will prompt a file download for each frame just before the request is sent.
+Useful for debugging image format/quality.
+
+
+#### `useDiscover`
+Type: `Boolean` Default: `false`
+
+When using `method: digimarc`, include the required library to use discover.js
+to detect a Digimarc watermark in video frames and only send those the API that
+are likely to contain a result to be fully decoded. Saves on bandwidth.
+
+
+#### `onWatermarkDetected`
+Type: `Function` Default: `undefined`
+
+When using discover.js, specify a callback to be notifed when a frame is likely
+to contain a Digimarc watermark and is about to be sent to the API, and may
+produce a result. Useful for showing some activity in the UI when something is
+detected and a result is expected soon after.
+
+
+#### `useZxing`
+Type: `Boolean` Default: `false`
+
+When using `method: 1d` and `type: auto`, include zxing-js/browser` to perform
+1D barcode decoding locally instead of via the API. Check which code types are
+supported (i.e: are compatible with finding the corresponding Thng/product) in
+the `getZxingBarcodeFormatType` map in `src/utils.js`.
+
+
 ### `invisible`
 Type: `Boolean` Default: `true`
 
@@ -618,9 +687,8 @@ SDK.
 
 ## Testing
 
-The `test` and `playground` directories contain simple pages that allow quick
-testing of SDK functionality. See their respective `README.md` files for more
-details.
+The `test` directories contain simple pages that allow quick testing of SDK
+functionality. See their respective `README.md` files for more details.
 
 
 ## Related tools
@@ -635,3 +703,5 @@ details.
 We use these great software projects help us build this one:
 
 * [`jsQR.js`](https://github.com/cozmo/jsQR) (under Apache 2.0)
+
+* [`zxing-js/browser`](https://github.com/zxing-js/browser) (under MIT)

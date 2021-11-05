@@ -1,4 +1,4 @@
-# scanthng.js-discover.js-combo
+# discover-test-app
 
 Simple app that allows testing of scanthng.js functionality with discover.js.
 

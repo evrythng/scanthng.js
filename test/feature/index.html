@@ -4,6 +4,8 @@
     <title>scanthng.js unit tests</title>
     <style type="text/css">
       * { font-family: sans-serif; }
+
+      video { max-width: 100vw; }
     </style>
   </head>
   <body>
@@ -15,14 +17,15 @@
 
     <!-- Dependencies -->
     <script type="text/javascript" src="lib/jsQR.js"></script>
-    <script type="text/javascript" src="https://d10ka0m22z5ju5.cloudfront.net/js/evrythng/5.10.1/evrythng-5.10.1.js"></script>
+    <script type="text/javascript" src="https://unpkg.com/@zxing/browser@latest"></script>
+    <script type="text/javascript" src="https://d10ka0m22z5ju5.cloudfront.net/js/evrythng/6.0.3/evrythng-6.0.3.js"></script>
 
-    <!-- Under test -->
+    <!-- Library under test -->
     <script type="text/javascript" src="../../dist/scanthng.js"></script>
-
-    <!-- Test scripts -->
     <script type="text/javascript" src="../../src/media.js"></script>
     <script type="text/javascript" src="../../src/utils.js"></script>
+    
+    <!-- Test scripts -->
     <script type="text/javascript" src="./util.js"></script>
     <script type="text/javascript" src="./index.js"></script>
   </body>

@@ -1,0 +1,136 @@
+* {
+  font-family: sans-serif;
+}
+
+input[type="text"] {
+  font-family: monospace;
+  font-size: 0.9rem;
+  padding: 3px 5px;
+  width: 90px;
+  height: 20px;
+  margin-right: 5px;
+}
+
+input[type="button"] {
+  font-size: 1.1rem;
+  border: 2px solid black;
+  color: #333;
+  background-color: white;
+  border-radius: 5px;
+  padding: 4px 12px;
+  -webkit-appearance: none;
+}
+
+.stream-button {
+  width: 100px;
+  margin: 5px 10px 15px 0px  ;
+  height: 40px;
+  flex: 1;
+}
+
+code {
+  font-family: monospace;
+  font-size: 0.7rem;
+}
+
+select {
+  font-size: 1rem;
+  width: 150px;
+  height: 25px;
+}
+
+.input-app-api-key {
+  width: 240px !important;
+}
+
+h2, h3, p {
+  margin-top: 14px;
+  margin-bottom: 8px;
+}
+
+p {
+  margin: 5px 0px;
+  font-size: 0.9rem;
+}
+
+h3 {
+  border-top: solid 1px #4444;
+  padding-top: 10px;
+}
+
+video {
+  width: 100%;
+  transition: opacity 0.5s;
+}
+
+body {
+  padding: 0px;
+  margin: 0px;
+}
+
+#opts-container, #container, #logs-container {
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+}
+
+#opts-container {
+  opacity: 0;
+  transition: 0.3s;
+}
+
+.log-entry {
+  font-family: monospace;
+  font-size: 0.7rem;
+  margin-bottom: 5px;
+  border-bottom: solid 1px #4444;
+}
+
+.banner {
+  background-color: rgb(43, 149, 163);
+  color: white;
+  font-size: 1.1rem;
+  padding: 5px 10px;
+  height: 45px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+#scanstream-container {
+  /* border-top: solid 5px white; */
+  width: 100%;
+  background-color: black;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+#opts-hint {
+  border-top: solid 1px #4444;
+  padding-top: 10px;
+  margin-top: 10px;
+  color: #444;
+  font-size: 0.9rem;
+  text-decoration: underline;
+}
+
+.logo {
+  width: 80px;
+  height: 42px;
+  margin-right: 10px;
+}
+
+#results-container {
+  transition: 0.3s;
+  padding: 15px;
+  background-color: #eaeaea;
+  margin-top: 15px;
+  margin-left: 8px;
+  border-left: solid 5px limegreen;
+  opacity: 0;
+  display: none;
+}

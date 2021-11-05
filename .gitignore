@@ -36,5 +36,7 @@ dist
 test/playground/lib
 test/playground/scanthng.js
 test/unit/lib
+test/feature/lib
 test/discover-test-app/lib
+test/zxing-test-app/lib
 test/*.zip

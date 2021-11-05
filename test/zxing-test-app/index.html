@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>zxing-js/browser Test</title>
+
+    <link rel="stylesheet" type="text/css" href="./styles.css">
+  </head>
+  <body>
+    <div class="banner">
+      <img class="logo" src="./assets/evrythng.png"/>
+      <div style="font-size: 1.0rem;">zxing-js/browser Test</div>
+    </div>
+
+    <div id="scanstream-container"></div>
+    <div id="results-container">
+      <!-- Results here -->
+    </div>
+
+    <div id="container">
+      <div class="row">
+        <input type="button" class="stream-button" id="input-scanstream" value="Start">
+        <input type="button" class="stream-button" id="input-stopstream" value="Stop">
+      </div>
+
+      <br/>
+      <a id="opts-hint">Show advanced options</a>
+    </div>
+    <div id="opts-container">
+      <h3>API Key</h3>
+      <div class="row">
+        <input type="text" id="input-app-api-key" placeholder="Application API Key" class="input-app-api-key">
+        <input type="button" id="input-use-api-key" value="Use">
+      </div>
+
+      <h3>Logs</h3>
+      <div id="logs-container">
+        <!-- logs here -->
+      </div>
+    </div>
+
+    <!-- Dependencies -->
+    <script type="text/javascript" src="https://unpkg.com/@zxing/browser@latest"></script>
+
+    <!-- EVRYTHNG SDKs -->
+    <script src="https://d10ka0m22z5ju5.cloudfront.net/js/evrythng/6.0.3/evrythng-6.0.3.js"></script>
+    <script type="text/javascript" src="./lib/scanthng.js"></script>
+    
+    <!-- App -->
+    <script type="text/javascript" src="./index.js"></script>
+  </body>
+</html>

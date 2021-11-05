@@ -93,6 +93,108 @@ const promptImageDownload = (dataUrl) => {
   anchor.click();
 };
 
+/**
+ * Get dimensions for a cropped canvas based on percentage reduced from the edge.
+ * E.g: cropPercent = 0.1 means 10% cropped inwards.
+ *
+ * @param {object} canvas - Canvas to measure.
+ * @param {number} cropPercent - Amount to crop, from 0.1 to 1.0.
+ * @returns {object} { x, y, width, height } of the cropped canvas.
+ */
+const getCropDimensions = (canvas, cropPercent = 0) => {
+  if (typeof cropPercent !== 'number' || cropPercent < 0 || cropPercent > 0.9) {
+    throw new Error('cropPercent option must be between 0 and 0.9');
+  }
+
+  let x = 0;
+  let y = 0;
+  let { width, height } = canvas;
+
+  // No change requested
+  if (cropPercent === 0) {
+    return {
+      x, y, width, height,
+    };
+  }
+
+  // Crop to a central square
+  const isPortrait = height > width;
+  if (isPortrait) {
+    y = (height - width) / 2;
+    height = width;
+  } else {
+    x = (width - height) / 2;
+    width = height;
+  }
+
+  const margin = isPortrait ? cropPercent * width : cropPercent * height;
+  x += margin;
+  y += margin;
+  width -= margin;
+  height -= margin;
+
+  return {
+    x: Math.round(x),
+    y: Math.round(y),
+    width: Math.round(width),
+    height: Math.round(height),
+  };
+};
+
+/**
+ * Get the type name from the enum value for zxing-js/browser 1D code types.
+ *
+ * Based on https://github.com/zxing-js/library/blob/master/src/core/BarcodeFormat.ts
+ *
+ * @param {number} format - From the above enum.
+ * @returns {string} Compatible 'type' value for API query to fetch Thng/product.
+ */
+const getZxingBarcodeFormatType = (format) => {
+  const map = {
+    /** Aztec 2D barcode format. */
+    0: null,
+    /** CODABAR 1D format. */
+    1: 'codabar',
+    /** Code 39 1D format. */
+    2: 'code_39',
+    /** Code 93 1D format. */
+    3: 'code_93',
+    /** Code 128 1D format. */
+    4: 'code_128',
+    /** Data Matrix 2D barcode format. */
+    5: 'dm',
+    /** EAN-8 1D format. */
+    6: 'ean_8',
+    /** EAN-13 1D format. */
+    7: 'ean_13',
+    /** ITF (Interleaved Two of Five) 1D format. */
+    8: 'itf',
+    /** MaxiCode 2D barcode format. */
+    9: null,
+    /** PDF417 format. */
+    10: null,
+    /** QR Code 2D barcode format. */
+    11: null,
+    /** RSS 14 */
+    12: 'rss_14',
+    /** RSS EXPANDED */
+    13: 'rss_expanded',
+    /** UPC-A 1D format. */
+    14: 'upc_a',
+    /** UPC-E 1D format. */
+    15: 'upc_e',
+    /** UPC/EAN extension format. Not a stand-alone format. */
+    16: null,
+  };
+
+  // If it's not in this map, we can't lookup with ID Rec API
+  if (!map[format]) {
+    throw new Error(`Type returned by zxing-js/browser not supported by ID API: ${format}`);
+  }
+
+  return map[format];
+};
+
 if (typeof module !== 'undefined') {
   module.exports = {
     VIDEO_ELEMENT_ID,
@@ -103,5 +205,7 @@ if (typeof module !== 'undefined') {
     storeUser,
     insertVideoElement,
     promptImageDownload,
+    getCropDimensions,
+    getZxingBarcodeFormatType,
   };
 }

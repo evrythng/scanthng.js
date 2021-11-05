@@ -21,54 +21,8 @@ let stream;
 let frameIntervalHandle;
 let canvas;
 let digimarcDetector;
+let zxingReader;
 let requestPending = false;
-
-/**
- * Get dimensions for a cropped canvas based on percentage reduced from the edge.
- * E.g: cropPercent = 0.1 means 10% cropped inwards.
- *
- * @param {number} cropPercent - Amount to crop, from 0.1 to 1.0.
- * @returns {object} { x, y, width, height } of the cropped canvas.
- */
-const getCropDimensions = (cropPercent = 0) => {
-  if (typeof cropPercent !== 'number' || cropPercent < 0 || cropPercent > 0.9) {
-    throw new Error('cropPercent option must be between 0 and 0.9');
-  }
-
-  let x = 0;
-  let y = 0;
-  let { width, height } = canvas;
-
-  // No change requested
-  if (cropPercent === 0) {
-    return {
-      x, y, width, height,
-    };
-  }
-
-  // Crop to a central square
-  const isPortrait = height > width;
-  if (isPortrait) {
-    y = (height - width) / 2;
-    height = width;
-  } else {
-    x = (width - height) / 2;
-    width = height;
-  }
-
-  const margin = isPortrait ? cropPercent * width : cropPercent * height;
-  x += margin;
-  y += margin;
-  width -= margin;
-  height -= margin;
-
-  return {
-    x: Math.round(x),
-    y: Math.round(y),
-    width: Math.round(width),
-    height: Math.round(height),
-  };
-};
 
 /**
  * Get the image data from the canvas.
@@ -96,7 +50,7 @@ const getCanvasImageData = () => {
 const cropCanvasToSquare = (cropPercent) => {
   const {
     x, y, width, height,
-  } = getCropDimensions(cropPercent);
+  } = Utils.getCropDimensions(canvas, cropPercent);
 
   // Draw crop area onto cropCanvas
   const cropCanvas = document.createElement('canvas');
@@ -120,7 +74,7 @@ const cropCanvasToSquare = (cropPercent) => {
  * @param {ImageData} imgData - New image data to use.
  * @returns {Promise<void>}
  */
-const updateCanvasImageData = (imgData) => new Promise((resolve) => {
+const setCanvasImageData = (imgData) => new Promise((resolve) => {
   const img = new Image();
   img.onload = () => {
     const ctx = canvas.getContext('2d');
@@ -152,7 +106,7 @@ const scanDataUrl = (dataUrl, opts, scope, foundCb) => {
     .then((res) => {
       requestPending = false;
 
-      // Only stop scanning if a resource is found
+      // Only stop scanning if a code or resource is found
       if (res.length) foundCb(res);
     })
     .catch((err) => {
@@ -166,6 +120,47 @@ const scanDataUrl = (dataUrl, opts, scope, foundCb) => {
 };
 
 /**
+ * Update the canvas frame visible to the user.
+ */
+const updateCanvasFrame = () => {
+  const ctx = canvas.getContext('2d');
+  ctx.imageSmoothingEnabled = false;
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  ctx.drawImage(video, 0, 0);
+};
+
+/**
+ * Scan canvas with jsQR.
+ *
+ * @returns {object} jsQR result object.
+ */
+const scanWithJsQr = () => {
+  const { width, height } = canvas;
+  const imgData = getCanvasImageData();
+  if (!imgData) return undefined;
+
+  // Scan image data with jsQR
+  return window.jsQR(imgData.data, width, height);
+};
+
+/**
+ * Scan canvas with zxing-js/browser.
+ *
+ * @returns {object} - Scanned text and type name, if found.
+ */
+const scanWithZxing = () => {
+  try {
+    const zxingRes = zxingReader.decodeFromCanvas(canvas);
+    const formatType = Utils.getZxingBarcodeFormatType(zxingRes.getBarcodeFormat());
+    return { text: zxingRes.text, formatType };
+  } catch (err) {
+    // No codes found in sample
+    return undefined;
+  }
+};
+
+/**
  * Process a sample frame from the stream, and find any code present.
  * A callback is required since any promise per-frame won't necessarily resolve or reject.
  *
@@ -174,12 +169,11 @@ const scanDataUrl = (dataUrl, opts, scope, foundCb) => {
  * @param {object} [scope] - Application or Operator scope, if decoding with the API is to be used.
  */
 const scanSample = (opts, foundCb, scope) => {
+  // Source may not yet be ready
+  if (video.videoWidth === 0 || video.videoHeight === 0) return undefined;
+
   // Draw video frame onto the main canvas
-  const ctx = canvas.getContext('2d');
-  ctx.imageSmoothingEnabled = false;
-  canvas.width = video.videoWidth;
-  canvas.height = video.videoHeight;
-  ctx.drawImage(video, 0, 0);
+  updateCanvasFrame();
 
   // Extract required options
   const {
@@ -189,20 +183,29 @@ const scanSample = (opts, foundCb, scope) => {
     imageConversion = {},
   } = opts;
   const { cropPercent = 0 } = imageConversion;
-  const { width, height } = canvas;
 
-  // Client-side QR code scan
+  // Client-side QR code scan with jsQR
   if (method === '2d' && type === 'qr_code') {
-    const imgData = getCanvasImageData();
-    if (!imgData) return undefined;
+    const result = scanWithJsQr();
 
-    // Scan image data with jsQR
-    const result = window.jsQR(imgData.data, width, height);
     if (result) foundCb(result.data);
     return undefined;
   }
 
-  // If Application scope not specified, can't identify the code via the API.
+  // Client-side 1D barcode scan with zxing-js/browser, else fallback to API if not imported
+  if (method === '1d' && window.ZXingBrowser) {
+    const result = scanWithZxing();
+    if (!result) return undefined;
+
+    // Update filter to allow createResultObject to identify Thng/product
+    opts.filter.type = result.formatType;
+
+    // Resolve the scan value
+    foundCb(result.text);
+    return undefined;
+  }
+
+  // If Application scope not specified, can't use the API - can go no fuxrther here
   if (!scope) return undefined;
 
   // Crop canvas to square, if required
@@ -215,20 +218,15 @@ const scanSample = (opts, foundCb, scope) => {
   // Client-side digimarc pre-scan watermark detection
   if (method === 'digimarc' && useDiscover) {
     // For this mode, use the exact same post-compression data for discover.js and the API request.
-    return updateCanvasImageData(dataUrl)
+    return setCanvasImageData(dataUrl)
       .then(() => {
         // Perform Digimarc detection with discover.js
-        const imgData = getCanvasImageData();
-        const { width: imgDataWidth, height: imgDataHeight, data } = imgData;
+        const { width: imgDataWidth, height: imgDataHeight, data } = getCanvasImageData();
 
-        // Use discover.js if available
         const detectResult = digimarcDetector.detect(data, imgDataWidth, imgDataHeight);
 
-        // Notify application if it wants
-        if (onWatermarkDetected) {
-          // Check .watermark for a boolean result. x, y, width, height, rotation also available
-          onWatermarkDetected(detectResult);
-        }
+        // Check .watermark for a boolean result. x, y, width, height, rotation also available
+        if (onWatermarkDetected) onWatermarkDetected(detectResult);
 
         // If nothing was found in this frame, don't send to the API (save data usage)
         if (!detectResult.watermark) return undefined;
@@ -245,8 +243,6 @@ const scanSample = (opts, foundCb, scope) => {
  * Stop the video stream.
  */
 const stop = () => {
-  if (!frameIntervalHandle) return;
-
   clearInterval(frameIntervalHandle);
   frameIntervalHandle = null;
 
@@ -260,26 +256,51 @@ const stop = () => {
  *
  * @param {Object} opts - The scanning options.
  * @param {Object} [scope] - Application or Operator scope, if decoding with the API is to be used.
- * @returns {Promise} A Promise that resolves once recognition is completed.
+ * @returns {Promise<string>} A Promise that resolves the scan value once recognition is completed.
  */
 const findBarcodeInStream = (opts, scope) => {
+  canvas = document.createElement('canvas');
   video = document.getElementById(Utils.VIDEO_ELEMENT_ID);
   video.srcObject = stream;
   video.play();
 
-  canvas = document.createElement('canvas');
-
+  // Extract required options
   const {
     filter: { method, type },
     autoStop = true,
     useDiscover = false,
+    useZxing = false,
     imageConversion,
   } = opts;
   const usingDiscover = method === 'digimarc' && useDiscover;
   const usingJsQR = method === '2d' && type === 'qr_code';
+  const usingZxing = method === '1d' && useZxing;
+  const isLocalScan = usingJsQR || usingZxing;
 
-  // Local QR codes scans are fast, so can be more frequent
-  const interval = opts.interval || usingJsQR ? DEFAULT_LOCAL_INTERVAL : DEFAULT_REMOTE_INTERVAL;
+  // Local code scans are fast, so can be more frequent
+  const interval = opts.interval || (
+    isLocalScan ? DEFAULT_LOCAL_INTERVAL : DEFAULT_REMOTE_INTERVAL
+  );
+
+  // Pre-load related libraries
+  if (usingJsQR) {
+    if (!window.jsQR) throw new Error('jsQR (https://github.com/cozmo/jsQR) not found. You must include it in a <script> tag.');
+  }
+  if (usingDiscover) {
+    if (!window.DigimarcDetector) throw new Error('discover.js not found. You must include it (and associated WASM/wrapper) in a <script> tag');
+
+    digimarcDetector = new window.DigimarcDetector();
+  }
+  if (usingZxing) {
+    if (!window.ZXingBrowser) throw new Error('zxing-js/browser not found. You must include it in a <script> tag');
+
+    zxingReader = new window.ZXingBrowser.BrowserMultiFormatOneDReader();
+  }
+
+  // If not a local QR scan, or using discover.js and no Scope is available
+  if (!scope && !isLocalScan) {
+    throw new Error('Non-local code scanning requires specifying an Application or Operator scope for API access');
+  }
 
   // Autopilot recommended digimarc imageConversion settings
   if (usingDiscover && !imageConversion) {
@@ -290,22 +311,13 @@ const findBarcodeInStream = (opts, scope) => {
     opts.imageConversion = imageConversion || Media.DEFAULT_OPTIONS.imageConversion;
   }
 
-  // Pre-load discover.js + related libraries
-  if (usingDiscover) {
-    digimarcDetector = new window.DigimarcDetector();
-  }
-
-  // If not a local QR scan, or using discover.js and no Scope is available
-  if (!scope && (!usingJsQR || useDiscover)) {
-    throw new Error('Non-local code scanning requires specifying an Application or Operator scope for API access');
-  }
-
   return new Promise((resolve, reject) => {
     /**
      * Check a single frame, resolving if something is scanned.
      */
     const checkFrame = () => {
       try {
+        // If API requests take longer than the chosen interval, skip this frame.
         if (requestPending) return;
 
         // Scan each sample for a barcode
@@ -332,20 +344,14 @@ const findBarcodeInStream = (opts, scope) => {
  *
  * @param {Object} opts - The scanning options.
  * @param {Object} [scope] - Application or Operator scope, if decoding with the API is to be used.
- * @returns {Promise} Promise resolving the stream opened.
+ * @returns {Promise} Promise resolving the scan value once recognition is completed.
  */
 const scanCode = (opts, scope) => {
-  const { containerId, useDiscover } = opts;
+  const { containerId } = opts;
 
-  // Check required data and libraries are present
-  if (!window.jsQR) {
-    throw new Error('jsQR (https://github.com/cozmo/jsQR) not found. You must include it in a <script> tag.');
-  }
+  // Location of video container is required to place it
   if (!document.getElementById(containerId)) {
     throw new Error('Please specify \'containerId\' where the video element can be added as a child');
-  }
-  if (useDiscover && !window.DigimarcDetector) {
-    throw new Error('discover.js library not found. Set \'useDiscover: false\' to use the API only, or provide the library files.');
   }
 
   // Begin the stream by selecting a read facing camera
