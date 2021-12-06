@@ -355,6 +355,7 @@ This section details all of the available `options` values that can be passed to
 `scan()` or `scanStream()` when performing a scan.
 
 | Name     | Type      | Description                                                    |
+|----------|-----------|----------------------------------------------------------------|
 | `filter` | `object`  | Contains the `method` and `type` for the type of code to scan. |
 | `debug`  | `boolean` | Include debug information in the response.                     |
 
