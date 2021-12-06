@@ -160,8 +160,6 @@ const setupClickHandlers = () => {
       },
       containerId: SCANSTREAM_CONTAINER_ID,
       useZxing: true,
-      autoStop: false,
-      onScanValue: console.log,
     };
     console.log(JSON.stringify(opts, null, 2));
     test(() => window.scope.scanStream(opts));

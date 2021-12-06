@@ -7,6 +7,8 @@ const DEFAULT_LOCAL_INTERVAL = 500;
 const DEFAULT_REMOTE_INTERVAL = 1500;
 /** The minimum interval between image requests. */
 const MIN_REMOTE_INTERVAL = 1000;
+/** Repeat scan interval */
+const REPEAT_SCAN_INTERVAL = 1000;
 /** Optimal settings for digimarc and discover.js */
 const OPTIMAL_DIGIMARC_IMAGE_CONVERSION = {
   exportFormat: 'image/jpeg',
@@ -20,10 +22,11 @@ let video;
 let stream;
 let frameIntervalHandle;
 let canvas;
-let conversionImg;
+let drawImg;
 let digimarcDetector;
 let zxingReader;
 let framePending = false;
+let lastScanTime = 0;
 
 /**
  * Get the image data from the canvas.
@@ -76,16 +79,16 @@ const cropCanvasToSquare = (cropPercent) => {
  * @returns {Promise<void>}
  */
 const setCanvasImageData = (imgData) => new Promise((resolve) => {
-  if (!conversionImg) conversionImg = new Image();
+  if (!drawImg) drawImg = new Image();
 
-  conversionImg.src = null;
-  conversionImg.onload = () => {
+  drawImg.src = null;
+  drawImg.onload = () => {
     const ctx = canvas.getContext('2d');
     ctx.imageSmoothingEnabled = false;
-    ctx.drawImage(conversionImg, 0, 0);
+    ctx.drawImage(drawImg, 0, 0);
     resolve();
   };
-  conversionImg.src = imgData;
+  drawImg.src = imgData;
 });
 
 /**
@@ -336,8 +339,14 @@ const findBarcodeInStream = (opts, scope) => {
             return;
           }
 
-          // Keep returning values until explicitly stopped
-          onScanValue(scanValue);
+          // De-bounce continuous scans
+          const now = Date.now();
+          if (now - lastScanTime > REPEAT_SCAN_INTERVAL) {
+            lastScanTime = now;
+
+            // Keep returning values until explicitly stopped
+            onScanValue(scanValue);
+          }
         }, scope);
       } catch (e) {
         reject(e);
