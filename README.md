@@ -357,17 +357,19 @@ This section details all of the available `options` values that can be passed to
 | Name | Type | Default | Description |
 |------|------|---------|-------------|
 | `filter` | `object` | Required | Contains the `method` and `type` for the type of code to scan. See above for all available values. |
+| `autoStop` | `boolean` | `true` | Stop the stream and remove the video when the first scan result is obtained. |
+| `onScanResult` | `function` | None | When `autostop=false`, get multiple results using this callback. You must stop the video stream manually. |
+| `useDiscover` | `boolean` | `false` | (Digimarc only) Use `discover.js` to detect a watermark and only send likely frames to be decoded. Saves on bandwidth. |
+| `onWatermarkDetected` | `function` | None | Callback to be notifed when a frame may contain a watermark. Useful for showing in the UI when something is detected and a result is expected soon after. |
+| `useZxing` | `boolean` | `false` | (1D only) Use `zxing-js/browser` to decode locally. Check which code types are supported in `src/utils.js`. Currently, version `0.0.3` should be used to prevent issues on iOS. |
+| `idealWidth` | `number` | `1920` | Request an ideal video stream width, which _may_ be honored by the browser. |
+| `idealHeight` | `number` | `1080` | Request an ideal video stream height, which _may_ be honored by the browser. |
 | `imageConversion` | `object` | See `media.js` | Optional constraints for how a single image scan photo is processed before being sent to the API. |
 | `imageConversion.greyscale` | `boolean` | `true` | Convert the image to greyscale which can yield better results. |
 | `imageConversion.resizeTo` | `number` | `1000` | Sets the maximum size of the smaller dimension of the image. |
 | `imageConversion.exportQuality` | `number` | `0.8` | Sets the quality of exported image in relation to the original with `1` being the original quality. |
 | `imageConversion.exportFormat` | `string` | `image/png` | Sets the format of exported image, possible values are `image/png` and `image/jpeg`. |
 | `imageConversion.cropPercent` | `number` | `0` | (Digimarc only) Specify a square crop percentage. For example, `0.1` to crop 10% of each edge. | 
-| `useDiscover` | `boolean` | `false` | (Digimarc only) Use `discover.js` to detect a watermark and only send likely frames to be decoded. Saves on bandwidth. |
-| `onWatermarkDetected` | `function` | None | Callback to be notifed when a frame may contain a watermark. Useful for showing in the UI when something is detected and a result is expected soon after. |
-| `useZxing` | `boolean` | `false` | (1D only) Use `zxing-js/browser` to decode locally. Check which code types are supported in `src/utils.js`. Currently, version `0.0.3` should be used to prevent issues on iOS. |
-| `idealWidth` | `number` | `1920` | Request an ideal video stream width, which _may_ be honored by the browser. |
-| `idealHeight` | `number` | `1080` | Request an ideal video stream height, which _may_ be honored by the browser. |
 | `invisible` | `boolean` | `true` | Hide the input element used to prompt for file upload. |
 | `offline` | `boolean` | `false` | Do not attempt to resolve the scanned URL as an EVRYTHNG resource. |
 | `createAnonymousUser` | `boolean` | `false` | (Application scope only) Try to create an Anonymous User. |

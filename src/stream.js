@@ -20,9 +20,10 @@ let video;
 let stream;
 let frameIntervalHandle;
 let canvas;
+let conversionImg;
 let digimarcDetector;
 let zxingReader;
-let requestPending = false;
+let framePending = false;
 
 /**
  * Get the image data from the canvas.
@@ -48,8 +49,6 @@ const getCanvasImageData = () => {
  * @param {number} cropPercent - Percentage as a float to crop from edges (0.1 means 10% cropped).
  */
 const cropCanvasToSquare = (cropPercent) => {
-  if (cropPercent === 0) return;
-
   const {
     x, y, width, height,
   } = Utils.getCropDimensions(canvas, cropPercent);
@@ -77,14 +76,16 @@ const cropCanvasToSquare = (cropPercent) => {
  * @returns {Promise<void>}
  */
 const setCanvasImageData = (imgData) => new Promise((resolve) => {
-  const img = new Image();
-  img.onload = () => {
+  if (!conversionImg) conversionImg = new Image();
+
+  conversionImg.src = null;
+  conversionImg.onload = () => {
     const ctx = canvas.getContext('2d');
     ctx.imageSmoothingEnabled = false;
-    ctx.drawImage(img, 0, 0);
+    ctx.drawImage(conversionImg, 0, 0);
     resolve();
   };
-  img.src = imgData;
+  conversionImg.src = imgData;
 });
 
 /**
@@ -102,17 +103,17 @@ const scanDataUrl = (dataUrl, opts, scope, foundCb) => {
   // If required, prompt and wait for downloading the frame file
   if (downloadFrames) Utils.promptImageDownload(dataUrl);
 
-  requestPending = true;
+  framePending = true;
   return scope
     .scan(dataUrl, opts)
     .then((res) => {
-      requestPending = false;
+      framePending = false;
 
       // Only stop scanning if a code or resource is found
       if (res.length) foundCb(res);
     })
     .catch((err) => {
-      requestPending = false;
+      framePending = false;
 
       // Handle 'not found' for empty images based on API response
       if (err.errors && err.errors[0].includes('lacking sufficient detail')) return;
@@ -211,7 +212,7 @@ const scanSample = (opts, foundCb, scope) => {
   if (!scope) return undefined;
 
   // Crop canvas to square, if required
-  cropCanvasToSquare(cropPercent);
+  if (cropPercent) cropCanvasToSquare(cropPercent);
 
   // Use the correct format here in case downloadFrames is enabled
   const { exportFormat, exportQuality } = imageConversion;
@@ -273,6 +274,7 @@ const findBarcodeInStream = (opts, scope) => {
     imageConversion,
     useDiscover = false,
     useZxing = false,
+    onScanValue,
   } = opts;
   const usingDiscover = method === 'digimarc' && useDiscover;
   const usingJsQR = method === '2d' && type === 'qr_code';
@@ -304,6 +306,9 @@ const findBarcodeInStream = (opts, scope) => {
     throw new Error('Non-local code scanning requires specifying an Application or Operator scope for API access');
   }
 
+  // If not using autoStop, a callback is required
+  if (!autoStop && !onScanValue) throw new Error('onScanValue is required to get results when autoStop is disabled');
+
   // Autopilot recommended digimarc imageConversion settings
   if (usingDiscover && !imageConversion) {
     console.log(`Selecting optimal digimarc imageConversion: ${JSON.stringify(OPTIMAL_DIGIMARC_IMAGE_CONVERSION)}`);
@@ -320,14 +325,19 @@ const findBarcodeInStream = (opts, scope) => {
     const checkFrame = () => {
       try {
         // If API requests take longer than the chosen interval, skip this frame.
-        if (requestPending) return;
+        if (framePending) return;
 
         // Scan each sample for a barcode
         scanSample(opts, (scanValue) => {
-          // Unless specified otherwise, by default close the stream and remove the video
-          if (autoStop) stop();
+          // Close the stream, remove the video, and resolve the single value
+          if (autoStop) {
+            stop();
+            resolve(scanValue);
+            return;
+          }
 
-          resolve(scanValue);
+          // Keep returning values until explicitly stopped
+          onScanValue(scanValue);
         }, scope);
       } catch (e) {
         reject(e);
@@ -360,7 +370,7 @@ const scanCode = (opts, scope) => {
     throw new Error('Please specify \'containerId\' where the video element can be added as a child');
   }
 
-  // Begin the stream by selecting a read facing camera
+  // Begin the stream by selecting a read facing camera, the last usually being the HQ sensor
   return navigator.mediaDevices.enumerateDevices()
     .then((devices) => devices.filter((device) => device.kind === 'videoinput'))
     .then((devices) => navigator.mediaDevices.getUserMedia({
