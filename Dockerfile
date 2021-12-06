@@ -1,7 +1,7 @@
 FROM node:12-alpine
 
 # Install dependencies
-RUN apk add --no-cache python3
+RUN apk add --no-cache python3 py3-pip
 RUN pip3 install awscli --upgrade --user
 
 WORKDIR /srv
