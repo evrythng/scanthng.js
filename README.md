@@ -11,23 +11,29 @@ With `scanthng.js` there is no need to use a native mobile application to scan
 tags such as QR or EAN/UPC codes on products, or to recognize products in images -
 it works directly from any supported browser!
 
+When an EVRYTHNG product or Thng has a
+[redirection](https://developers.evrythng.com/v3.0/reference#redirections) set,
+the resulting short URL is shown in the Dashboard as a QR code (this can also be
+[generated via the API](https://developers.evrythng.com/v3.0/reference#section-generate-a-qr-code)
+if needed).
+
+After this is done, `scanthng.js` can be used to scan for this QR code when it
+is printed on a product using either `scan()` or `scanStream()` methods (see
+below).
+
 In addition to simply decoding QR codes, more than 20 barcode types can also be
-decoded. Identification of products from pre-submitted training image is also
-supported (see [_Image Recognition_](#image-recognition) below) which avoids the
-need for barcodes altogether. Both single image and video stream scanning is
-also offered, applicable for all kinds of scanning use-cases.
+decoded. Both single image and video stream scanning is also offered, applicable
+for all kinds of scanning use-cases.
 
 ## Contents
 
 * [Installation](#installation)
 * [Demo App](#demo-app)
 * [Account Setup](#account-setup)
-* [Product Setup](#product-setup)
-* [Application Setup](#product-setup)
+* [Available scan types](#available-scan-types)
 * [Scan a Single Photo](#scan-a-single-photo)
 * [Scan a Camera Stream](#scan-a-camera-stream)
 * [Scan a QR code value only](#scan-a-qr-code-value-only)
-* [Image Recognition](#image-recognition)
 * [Full Scan Options](#full-scan-options)
 * [Example Scenarios](#example-scenarios)
 
@@ -100,12 +106,10 @@ Before using this can be done you will need:
 - One or more products or Thngs that have redirections and `identifiers` set
   corresponding to the `type` chosen (see below).
 
-
-## Product Setup
-
 In order to be recognised when scanned, an EVRYTHNG product or Thng must have a
-redirection setup and optionally some `identifiers` to associate it with
-barcodes such as DataMatrix or UPC/EAN 13 etc.
+redirection set up. Depending on the `method` and `type` of code selections,
+some `identifiers` to associate the item with barcodes such as DataMatrix or
+UPC/EAN 13 etc. are required.
 
 For example, to associate a Thng with a datamatrix code:
 
@@ -133,38 +137,7 @@ or associating a product with an EAN-13 barcode:
 ```
 
 
-### QR Codes
-
-When a product or Thng has a
-[redirection](https://developers.evrythng.com/v3.0/reference#redirections) set,
-the resulting short URL is shown in the Dashboard as a QR code (this can also be
-[generated via the API](https://developers.evrythng.com/v3.0/reference#section-generate-a-qr-code)
-if needed).
-
-After this is done, `scanthng.js` can be used to scan for this QR code when it
-is printed on a product using either `scan()` or `scanStream()` methods (see
-below).
-
-
-### Product Identifiers
-
-In addition to the QR code generated when a product or Thng redirection is set,
-`scanthng.js` can also be used to identify other kinds of barcode, through
-various combinations of the `method` and `type` parameters in the `filter`
-option (see [_Scan a Single Photo_](#scan-a-single-photo) as an example).
-
-This recognition will only occur if the `type` specified is defined in the
-product or Thng's `identifiers`. For example, to associate a DataMatrix code
-`4389676390` with a product, it should contain the appropriate identifier:
-
-```
-{
-  "name": "Example Product",
-  "identifiers": {
-    "dm": "4389676390"
-  }
-}
-```
+## Available scan types
 
 The full range of `method` and `type` parameters are listed below:
 
@@ -172,26 +145,26 @@ The full range of `method` and `type` parameters are listed below:
 **`method: 2d`**
 
 `type`s available:
-- dm
-- qr_code
+- `dm`
+- `qr_code`
 
 **`method: 1d`**
 
 `type`s available:
-- codabar
-- code_11
-- code_39
-- code_93
-- code_128
-- ean_8
-- ean_13
-- industr_25
-- itf
-- rss_14
-- rss_expanded
-- rss_limited
-- upc_a
-- upc_e
+- `codabar`
+- `code_11`
+- `code_39`
+- `code_93`
+- `code_128`
+- `ean_8`
+- `ean_13`
+- `industr_25`
+- `itf`
+- `rss_14`
+- `rss_expanded`
+- `rss_limited`
+- `upc_a`
+- `upc_e`
 
 > Note: You can use `method: 1d` and `type: auto` after including
 > [`zxing-js/browser`](https://github.com/zxing-js/browser) to perform decoding
@@ -218,7 +191,7 @@ imageConversion: {
 }
 ```
 
-Additionally, make use of pre-imported discover.js with the `useDiscover`
+Additionally, make use of pre-imported `discover.js` with the `useDiscover`
 option to only send frames to the API when there is a high chance of decoding
 a Digimarc watermark. You can also get notified when detection results are
 available:
@@ -228,44 +201,25 @@ useDiscover: true,
 onWatermarkDetected: (discoverResult) => console.log(discoverResult),
 ```
 
-If `useDiscover` is enabled, make sure you also include discover.js and
+If `useDiscover` is enabled, make sure you also include `discover.js` and
 associated libraries as well.
-
-
-## Application Setup
-
-After the HTML page containing the `<script>` tags is loaded, the first step is
-to create an `Application` scope representing the EVRYTHNG application.
-
-> An Operator scope may also be used, but the `createAnonymousUser` option will
-> not be available.
-
-```js
-// Use this plugin with evrythng.js via the ScanThng global value
-evrythng.use(ScanThng);
-
-const APPLICATION_API_KEY = 'lyBVbCXyieBYjiWde9...';
-
-// Create an application scope
-const app = new evrythng.Application(APPLICATION_API_KEY);
-```
-
-This `app` will be able to identify all Thngs and products that are visible in
-its [project scope](https://developers.evrythng.com/v3.0/docs/scoping).
 
 
 ## Scan a Single Photo
 
-**Note: Due to browser security features, the `scan()` or `scanStream()` methods
-(without supplied image) Base64 data must be called as a result of a user
-action - a click event handler or similar.**
+> Note: Due to browser security features, the `scan()` or `scanStream()` methods
+> (without supplied image) Base64 data must be called as a result of a user
+> action - a click event handler or similar.
 
-Use the `scan()` method on an `App` scope to scan for a barcode or QR code. This
+Use the `scan()` method on an SDK scope to scan for a barcode or QR code. This
 method will use either the device's camera app, or a file browser depending on
-what is available.
+what is supported and available.
 
 ```js
-app.scan({
+// Operator, Application, or AccessToken can be used
+const operator = new evrythng.Operator(APP_API_KEY);
+
+operator.scan({
   // Specify the code type to be identified
   filter: { method: '2d', type: 'qr_code' },
 })
@@ -277,19 +231,45 @@ If photo data is already obtained, the raw Base64 format data can also be
 scanned without taking a new photo:
 
 ```js
-// Image converted to Base64 from disk or Canvas
+// Image converted to Base64 from disk or Canvas (truncated for brevity)
 const base64 = 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQE...';
 
 // Scan the data
-app.scan(base64)
+operator.scan(base64)
   .then(res => console.log(`Results: ${JSON.stringify(res)}`))
   .catch(err => console.log(err));
 ```
 
 See the
 [_Matching and Response_](https://developers.evrythng.com/v3.0/reference#section-matching-and-response)
-section to see the expected response format. Both recognised Thngs/products and
-metadata about the scan attempt is returned.
+section to see the expected response format. Both the recognised Thngs/products
+and metadata about the scan attempt is returned. An example is shown below:
+
+```json
+[
+  {
+    "results": [
+      {
+        "redirections": [
+          "https://tn.gg/Q9Wqcg4w"
+        ],
+        "product": {
+          "id": "UYKNDMGcswyFBdf6wr7M5Erm",
+          "properties": {},
+          "name": "Box of Cereals",
+          "identifiers": {}
+        }
+      }
+    ],
+    "meta": {
+      "method": "2d",
+      "score": 100,
+      "value": "https://tn.gg/Q9Wqcg4w",
+      "type": "qr_code"
+    }
+  }
+]
+```
 
 
 ## Scan a Camera Stream
@@ -300,22 +280,27 @@ barcode scanners including Google Lens and the iOS Camera app. This is achieved
 simply by using the `scanStream()` method instead of `scan()`, with a slightly
 different HTML page structure.
 
-This method uses [`jsQR.js`](https://github.com/cozmo/jsQR) to scan a video
-stream for **QR codes** locally in the browser via the native
+This method uses client-side libraries to scan a video stream for QR codes or
+1D barcodes locally in the browser via the native
 [`getUserMedia()`](https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia)
-Web API. To use the `scanStream()` method, make sure you add this library to 
-your project and include it with a `<script>` tag, for example:
+Web API. To use the `scanStream()` method, make sure you add the required
+library to  your project and include it with a `<script>` tag, for example:
 
 ```html
-<script src="./lib/jsQR/jsQR.js"></script>
+<!-- For QR codes (method=2d type=qr_code) use jsQR -->
+<script src="./lib/jsQR.js"></script>
+
+<!-- For 1D barcodes (method=1d type=auto) use zxing-js/browser -->
+<script type="text/javascript" src="https://unpkg.com/@zxing/browser@0.0.3"></script>
 ```
 
-The developer must supply the `id` of a container such as a `<div>` that the SDK
-can insert the camera viewfinder `<video>` element into. This `<video>` should
-be styled as desired to fit the application experience.
+Then, specify the `id` of a container such as a `<div>` that the SDK can insert
+the camera viewfinder `<video>` element into. This `<video>` should be styled as
+desired to fit the application experience.
 
 ```html
 <div id="stream_container">
+  <!-- video will be inserted here -->
 </div>
 ```
 
@@ -323,10 +308,11 @@ This container is then used when calling `scanStream()`. The results are in the
 same format as for the `scan()` method.
 
 ```js
-app.scanStream({
+// Scan locally for QR codes in a video stream every half-second
+operator.scanStream({
   filter: { method: '2d', type: 'qr_code' },
   containerId: 'stream_container',
-  interval: 300,
+  interval: 500,
 })
   .then(console.log)
   .catch(console.log);
@@ -338,24 +324,16 @@ instead of analysing the image locally, and at a slower rate by default
 (300ms vs 2000ms). The minimum scan rate for non-native scanning is 500ms.**
 
 
-## Scan a QR code value only
+### Scan a QR code value only
 
 If all you want to do is scan a QR code for a string representation, and do not
 require any kind of lookup of the corresponding Thng or product in the EVRYTHNG
-Platform, use the `scanQrCode()` method. This is similar to `scanStream()`
-available from an `Application` scope (see above), but doesn't communicate
+Platform, use convenience `scanQrCode()` method. This is similar to
+`scanStream()` available from an SDK scope (see above), but doesn't communicate
 with the Platform to enrich the results.
 
-The developer must supply the `id` of a container such as a `<div>` that the SDK
-can insert the camera viewfinder `<video>` element into. This `<video>` should
-be styled as desired to fit the application experience.
-
-```html
-<div id="stream_container">
-</div>
-```
-
-This container is then used when calling `scanQrCode()`. The result is a single
+Similar to the example above, a specified container ID is used, instead calling
+`scanQrCode()` with no SDK scope required. The result in this case is a single
 string decoded from the observed QR code.
 
 ```js
@@ -371,105 +349,14 @@ ScanThng.stopScanQrCode();
 ```
 
 
-## Image Recognition
-
-Image recognition allows you to recognize Products simply by taking a picture of
-the product itself. You can activate the image recognition functionality for any
-product through the Dashboard by clicking on "Setup image recognition" on that
-product's details page and uploading your reference images.
-
-Once this is set up, scan using the `ir` `method`:
-
-```js
-const filter = ;
-
-// Scan for products that match the training images
-app.scan({
-  filter: { method: 'ir', type: 'image' },
-})
-  .then(console.log)
-  .catch(console.log);
-```
-
-
-## Showing a Spinner
-
-Using [spin.js](http://spin.js.org)
-
-```js
-// use your custom id instead of 'spinner'
-var spinner = new Spinner().spin(document.getElementById('spinner'));
-
-app.scan()
-  .then(console.log)
-  .catch(console.log)
-  .then(() => spinner.stop());
-```
-
-
 ## Full Scan Options
 
-This list details all of the available `options` values that can be passed to
+This section details all of the available `options` values that can be passed to
 `scan()` or `scanStream()` when performing a scan.
 
-
-### `filter`
-Type: `String` or `Object`
-
-There are different identifier types available for each scanning method. You can
-easily filter out matches based on `method` or `type`. If `filter` option is not
-provided, both are detected automatically. Results are always ordered by score
-(highest first).
-
-```js
-// As an object
-filter: { method: '2d' },
-
-// as a string
-filter: 'method=2d',
-
-// as an array
-filter: {
-  method: ['2d', 'ir'],
-}
-
-// as a string list
-filter: 'method=2d,ir'
-```
-
-
-#### `filter.method`
-Type: `String`
-
-Available methods: `2d`, `1d`, `ir`, and `ocr` (beta).
-
-```js
-filter: {
-  method: '2d',
-}
-```
-
-
-#### `filter.type`
-Type: `String`
-
-Full list of `type` values is shown under
-[_Product Identifiers_](#product-identifiers).
-
-```js
-filter: {
-  type: 'qr_code'
-}
-```
-
-**NOTE:** When using `filter.type`, `filter.method` is irrelevant. When using
-both, `type` must fit the `method` chosen.
-
-
-### `debug`
-Type: `Boolean` Default: `false`
-
-Include debug information in response.
+| Name     | Type      | Description                                                    |
+| `filter` | `object`  | Contains the `method` and `type` for the type of code to scan. |
+| `debug`  | `boolean` | Include debug information in the response.                     |
 
 
 ### `perPage`
