@@ -354,82 +354,71 @@ ScanThng.stopScanQrCode();
 This section details all of the available `options` values that can be passed to
 `scan()` or `scanStream()` when performing a scan.
 
-| Name | Type | Description |
-|------|------|-------------|
-| `filter` | `object`  | Contains the `method` and `type` for the type of code to scan. See above for all available values. |
-| `debug` | `boolean` | Include debug information in the response. |
-| `imageConversion` | `object`  | Optional constraints for how a single image scan photo is processed before being sent to the API. |
-| `imageConversion.greyscale` | `boolean` | Convert the image to greyscale which can yield better results (default: `true`) |
-| `imageConversion.resizeTo` | `number` | Sets the maximum size of the smaller dimension of the image. (default: `1000`) |
-| `imageConversion.exportQuality` | `number` | Sets the quality of exported image in relation to the original with `1` being the original quality (default `0.8`) |
-| `imageConversion.exportFormat` | `string` | Sets the format of exported image, possible values are `image/png` and
-`image/jpeg` (default: `image/png`) |
-| `imageConversion.cropPercent` | `number` | (Digimarc only) Specify a square crop percentage. For example, `0.1` to crop 10% of each edge. (default: `0`) | 
-| `downloadFrames` | `boolean` | (API only) Prompt a file download for each frame just before the request is sent. Useful for debugging image format/quality. (default: `false`) |
-| `useDiscover` | `boolean` | (Digimarc only) Use `discover.js` to detect a watermark and only send likely frames to be decoded. Saves on bandwidth. (default: `false`) |
-| `onWatermarkDetected` | `function` | Callback to be notifed when a frame may contain a watermark. Useful for showing in the UI when something is detected and a result is expected soon after. |
-| `useZxing` | `boolean` | (1D only) Use `zxing-js/browser` to decode locally. Check which code types are supported in `src/utils.js`. Currently, version `0.0.3` should be used to prevent issues on iOS. (default: `false`) |
-| `invisible` | `boolean` | Hide the input element used to prompt for file upload. (default: `true`) |
-| `offline` | `boolean` | Do not attempt to resolve the scanned URL as an EVRYTHNG resource. (default: `false`) |
-| `createAnonymousUser` | `boolean` | (Application scope only) Try to create an Anonymous User (default: `false`) |
+| Name | Type | Default | Description |
+|------|------|---------|-------------|
+| `filter` | `object` | Required | Contains the `method` and `type` for the type of code to scan. See above for all available values. |
+| `debug` | `boolean` | `false` | Include debug information in the response. |
+| `imageConversion` | `object` | See `media.js` | Optional constraints for how a single image scan photo is processed before being sent to the API. |
+| `imageConversion.greyscale` | `boolean` | `true` | Convert the image to greyscale which can yield better results. |
+| `imageConversion.resizeTo` | `number` | `1000` | Sets the maximum size of the smaller dimension of the image. |
+| `imageConversion.exportQuality` | `number` | `0.8` | Sets the quality of exported image in relation to the original with `1` being the original quality. |
+| `imageConversion.exportFormat` | `string` | `image/png` | Sets the format of exported image, possible values are `image/png` and `image/jpeg`. |
+| `imageConversion.cropPercent` | `number` | `0` | (Digimarc only) Specify a square crop percentage. For example, `0.1` to crop 10% of each edge. | 
+| `downloadFrames` | `boolean` | `false` | (API only) Prompt a file download for each frame just before the request is sent. Useful for debugging image format/quality. |
+| `useDiscover` | `boolean` | `false` | (Digimarc only) Use `discover.js` to detect a watermark and only send likely frames to be decoded. Saves on bandwidth. |
+| `onWatermarkDetected` | `function` | None | Callback to be notifed when a frame may contain a watermark. Useful for showing in the UI when something is detected and a result is expected soon after. |
+| `useZxing` | `boolean` | `false` | (1D only) Use `zxing-js/browser` to decode locally. Check which code types are supported in `src/utils.js`. Currently, version `0.0.3` should be used to prevent issues on iOS. |
+| `invisible` | `boolean` | `true` Hide the input element used to prompt for file upload. |
+| `offline` | `boolean` | `false` | Do not attempt to resolve the scanned URL as an EVRYTHNG resource. |
+| `createAnonymousUser` | `boolean` | `false` | (Application scope only) Try to create an Anonymous User. |
 
 ## Example Scenarios
 
-Recognize the image using the Image Recognition service, read debug information
+Scan an image and redirect to URL (using redirections short URL).
 
 ```js
-app.scan({
-  filter: { method: 'ir' },
-  debug: true,
-}).then(matches => console.log(matches[0].meta.debug));
-```
-
-Recognize the image, redirect to URL (using redirections short URL).
-
-```js
-app.scan({
-  filter: { method: 'ir' },
-  perPage: 5,
+operator.scan({
+  filter: { method: '2d', type: 'qr_code' },
 }).then((matches) => {
   const result = matches[0].results[0];
 
   // Redirect the browser (this will create an implicitScan action)
-  return app.redirect(result.redirections[0]);
+  return operator.redirect(result.redirections[0]);
 });
 ```
 
-Recognize the image, then create a scan action and redirect to URL (using
+Scan an image, then create a scan action and redirect to URL (using
 reaction URL). **createAnonymousUser is required!**
 
 ```js
-app.scan({
-  filter: { method: '2d' },
+operator.scan({
+  filter: { method: '2d', type: 'dm' },
   createAnonymousUser: true,
 }).then((matches) => {
   const result = matches[0].results[0];
 
-  // Action made as a User
+  // Action made as an Anonymous User
   return result.thng.action('scans').create();
 }).then((action) => {
   console.log(action);
-  return app.redirect(action.reactions[0].redirectUrl);
+  return operator.redirect(action.reactions[0].redirectUrl);
 });
 ```
 
 Try to recognize the product, correct the incorrectly decoded value returned and
-try and identify the product again. In this example, `4` was omitted from the
-end of the barcode.
+try and identify the product again. In this example, `0` was omitted from the
+start of the barcode.
 
 ```js
-app.scan({
-  filter: { method: '2d' },
+operator.scan({
+  filter: { method: '1d', type: `ean_13` },
 }).then(matches => {
   const meta = matches[0].meta;
 
-  return app.identify({
+  return operator.identify({
     filter: {
       // Correct the value originally decoded
-      value: meta.value + '4',
+      value: '0' + meta.value,
       type: meta.type,
     }
   });
@@ -452,13 +441,6 @@ SDK.
 
 The `test` directories contain simple pages that allow quick testing of SDK
 functionality. See their respective `README.md` files for more details.
-
-
-## Related tools
-
-### evrythng.js
-
-[`evrythng.js`](https://github.com/evrythng/evrythng.js)
 
 
 ## Third-party Software
