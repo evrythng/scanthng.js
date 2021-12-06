@@ -349,7 +349,11 @@ const findBarcodeInStream = (opts, scope) => {
  * @returns {Promise} Promise resolving the scan value once recognition is completed.
  */
 const scanCode = (opts, scope) => {
-  const { containerId } = opts;
+  const {
+    containerId,
+    idealWidth = 1920,
+    idealHeight = 1080,
+  } = opts;
 
   // Location of video container is required to place it
   if (!document.getElementById(containerId)) {
@@ -363,8 +367,8 @@ const scanCode = (opts, scope) => {
       video: {
         facingMode: 'environment',
         deviceId: devices.length > 0 ? devices[devices.length - 1].deviceId : undefined,
-        width: { ideal: 1920 },
-        height: { ideal: 1080 },
+        width: { ideal: idealWidth },
+        height: { ideal: idealHeight },
       },
     }))
     .then((newStream) => {
