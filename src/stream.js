@@ -1,12 +1,12 @@
 const Utils = require('./utils');
 const Media = require('./media');
 
-/** The interval between QR code local stream samples. */
-const DEFAULT_LOCAL_INTERVAL = 300;
+/** The interval between local stream samples. */
+const DEFAULT_LOCAL_INTERVAL = 500;
 /** The interval between other image requests. */
 const DEFAULT_REMOTE_INTERVAL = 1500;
 /** The minimum interval between image requests. */
-const MIN_REMOTE_INTERVAL = 500;
+const MIN_REMOTE_INTERVAL = 1000;
 /** Optimal settings for digimarc and discover.js */
 const OPTIMAL_DIGIMARC_IMAGE_CONVERSION = {
   exportFormat: 'image/jpeg',
@@ -261,7 +261,7 @@ const stop = () => {
  * @returns {Promise<string>} A Promise that resolves the scan value once recognition is completed.
  */
 const findBarcodeInStream = (opts, scope) => {
-  canvas = document.createElement('canvas');
+  if (!canvas) canvas = document.createElement('canvas');
   video = document.getElementById(Utils.VIDEO_ELEMENT_ID);
   video.srcObject = stream;
   video.play();
@@ -270,9 +270,9 @@ const findBarcodeInStream = (opts, scope) => {
   const {
     filter: { method, type },
     autoStop = true,
+    imageConversion,
     useDiscover = false,
     useZxing = false,
-    imageConversion,
   } = opts;
   const usingDiscover = method === 'digimarc' && useDiscover;
   const usingJsQR = method === '2d' && type === 'qr_code';
@@ -336,7 +336,7 @@ const findBarcodeInStream = (opts, scope) => {
 
     frameIntervalHandle = setInterval(
       checkFrame,
-      usingJsQR ? interval : Math.max(MIN_REMOTE_INTERVAL, interval),
+      isLocalScan ? interval : Math.max(MIN_REMOTE_INTERVAL, interval),
     );
   });
 };
