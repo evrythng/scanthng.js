@@ -48,6 +48,8 @@ const getCanvasImageData = () => {
  * @param {number} cropPercent - Percentage as a float to crop from edges (0.1 means 10% cropped).
  */
 const cropCanvasToSquare = (cropPercent) => {
+  if (cropPercent === 0) return;
+
   const {
     x, y, width, height,
   } = Utils.getCropDimensions(canvas, cropPercent);
@@ -286,12 +288,12 @@ const findBarcodeInStream = (opts, scope) => {
   if (usingJsQR) {
     if (!window.jsQR) throw new Error('jsQR (https://github.com/cozmo/jsQR) not found. You must include it in a <script> tag.');
   }
-  if (usingDiscover) {
+  if (usingDiscover && !digimarcDetector) {
     if (!window.DigimarcDetector) throw new Error('discover.js not found. You must include it (and associated WASM/wrapper) in a <script> tag');
 
     digimarcDetector = new window.DigimarcDetector();
   }
-  if (usingZxing) {
+  if (usingZxing && !zxingReader) {
     if (!window.ZXingBrowser) throw new Error('zxing-js/browser not found. You must include it in a <script> tag');
 
     zxingReader = new window.ZXingBrowser.BrowserMultiFormatOneDReader();

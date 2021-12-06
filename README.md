@@ -560,6 +560,8 @@ detected and a result is expected soon after.
 #### `useZxing`
 Type: `Boolean` Default: `false`
 
+> Currently, version `0.0.3` should be used to prevent issues on iOS.
+
 When using `method: 1d` and `type: auto`, include zxing-js/browser` to perform
 1D barcode decoding locally instead of via the API. Check which code types are
 supported (i.e: are compatible with finding the corresponding Thng/product) in
