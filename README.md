@@ -354,151 +354,24 @@ ScanThng.stopScanQrCode();
 This section details all of the available `options` values that can be passed to
 `scan()` or `scanStream()` when performing a scan.
 
-| Name     | Type      | Description                                                    |
-|----------|-----------|----------------------------------------------------------------|
-| `filter` | `object`  | Contains the `method` and `type` for the type of code to scan. |
-| `debug`  | `boolean` | Include debug information in the response.                     |
-
-
-### `perPage`
-Type: `Integer`
-
-Max number of matches in response. To only get the best result, use `perPage: 1`.
-
-
-### `imageConversion`
-Type: `Object`
-
-Specifies optional constraints for how a single image scan photo is processed
-before being sent to the API. Does not apply for stream scanning.
-
-```js
-imageConversion: {
-  greyscale: Boolean,
-  resizeTo: Integer,
-  exportQuality: Float,
-  exportFormat: String
-}
-```
-
-
-#### `imageConversion.greyscale`
-Type: `Boolean` Default: `true`
-
-Indicates whether the library should send a black and white version of the
-scanned image for identification. If you do not need to distinguish similar
-images with different colors, this yields better and faster results.
-
-
-#### `imageConversion.resizeTo`
-Type: `Integer` Default: `600` Range: `144..`
-
-Sets the maximum *smaller* dimension of the image (in pixels, automatically
-resized) to be sent to the server for recognition. The best trade-off between
-speed and quality is currently around 600.
-
-
-#### `imageConversion.exportQuality`
-Type: `Integer` Default: `0.8` Range: `0..1`
-
-Sets the quality of exported image in relation to the original (1 being the
-original quality).
-
-
-#### `imageConversion.exportFormat`
-Type: `String` Default: `image/png`
-
-Sets the format of exported image, possible values are `image/png` and
-`image/jpeg`.
-
-
-#### `imageConversion.cropPercent`
-Type: `Integer` Default: `0` Range `0.1..1`
-
-When using `method: digimarc` and discover.js, allows cropping to a square by
-removing the percentage specified. For example, `0.3` to remove 30% from each
-side of the frame.
-
-
-#### `downloadFrames`
-Type: `Boolean` Default: `false`
-
-When using a method that uses the Identifier Recognition API, setting to `true`
-will prompt a file download for each frame just before the request is sent.
-Useful for debugging image format/quality.
-
-
-#### `useDiscover`
-Type: `Boolean` Default: `false`
-
-When using `method: digimarc`, include the required library to use discover.js
-to detect a Digimarc watermark in video frames and only send those the API that
-are likely to contain a result to be fully decoded. Saves on bandwidth.
-
-
-#### `onWatermarkDetected`
-Type: `Function` Default: `undefined`
-
-When using discover.js, specify a callback to be notifed when a frame is likely
-to contain a Digimarc watermark and is about to be sent to the API, and may
-produce a result. Useful for showing some activity in the UI when something is
-detected and a result is expected soon after.
-
-
-#### `useZxing`
-Type: `Boolean` Default: `false`
-
-> Currently, version `0.0.3` should be used to prevent issues on iOS.
-
-When using `method: 1d` and `type: auto`, include zxing-js/browser` to perform
-1D barcode decoding locally instead of via the API. Check which code types are
-supported (i.e: are compatible with finding the corresponding Thng/product) in
-the `getZxingBarcodeFormatType` map in `src/utils.js`.
-
-
-### `invisible`
-Type: `Boolean` Default: `true`
-
-If enabled, hides the `<input type=file>` element used to prompt for file
-upload.
-
-
-### `offline`
-Type: `Boolean` Default: `false`
-
-If enabled, will not attempt to resolve the scanned URL as an EVRYTHNG resource,
-but instead return a similar response with only the `meta.value` data set, which
-will contain the raw scanned string value.
-
-Note: If this option is enabled, no `implicitScans` action will be created via
-the normal URL resolution process.
-
-
-### `createAnonymousUser`
-Type: `Boolean` Default: `false`
-
-If enabled, `scanthng.js` will try to create an Anonymous User and save it in
-local storage for subsequent requests. For convenience, this User will be added
-to the output of the `scan()` method. In these scenarios, the item recognized is
-also converted into a resource.
-
-
-```js
-app.scan({
-  filter: 'method=2d',
-  createAnonymousUser: true
-}).then((matches) => {
-  console.log(matches[0].user);
-  console.log(matches[0].results[0].product);
-});
-```
-
-The most common use case for this is easily tracking users from the beginning,
-by device, without forcing them to create an account or login with Facebook in
-our "experience" app. Obviously, Anonymous Users are not as "valuable" as full
-App Users, because we don't store their personal details, but in some situations
-that's good enough.
-
+| Name | Type | Description |
+|------|------|-------------|
+| `filter` | `object`  | Contains the `method` and `type` for the type of code to scan. See above for all available values. |
+| `debug` | `boolean` | Include debug information in the response. |
+| `imageConversion` | `object`  | Optional constraints for how a single image scan photo is processed before being sent to the API. |
+| `imageConversion.greyscale` | `boolean` | Convert the image to greyscale which can yield better results (default: `true`) |
+| `imageConversion.resizeTo` | `number` | Sets the maximum size of the smaller dimension of the image. (default: `1000`) |
+| `imageConversion.exportQuality` | `number` | Sets the quality of exported image in relation to the original with `1` being the original quality (default `0.8`) |
+| `imageConversion.exportFormat` | `string` | Sets the format of exported image, possible values are `image/png` and
+`image/jpeg` (default: `image/png`) |
+| `imageConversion.cropPercent` | `number` | (Digimarc only) Specify a square crop percentage. For example, `0.1` to crop 10% of each edge. (default: `0`) | 
+| `downloadFrames` | `boolean` | (API only) Prompt a file download for each frame just before the request is sent. Useful for debugging image format/quality. (default: `false`) |
+| `useDiscover` | `boolean` | (Digimarc only) Use `discover.js` to detect a watermark and only send likely frames to be decoded. Saves on bandwidth. (default: `false`) |
+| `onWatermarkDetected` | `function` | Callback to be notifed when a frame may contain a watermark. Useful for showing in the UI when something is detected and a result is expected soon after. |
+| `useZxing` | `boolean` | (1D only) Use `zxing-js/browser` to decode locally. Check which code types are supported in `src/utils.js`. Currently, version `0.0.3` should be used to prevent issues on iOS. (default: `false`) |
+| `invisible` | `boolean` | Hide the input element used to prompt for file upload. (default: `true`) |
+| `offline` | `boolean` | Do not attempt to resolve the scanned URL as an EVRYTHNG resource. (default: `false`) |
+| `createAnonymousUser` | `boolean` | (Application scope only) Try to create an Anonymous User (default: `false`) |
 
 ## Example Scenarios
 
