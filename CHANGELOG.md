@@ -1,3 +1,105 @@
+# v4.11.0
+
+## Features
+
+- Adjust minimum allowed local scanning intervals.
+- Add `idealWidth` and `idealHeight` options to adjust the request for video stream constraints.
+- Add `onScanValue` callback option, to be used when `autoStop` is `false` to receive scan values instead of via promise resolution.
+
+## Other
+
+- Reduce objects allocated on each invocation and on each frame.
+- Clean up `README.md` and make the full list of options more readable.
+
+# v4.10.0 (05-11-2021)
+
+## Features
+
+- Add ability to scan 1D barcodes locally with `zxing-js/browser`, in addition to the already implemented local scanning of 2D barcodes with `jsQR`. To use, include the library and use the following options:
+
+  ```html
+  <script type="text/javascript" src="https://unpkg.com/@zxing/browser@latest"></script>
+  ```
+
+  ```js
+  const opts = {
+    filter: {
+      method: '1d',
+      type: 'auto',
+    },
+    containerId: SCANSTREAM_CONTAINER_ID,
+    useZxing: true,
+  };
+
+  const res = await operator.scanStream(opts);
+  console.log(res);
+  ```
+
+  If the scanned value has a [mappable type](https://github.com/evrythng/scanthng.js/blob/master/src/utils.js#L152) to the EVRYTHNG Identifier Recognition API, the usual Thng/product lookup by `identifiers` will be done and a Thng or product included in the results.
+
+  See the `test/zxing-test-app` directory for a full usable example.
+
+## Other
+
+* Tidy up example apps
+* Tidy up feature tests
+* Improve `README.md`
+
+# v4.9.0 (24-09-2021)
+
+## Features
+
+- Updated the integration with Digimarc `discover.js` to use the latest version of the library (v1.0.0), if configured to do so and the library files are included first.
+
+- `onWatermarkDetected` now passes the full result from `discover.js`, not just the detected state.
+
+Before this version:
+
+```js
+operator.scanStream({
+  containerId,
+  filter,
+  useDiscover: true,
+  onWatermarkDetected: (detected) => console.log(`Watermark detected: ${detected}`),
+}).then(console.log);
+```
+
+After this version:
+
+```js
+operator.scanStream({
+  containerId,
+  filter,
+  useDiscover: true,
+  onWatermarkDetected: (discoverResult) => {
+    const detected = discoverResult.watermark;
+
+    // x, y, width, height, rotation also available
+    console.log(discoverResult);
+  },
+}).then(console.log);
+```
+
+# v4.8.0 (07-07-2021)
+
+## Features
+
+- Add `useDiscover` option to enable client-side Digimarc watermark sensing, if the library is also made available.
+- Add `onWatermarkDetected` option to get called when the detection state changes.
+- Add `imageConversion.cropPercent` option to square crop some of the sent frame when `useDiscover` is `true`.
+- Add `downloadFrames` option to prompt file download for frames sent to the API.
+- Add `setTorchEnabled` to enable the torch, on supported devices, while the video stream is open.
+- When `method` is `digimarc`, autoselect `imageConversion` options if not already specified.
+
+## Other changes
+
+- Replace `MegaPixImage` dependency with native canvas scaling.
+- Update default remote image frame send interval to 1500ms.
+- Add new `discover-test-app`.
+- Rework `stream.js` so that the same post-compression image data is given to discover _and_ the API.
+- Apply `eslint` with `eslint-config-airbnb` where there was no linter before.
+
+
 # v4.6.0 (02-03-2021)
 
 ## Features
