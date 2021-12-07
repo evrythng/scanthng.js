@@ -189,6 +189,33 @@ const testScanStream = async () => {
     scope.stopStream();
     return true;
   });
+
+  await it('scanStream - should open a camera stream and scan repeatedly', async () => {
+    alert('Please scan any QR code three times');
+
+    let scanCount = 0;
+    return new Promise((resolve) => {
+      scope.scanStream({
+        filter: { method: '2d', type: 'qr_code' },
+        containerId: CONTAINER_ID,
+        autoStop: false,
+        /**
+         * Callback when a value is scanned
+         * @param {*} value 
+         */
+        onScanValue: (value) => {
+          console.log({ scanCount, value });
+          scanCount += 1;
+
+          // After three, pass the test
+          if (scanCount === 3) {
+            scope.stopStream();
+            resolve(true);
+          }
+        }
+      });
+    });
+  });
 };
 
 /**

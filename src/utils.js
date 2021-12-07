@@ -69,9 +69,7 @@ const restoreUser = (app, User) => {
  */
 const insertVideoElement = (containerId) => {
   // Prevent duplicates
-  if (document.getElementById(VIDEO_ELEMENT_ID)) {
-    return;
-  }
+  if (document.getElementById(VIDEO_ELEMENT_ID)) return;
 
   const video = document.createElement('video');
   video.id = VIDEO_ELEMENT_ID;

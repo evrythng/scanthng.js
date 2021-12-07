@@ -1,12 +1,14 @@
 const Utils = require('./utils');
 const Media = require('./media');
 
-/** The interval between QR code local stream samples. */
-const DEFAULT_LOCAL_INTERVAL = 300;
+/** The interval between local stream samples. */
+const DEFAULT_LOCAL_INTERVAL = 500;
 /** The interval between other image requests. */
 const DEFAULT_REMOTE_INTERVAL = 1500;
 /** The minimum interval between image requests. */
-const MIN_REMOTE_INTERVAL = 500;
+const MIN_REMOTE_INTERVAL = 1000;
+/** Repeat scan interval */
+const REPEAT_SCAN_INTERVAL = 1000;
 /** Optimal settings for digimarc and discover.js */
 const OPTIMAL_DIGIMARC_IMAGE_CONVERSION = {
   exportFormat: 'image/jpeg',
@@ -20,9 +22,11 @@ let video;
 let stream;
 let frameIntervalHandle;
 let canvas;
+let drawImg;
 let digimarcDetector;
 let zxingReader;
-let requestPending = false;
+let framePending = false;
+let lastScanTime = 0;
 
 /**
  * Get the image data from the canvas.
@@ -75,14 +79,16 @@ const cropCanvasToSquare = (cropPercent) => {
  * @returns {Promise<void>}
  */
 const setCanvasImageData = (imgData) => new Promise((resolve) => {
-  const img = new Image();
-  img.onload = () => {
+  if (!drawImg) drawImg = new Image();
+
+  drawImg.src = null;
+  drawImg.onload = () => {
     const ctx = canvas.getContext('2d');
     ctx.imageSmoothingEnabled = false;
-    ctx.drawImage(img, 0, 0);
+    ctx.drawImage(drawImg, 0, 0);
     resolve();
   };
-  img.src = imgData;
+  drawImg.src = imgData;
 });
 
 /**
@@ -100,17 +106,17 @@ const scanDataUrl = (dataUrl, opts, scope, foundCb) => {
   // If required, prompt and wait for downloading the frame file
   if (downloadFrames) Utils.promptImageDownload(dataUrl);
 
-  requestPending = true;
+  framePending = true;
   return scope
     .scan(dataUrl, opts)
     .then((res) => {
-      requestPending = false;
+      framePending = false;
 
       // Only stop scanning if a code or resource is found
       if (res.length) foundCb(res);
     })
     .catch((err) => {
-      requestPending = false;
+      framePending = false;
 
       // Handle 'not found' for empty images based on API response
       if (err.errors && err.errors[0].includes('lacking sufficient detail')) return;
@@ -209,7 +215,7 @@ const scanSample = (opts, foundCb, scope) => {
   if (!scope) return undefined;
 
   // Crop canvas to square, if required
-  cropCanvasToSquare(cropPercent);
+  if (cropPercent) cropCanvasToSquare(cropPercent);
 
   // Use the correct format here in case downloadFrames is enabled
   const { exportFormat, exportQuality } = imageConversion;
@@ -259,7 +265,7 @@ const stop = () => {
  * @returns {Promise<string>} A Promise that resolves the scan value once recognition is completed.
  */
 const findBarcodeInStream = (opts, scope) => {
-  canvas = document.createElement('canvas');
+  if (!canvas) canvas = document.createElement('canvas');
   video = document.getElementById(Utils.VIDEO_ELEMENT_ID);
   video.srcObject = stream;
   video.play();
@@ -268,9 +274,10 @@ const findBarcodeInStream = (opts, scope) => {
   const {
     filter: { method, type },
     autoStop = true,
+    imageConversion,
     useDiscover = false,
     useZxing = false,
-    imageConversion,
+    onScanValue,
   } = opts;
   const usingDiscover = method === 'digimarc' && useDiscover;
   const usingJsQR = method === '2d' && type === 'qr_code';
@@ -286,12 +293,12 @@ const findBarcodeInStream = (opts, scope) => {
   if (usingJsQR) {
     if (!window.jsQR) throw new Error('jsQR (https://github.com/cozmo/jsQR) not found. You must include it in a <script> tag.');
   }
-  if (usingDiscover) {
+  if (usingDiscover && !digimarcDetector) {
     if (!window.DigimarcDetector) throw new Error('discover.js not found. You must include it (and associated WASM/wrapper) in a <script> tag');
 
     digimarcDetector = new window.DigimarcDetector();
   }
-  if (usingZxing) {
+  if (usingZxing && !zxingReader) {
     if (!window.ZXingBrowser) throw new Error('zxing-js/browser not found. You must include it in a <script> tag');
 
     zxingReader = new window.ZXingBrowser.BrowserMultiFormatOneDReader();
@@ -301,6 +308,9 @@ const findBarcodeInStream = (opts, scope) => {
   if (!scope && !isLocalScan) {
     throw new Error('Non-local code scanning requires specifying an Application or Operator scope for API access');
   }
+
+  // If not using autoStop, a callback is required
+  if (!autoStop && !onScanValue) throw new Error('onScanValue is required to get results when autoStop is disabled');
 
   // Autopilot recommended digimarc imageConversion settings
   if (usingDiscover && !imageConversion) {
@@ -318,14 +328,25 @@ const findBarcodeInStream = (opts, scope) => {
     const checkFrame = () => {
       try {
         // If API requests take longer than the chosen interval, skip this frame.
-        if (requestPending) return;
+        if (framePending) return;
 
         // Scan each sample for a barcode
         scanSample(opts, (scanValue) => {
-          // Unless specified otherwise, by default close the stream and remove the video
-          if (autoStop) stop();
+          // Close the stream, remove the video, and resolve the single value
+          if (autoStop) {
+            stop();
+            resolve(scanValue);
+            return;
+          }
 
-          resolve(scanValue);
+          // De-bounce continuous scans
+          const now = Date.now();
+          if (now - lastScanTime > REPEAT_SCAN_INTERVAL) {
+            lastScanTime = now;
+
+            // Keep returning values until explicitly stopped
+            onScanValue(scanValue);
+          }
         }, scope);
       } catch (e) {
         reject(e);
@@ -334,7 +355,7 @@ const findBarcodeInStream = (opts, scope) => {
 
     frameIntervalHandle = setInterval(
       checkFrame,
-      usingJsQR ? interval : Math.max(MIN_REMOTE_INTERVAL, interval),
+      isLocalScan ? interval : Math.max(MIN_REMOTE_INTERVAL, interval),
     );
   });
 };
@@ -347,22 +368,26 @@ const findBarcodeInStream = (opts, scope) => {
  * @returns {Promise} Promise resolving the scan value once recognition is completed.
  */
 const scanCode = (opts, scope) => {
-  const { containerId } = opts;
+  const {
+    containerId,
+    idealWidth = 1920,
+    idealHeight = 1080,
+  } = opts;
 
   // Location of video container is required to place it
   if (!document.getElementById(containerId)) {
     throw new Error('Please specify \'containerId\' where the video element can be added as a child');
   }
 
-  // Begin the stream by selecting a read facing camera
+  // Begin the stream by selecting a read facing camera, the last usually being the HQ sensor
   return navigator.mediaDevices.enumerateDevices()
     .then((devices) => devices.filter((device) => device.kind === 'videoinput'))
     .then((devices) => navigator.mediaDevices.getUserMedia({
       video: {
         facingMode: 'environment',
         deviceId: devices.length > 0 ? devices[devices.length - 1].deviceId : undefined,
-        width: { ideal: 1920 },
-        height: { ideal: 1080 },
+        width: { ideal: idealWidth },
+        height: { ideal: idealHeight },
       },
     }))
     .then((newStream) => {
