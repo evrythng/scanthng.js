@@ -375,6 +375,7 @@ This section details all of the available `options` values that can be passed to
 | `createAnonymousUser` | `boolean` | `false` | (Application scope only) Try to create an Anonymous User. |
 | `debug` | `boolean` | `false` | Include debug information in the response. |
 | `downloadFrames` | `boolean` | `false` | (API only) Prompt a file download for each frame just before the request is sent. Useful for debugging image format/quality. |
+| `onScanFrameData` | `function` | None | Callback to receive video frame when a scan value was decoded, for local scan types only. |
 
 ## Example Scenarios
 

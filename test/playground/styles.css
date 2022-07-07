@@ -38,3 +38,8 @@ select {
 video, #scanstream-container, #scancode-container {
   max-width: 640px;
 }
+
+#img-scan-frame {
+  width: 480px;
+  height: auto;
+}

@@ -31,6 +31,7 @@ const UI = {
   inputScanstreamType: get('input-scanstream-type'),
   inputScanstreamOffline: get('input-scanstream-offline'),
   inputScanstreamAutostop: get('input-scanstream-autostop'),
+  imgScanFrame: get('img-scan-frame'),
 };
 
 /** Container ID for scanStream */
@@ -168,8 +169,18 @@ const onLoad = () => {
         greyscale: false,
         resizeTo: 1080,
       },
+      ...(!autoStop && { onScanValue: console.log }),
+      onScanFrameData: (base64) => {
+        // Show the frame at the point of decode
+        UI.imgScanFrame.src = base64;
+      },
     };
-    testFunction(() => window.scope.scanStream(opts));
+    testFunction(() => {
+      // Clear last image
+      UI.imgScanFrame.src = undefined;
+
+      window.scope.scanStream(opts);
+    });
   });
 
   UI.buttonStopStream.addEventListener('click', () => {

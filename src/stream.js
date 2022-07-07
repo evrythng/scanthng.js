@@ -137,6 +137,17 @@ const updateCanvasFrame = () => {
 };
 
 /**
+ * Get latest canvas dataUrl.
+ *
+ * @param {object} imageConversion - Selected image conversion options.
+ * @returns {string} Image data URL.
+ */
+const getCanvasDataUrl = (imageConversion) => {
+  const { exportFormat, exportQuality } = imageConversion;
+  return canvas.toDataURL(exportFormat, exportQuality);
+};
+
+/**
  * Scan canvas with jsQR.
  *
  * @returns {object} jsQR result object.
@@ -218,8 +229,7 @@ const scanSample = (opts, foundCb, scope) => {
   if (cropPercent) cropCanvasToSquare(cropPercent);
 
   // Use the correct format here in case downloadFrames is enabled
-  const { exportFormat, exportQuality } = imageConversion;
-  const dataUrl = canvas.toDataURL(exportFormat, exportQuality);
+  const dataUrl = getCanvasDataUrl(imageConversion);
 
   // Client-side digimarc pre-scan watermark detection
   if (method === 'digimarc' && useDiscover) {
@@ -278,6 +288,7 @@ const findBarcodeInStream = (opts, scope) => {
     useDiscover = false,
     useZxing = false,
     onScanValue,
+    onScanFrameData,
   } = opts;
   const usingDiscover = method === 'digimarc' && useDiscover;
   const usingJsQR = method === '2d' && type === 'qr_code';
@@ -332,9 +343,14 @@ const findBarcodeInStream = (opts, scope) => {
 
         // Scan each sample for a barcode
         scanSample(opts, (scanValue) => {
-          // Close the stream, remove the video, and resolve the single value
           if (autoStop) {
+            // Close the stream, remove the video, and resolve the single value
             stop();
+
+            // Provide the image frame if required
+            if (onScanFrameData) onScanFrameData(getCanvasDataUrl(opts.imageConversion));
+
+            // Resolve the scan value to the caller
             resolve(scanValue);
             return;
           }
@@ -343,6 +359,9 @@ const findBarcodeInStream = (opts, scope) => {
           const now = Date.now();
           if (now - lastScanTime > REPEAT_SCAN_INTERVAL) {
             lastScanTime = now;
+
+            // Provide the image frame if required
+            if (onScanFrameData) onScanFrameData(getCanvasDataUrl(opts.imageConversion));
 
             // Keep returning values until explicitly stopped
             onScanValue(scanValue);
