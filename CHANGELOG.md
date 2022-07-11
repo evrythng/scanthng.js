@@ -1,3 +1,27 @@
+# v4.12.0 (11-07-2022)
+
+## Features
+
+- Add `onScanFrameData` option that allows an app to obtain an image of the video stream at the point
+  in time a code was scanned, which can be useful for driving UIs. It accepts a callback function
+  that is called with the base64 image data in the chosen `imageConversion` format:
+
+  ```js
+  const opts = {
+    filter: { method, type },
+    containerId,
+    onScanFrameData: (base64) => {
+      // Show the frame at the point of decode
+      img.src = base64;
+    },
+  };
+
+  const res = await operator.scanStream(opts);
+  console.log(res);
+  ```
+
+  If the `autoStop: false` option is used, then this callback is called for each successive scan.
+
 # v4.11.0
 
 ## Features
