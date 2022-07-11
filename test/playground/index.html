@@ -63,33 +63,39 @@
 
     <h3>.scanStream({ filter, containerId })</h3>
     <p>Native scanning occurs only for <code>method: 2d</code> and <code>type: qr_code</code>.</p>
-    <table>
-      <tr>
-        <td><span>method:</span></td>
-        <td><input type="text" id="input-scanstream-method" placeholder="method" value="2d"></td>
-      </tr>
-      <tr>
-        <td><span>type:</span></td>
-        <td><input type="text" id="input-scanstream-type" placeholder="type" value="qr_code"></td>
-      </tr>
-      <tr>
-        <td><span>offline:</span></td>
-        <td><input type="checkbox" id="input-scanstream-offline"></td>
-      </tr>
-      <tr>
-        <td><span>close viewfinder on scan:</span></td>
-        <td><input type="checkbox" id="input-scanstream-autostop" checked></td>
-      </tr>
-      <tr>
-        <td colspan="2"><input type="button" id="input-scanstream" value="Scan Stream"></td>
-      </tr>
-      <tr>
-        <td colspan="2"><input type="button" id="input-stopstream" value="Stop Stream"></td>
-      </tr>
-      <tr>
-        <td colspan="2"><div id="scanstream-container"></td>
-      </tr>
-    </table>
+    <div style="display: flex; flex-direction: row;">
+      <table>
+        <tr>
+          <td><span>method:</span></td>
+          <td><input type="text" id="input-scanstream-method" placeholder="method" value="2d"></td>
+        </tr>
+        <tr>
+          <td><span>type:</span></td>
+          <td><input type="text" id="input-scanstream-type" placeholder="type" value="qr_code"></td>
+        </tr>
+        <tr>
+          <td><span>offline:</span></td>
+          <td><input type="checkbox" id="input-scanstream-offline"></td>
+        </tr>
+        <tr>
+          <td><span>close viewfinder on scan:</span></td>
+          <td><input type="checkbox" id="input-scanstream-autostop" checked></td>
+        </tr>
+        <tr>
+          <td colspan="2"><input type="button" id="input-scanstream" value="Scan Stream"></td>
+        </tr>
+        <tr>
+          <td colspan="2"><input type="button" id="input-stopstream" value="Stop Stream"></td>
+        </tr>
+        <tr>
+          <td colspan="2"><div id="scanstream-container"></td>
+        </tr>
+      </table>
+      <div style="display: flex; flex-direction: column; margin-left: 25px;">
+        <span>Frame at time of scan:</span>
+        <img id="img-scan-frame"/>
+      </div>
+    </div>
 
     <h3>.scanQrCode(containerId)</h3>
     <p>Returns scanned string value, does not require a scope</code>.</p>

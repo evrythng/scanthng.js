@@ -66,7 +66,7 @@ Include using a script tag:
 Add the script tag to your HTML page, specifying the version you will use:
 
 ```html
-<script src="https://d10ka0m22z5ju5.cloudfront.net/js/scanthng/4.11.0/scanthng-4.11.0.js"></script>
+<script src="https://d10ka0m22z5ju5.cloudfront.net/js/scanthng/4.12.0/scanthng-4.12.0.js"></script>
 ```
 
 ### Supported Devices
@@ -375,6 +375,7 @@ This section details all of the available `options` values that can be passed to
 | `createAnonymousUser` | `boolean` | `false` | (Application scope only) Try to create an Anonymous User. |
 | `debug` | `boolean` | `false` | Include debug information in the response. |
 | `downloadFrames` | `boolean` | `false` | (API only) Prompt a file download for each frame just before the request is sent. Useful for debugging image format/quality. |
+| `onScanFrameData` | `function` | None | Callback to receive video frame when a scan value was decoded, for local scan types only. |
 
 ## Example Scenarios
 
