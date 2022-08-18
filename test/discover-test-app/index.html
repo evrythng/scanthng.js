@@ -23,7 +23,8 @@
     </div>
 
     <div id="container">
-      <div class="row">
+      <p>Open dev-tools console to see detailed data and errors.</p>
+      <div class="row" style="padding-top: 10px;">
         <input type="button" class="stream-button" id="input-scanstream" value="Start">
         <input type="button" class="stream-button" id="input-stopstream" value="Stop">
       </div>
@@ -36,17 +37,14 @@
           <option value="discover">discover (v5)</option>
         </select>
       </div>
-      <div class="row">The video will dim when a watermark is detected.</div>
+      <div class="row">
+        <p>The video will dim when a watermark is detected.</p>
+      </div>
 
       <br/>
-      <a id="opts-hint">Show advanced options</a>
+      <a id="opts-hint" style="cursor: pointer;">Show advanced options</a>
     </div>
     <div id="opts-container">
-      <h3>API Key</h3>
-      <div class="row">
-        <input type="text" id="input-app-api-key" placeholder="Application API Key" class="input-app-api-key">
-        <input type="button" id="input-use-api-key" value="Use">
-      </div>
       <h3>Scan Options</h3>
       <table>
         <tr>
