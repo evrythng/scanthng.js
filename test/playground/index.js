@@ -1,7 +1,7 @@
 evrythng.use(ScanThng);
 
 // Only Operators and AccessTokens for v2, else switch to v1 for Application
-evrythng.setup({ apiVersion: 1 });
+evrythng.setup({ apiVersion: 2 });
 
 /**
  * Get an element by ID.
@@ -164,6 +164,7 @@ const onLoad = () => {
       containerId: SCANSTREAM_CONTAINER_ID,
       offline,
       autoStop,
+      useZxing: method === '1d',
       imageConversion: {
         exportFormat: 'image/jpeg',
         greyscale: false,
@@ -179,7 +180,7 @@ const onLoad = () => {
       // Clear last image
       UI.imgScanFrame.src = undefined;
 
-      window.scope.scanStream(opts);
+      return window.scope.scanStream(opts);
     });
   });
 
