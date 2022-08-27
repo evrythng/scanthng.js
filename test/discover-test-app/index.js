@@ -19,9 +19,7 @@ const SCANSTREAM_CONTAINER_ID = 'scanstream-container';
 const UI = {
   buttonScanStream: get('input-scanstream'),
   buttonStopStream: get('input-stopstream'),
-  buttonUseKey: get('input-use-api-key'),
 
-  inputApiKey: get('input-app-api-key'),
   inputScanstreamType: get('select-scanstream-type'),
   inputScanstreamDiscover: get('input-scanstream-discover'),
   inputScanstreamGreyscale: get('input-scanstream-greyscale'),
@@ -66,17 +64,17 @@ console.log = (msg) => {
 const getQueryParam = (key) => new URLSearchParams(window.location.search).get(key);
 
 /**
- * Load Application scope.
+ * Load SDK scope.
  */
 const loadScope = () => {
-  const appApiKey = getQueryParam('app');
   const operatorApiKey = getQueryParam('operator');
-  if (!appApiKey && !operatorApiKey) return;
+  if (!operatorApiKey) {
+    document.body.style.display = 'none';
+    setTimeout(() => alert('Please specify Operator API key as \'operator\' query parameter.'), 10);
+    return;
+  }
 
-  UI.inputApiKey.value = appApiKey || operatorApiKey || '';
-  window.scope = appApiKey
-    ? new evrythng.Application(appApiKey)
-    : new evrythng.Operator(operatorApiKey);
+  window.scope = new evrythng.Operator(operatorApiKey);
   window.scope.init().catch(() => alert('API key is invalid'));
 };
 
@@ -127,6 +125,7 @@ const showResults = (visible, text) => {
  */
 const handleResults = (res) => {
   console.log(JSON.stringify(res, null, 2));
+  showInstructions(false);
 
   if (typeof res === 'string') {
     alert(res);
@@ -173,7 +172,6 @@ const handleResults = (res) => {
     }
   }
 
-  showInstructions(false);
   showResults(true, output);
   // alert(output);
 };
@@ -208,12 +206,6 @@ const onWatermarkDetected = (discoverResult) => {
  * Setup click handlers on UI elements.
  */
 const setupClickHandlers = () => {
-  // Use API key
-  UI.buttonUseKey.addEventListener('click', () => {
-    window.scope = new evrythng.Application(UI.inputApiKey.value);
-    window.scope.init().catch(() => alert('Invalid Application API Key'));
-  });
-
   // Start stream button
   UI.buttonScanStream.addEventListener('click', () => {
     // Clear results and logs
