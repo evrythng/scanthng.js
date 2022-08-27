@@ -274,7 +274,6 @@ const checkFrame = (opts, onComplete, onError) => {
   } = opts;
 
   try {
-    console.log({ apiRequestPending });
     // If API requests take longer than the chosen interval, skip this frame.
     if (apiRequestPending) {
       // eslint-disable-next-line no-use-before-define
@@ -285,7 +284,6 @@ const checkFrame = (opts, onComplete, onError) => {
     // Scan each sample for a barcode
     return scanSample(opts)
       .then((scanValue) => {
-        console.log({ scanValue });
         // Nothin was found, wait until next frame
         if (!scanValue) {
           // Schedule next sample now this one is completed
@@ -340,7 +338,6 @@ function scheduleNextSample(opts, onComplete, onError) {
   // Break the loop, SDK caller cancelled scanning
   if (!isScanning) return;
 
-  console.log('scheduleNextSample');
   intervalHandle = setTimeout(() => checkFrame(opts, onComplete, onError), SAMPLE_GAP_MS);
 }
 
