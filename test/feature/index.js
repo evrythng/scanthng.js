@@ -165,7 +165,6 @@ const testScanStream = async () => {
 
     const filter = { method: '2d', type: 'qr_code' };
     const res = await scope.scanStream({ filter, containerId: CONTAINER_ID });
-    console.log(res);
     return Array.isArray(res) && res.length > 0 && res[0].meta.value.length > 1;
   });
 
@@ -264,7 +263,7 @@ const testScanWithZxing = async () => {
     alert('Please scan a 1D barcode, such as EAN-13 or Code 128');
 
     const filter = { method: '1d', type: 'auto' };
-    const res = await scope.scanStream({ filter, containerId: CONTAINER_ID });
+    const res = await scope.scanStream({ filter, containerId: CONTAINER_ID, useZxing: true });
     console.log(res);
     return Array.isArray(res) && res.length > 0 && res[0].meta.value.length > 1;
   });
