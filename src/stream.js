@@ -436,6 +436,7 @@ const scanCode = (opts, scope) => {
       video: {
         facingMode: 'environment',
         deviceId: devices.length > 0 ? devices[devices.length - 1].deviceId : undefined,
+        aspectRatio: idealHeight / idealWidth,
         width: { ideal: idealWidth },
         height: { ideal: idealHeight },
       },
