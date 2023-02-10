@@ -193,6 +193,11 @@ const getZxingBarcodeFormatType = (format) => {
   return map[format];
 };
 
+/**
+ * Test if this device is running any version of Android.
+ *
+ * @returns {boolean} true if 'Android' is in the UserAgent string.
+ */
 const isAndroidDevice = () => navigator.userAgent && navigator.userAgent.includes('Android');
 
 if (typeof module !== 'undefined') {
@@ -210,9 +215,3 @@ if (typeof module !== 'undefined') {
     getZxingBarcodeFormatType,
   };
 }
-
-/**
- * Test if this device is running any version of Android.
- *
- * @returns {boolean} true if 'Android' is in the UserAgent string.
- */
