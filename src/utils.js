@@ -207,3 +207,10 @@ if (typeof module !== 'undefined') {
     getZxingBarcodeFormatType,
   };
 }
+
+/**
+ * Test if this device is running any version of Android.
+ *
+ * @returns {boolean} true if 'Android' is in the UserAgent string.
+ */
+export const isAndroidDevice = () => navigator.userAgent && navigator.userAgent.includes('Android');
