@@ -429,7 +429,7 @@ const scanCode = (opts, scope) => {
     throw new Error('Please specify \'containerId\' where the video element can be added as a child');
   }
 
-  // Begin the stream by selecting a read facing camera, the last usually being the HQ sensor on
+  // Begin the stream by selecting a rear-facing camera, the last usually being the HQ sensor on
   // Android devices
   return navigator.mediaDevices.enumerateDevices()
     .then((devices) => devices.filter((device) => device.kind === 'videoinput'))
