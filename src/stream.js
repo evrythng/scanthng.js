@@ -436,7 +436,9 @@ const scanCode = (opts, scope) => {
     .then((devices) => navigator.mediaDevices.getUserMedia({
       video: {
         facingMode: 'environment',
-        deviceId: Utils.isAndroidDevice() && devices.length > 0 ? devices[devices.length - 1].deviceId : undefined,
+        deviceId: Utils.isAndroidDevice() && devices.length > 0
+          ? devices[devices.length - 1].deviceId
+          : undefined,
         width: { ideal: idealWidth },
         height: { ideal: idealHeight },
       },
