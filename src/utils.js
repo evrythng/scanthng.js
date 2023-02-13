@@ -193,6 +193,13 @@ const getZxingBarcodeFormatType = (format) => {
   return map[format];
 };
 
+/**
+ * Test if this device is running any version of Android.
+ *
+ * @returns {boolean} true if 'Android' is in the UserAgent string.
+ */
+const isAndroidDevice = () => navigator.userAgent && navigator.userAgent.includes('Android');
+
 if (typeof module !== 'undefined') {
   module.exports = {
     VIDEO_ELEMENT_ID,
@@ -202,6 +209,7 @@ if (typeof module !== 'undefined') {
     restoreUser,
     storeUser,
     insertVideoElement,
+    isAndroidDevice,
     promptImageDownload,
     getCropDimensions,
     getZxingBarcodeFormatType,

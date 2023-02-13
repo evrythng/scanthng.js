@@ -429,17 +429,23 @@ const scanCode = (opts, scope) => {
     throw new Error('Please specify \'containerId\' where the video element can be added as a child');
   }
 
-  // Begin the stream by selecting a read facing camera, the last usually being the HQ sensor
+  // Begin the stream by selecting a rear-facing camera, the last usually being the HQ sensor on
+  // Android devices
   return navigator.mediaDevices.enumerateDevices()
     .then((devices) => devices.filter((device) => device.kind === 'videoinput'))
-    .then((devices) => navigator.mediaDevices.getUserMedia({
-      video: {
-        facingMode: 'environment',
-        deviceId: devices.length > 0 ? devices[devices.length - 1].deviceId : undefined,
-        width: { ideal: idealWidth },
-        height: { ideal: idealHeight },
-      },
-    }))
+    .then((devices) => {
+      const deviceId = Utils.isAndroidDevice() && devices.length > 0
+        ? devices[devices.length - 1].deviceId
+        : undefined;
+      return navigator.mediaDevices.getUserMedia({
+        video: {
+          facingMode: 'environment',
+          deviceId,
+          width: { ideal: idealWidth },
+          height: { ideal: idealHeight },
+        },
+      });
+    })
     .then((newStream) => {
       stream = newStream;
       Utils.insertVideoElement(containerId);
