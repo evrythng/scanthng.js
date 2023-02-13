@@ -433,16 +433,19 @@ const scanCode = (opts, scope) => {
   // Android devices
   return navigator.mediaDevices.enumerateDevices()
     .then((devices) => devices.filter((device) => device.kind === 'videoinput'))
-    .then((devices) => navigator.mediaDevices.getUserMedia({
-      video: {
-        facingMode: 'environment',
-        deviceId: Utils.isAndroidDevice() && devices.length > 0
-          ? devices[devices.length - 1].deviceId
-          : undefined,
-        width: { ideal: idealWidth },
-        height: { ideal: idealHeight },
-      },
-    }))
+    .then((devices) => {
+      const deviceId = Utils.isAndroidDevice() && devices.length > 0
+        ? devices[devices.length - 1].deviceId
+        : undefined;
+      return navigator.mediaDevices.getUserMedia({
+        video: {
+          facingMode: 'environment',
+          deviceId,
+          width: { ideal: idealWidth },
+          height: { ideal: idealHeight },
+        },
+      });
+    })
     .then((newStream) => {
       stream = newStream;
       Utils.insertVideoElement(containerId);
