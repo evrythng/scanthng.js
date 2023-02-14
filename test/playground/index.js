@@ -164,7 +164,7 @@ const onLoad = () => {
       containerId: SCANSTREAM_CONTAINER_ID,
       offline,
       autoStop,
-      useZxing: method === '1d',
+      useZxing: method === '1d' || (method === '2d' && type === 'dm'),
       imageConversion: {
         exportFormat: 'image/jpeg',
         greyscale: false,

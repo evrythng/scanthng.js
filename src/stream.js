@@ -18,7 +18,8 @@ let stream;
 let canvas;
 let drawImg;
 let digimarcDetector;
-let zxingReader;
+let zxing1DReader;
+let zxingDMReader;
 let apiRequestPending = false;
 let lastScanTime = 0;
 let isScanning = false;
@@ -156,15 +157,30 @@ const scanWithJsQr = () => {
 };
 
 /**
- * Scan canvas with zxing-js/browser.
+ * Scan canvas with zxing-js/browser for 1D barcodes.
  *
  * @returns {object} - Scanned text and type name, if found.
  */
-const scanWithZxing = () => {
+const scanWithZxing1D = () => {
   try {
-    const zxingRes = zxingReader.decodeFromCanvas(canvas);
-    const formatType = Utils.getZxingBarcodeFormatType(zxingRes.getBarcodeFormat());
-    return { text: zxingRes.text, formatType };
+    const res = zxing1DReader.decodeFromCanvas(canvas);
+    const formatType = Utils.getZxingBarcodeFormatType(res.getBarcodeFormat());
+    return { text: res.text, formatType };
+  } catch (err) {
+    // No codes found in sample
+    return undefined;
+  }
+};
+
+/**
+ * Scan canvas with zxing-js/browser for 2D DataMatrix barcodes.
+ *
+ * @returns {object} - Scanned text and type name, if found.
+ */
+const scanWithZxingDataMatrix = () => {
+  try {
+    const res = zxingDMReader.decodeFromCanvas(canvas);
+    return { text: res.text, formatType: 'dm' };
   } catch (err) {
     // No codes found in sample
     return undefined;
@@ -176,7 +192,7 @@ const scanWithZxing = () => {
  * A callback is required since any promise per-frame won't necessarily resolve or reject.
  *
  * @param {object} opts - The scanning options.
- * @returns {Promise}
+ * @returns {Promise} Promise that resolves a result, or nothing for this frame.
  */
 const scanSample = (opts) => new Promise((resolve) => {
   // Source may not yet be ready
@@ -185,7 +201,6 @@ const scanSample = (opts) => new Promise((resolve) => {
   // Draw video frame onto the main canvas
   updateCanvasFrame();
 
-  // Extract required options
   const {
     filter: { method, type },
     useDiscover = false,
@@ -199,19 +214,26 @@ const scanSample = (opts) => new Promise((resolve) => {
     const result = scanWithJsQr();
     if (!result) return resolve();
 
-    resolve(result.data);
-    return undefined;
+    return resolve(result.data);
   }
 
-  // Client-side 1D barcode scan with zxing-js/browser
+  // Client-side 1D barcode scan with zxing-js/browser if it's available
   if (method === '1d' && window.ZXingBrowser) {
-    const result = scanWithZxing();
+    const result = scanWithZxing1D();
     if (!result) return resolve();
 
     // Update filter to allow createResultObject to identify Thng/product
     opts.filter.type = result.formatType;
+    return resolve(result.text);
+  }
 
-    // Resolve the scan value
+  // Client-side 2D DataMatrix scan with zxing-js/browser if it's available
+  if (method === '2d' && type === 'dm' && window.ZXingBrowser) {
+    const result = scanWithZxingDataMatrix();
+    if (!result) return resolve();
+
+    // Update filter to allow createResultObject to identify Thng/product
+    opts.filter.type = result.formatType;
     return resolve(result.text);
   }
 
@@ -364,27 +386,27 @@ const findBarcodeInStream = (opts) => {
     autoStop,
     imageConversion,
     useDiscover,
-    useZxing,
     onScanValue,
   } = opts;
   const usingDiscover = method === 'digimarc' && useDiscover;
   const usingJsQR = method === '2d' && type === 'qr_code';
-  const usingZxing = method === '1d' && useZxing;
+  const usingZxing = method === '1d' || (method === '2d' && type === 'dm');
   const isLocalScan = usingJsQR || usingZxing;
 
-  // Pre-load related libraries
-  if (usingJsQR) {
-    if (!window.jsQR) throw new Error('jsQR (https://github.com/cozmo/jsQR) not found. You must include it in a <script> tag.');
+  // Pre-load related libraries if scan types use them
+  if (usingJsQR && !window.jsQR) {
+    throw new Error('jsQR (https://github.com/cozmo/jsQR) not found. You must include it in a <script> tag.');
   }
   if (usingDiscover && !digimarcDetector) {
     if (!window.DigimarcDetector) throw new Error('discover.js not found. You must include it (and associated WASM/wrapper) in a <script> tag');
 
     digimarcDetector = new window.DigimarcDetector();
   }
-  if (usingZxing && !zxingReader) {
+  if (usingZxing && !zxing1DReader) {
     if (!window.ZXingBrowser) throw new Error('zxing-js/browser not found. You must include it in a <script> tag');
 
-    zxingReader = new window.ZXingBrowser.BrowserMultiFormatOneDReader();
+    zxing1DReader = new window.ZXingBrowser.BrowserMultiFormatOneDReader();
+    zxingDMReader = new window.ZXingBrowser.BrowserDatamatrixCodeReader();
   }
 
   // If not a local QR scan, or using discover.js and no Scope is available

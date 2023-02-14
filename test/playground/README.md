@@ -38,7 +38,7 @@ python3 -m http.server
 
 Query parameters can be used to simplify testing flow:
 
-* `app` - pre-fill Application API Key.
+* `operator` - pre-fill Operator API Key.
 
 * `method` - pre-fill scan method field.
 
