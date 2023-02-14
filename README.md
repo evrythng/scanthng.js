@@ -66,7 +66,7 @@ Include using a script tag:
 Add the script tag to your HTML page, specifying the version you will use:
 
 ```html
-<script src="https://d10ka0m22z5ju5.cloudfront.net/js/scanthng/4.13.1/scanthng-4.13.1.js"></script>
+<script src="https://d10ka0m22z5ju5.cloudfront.net/js/scanthng/4.14.0/scanthng-4.14.0.js"></script>
 ```
 
 ### Supported Devices
